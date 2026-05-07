@@ -5,6 +5,8 @@
 
 class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
 
+  // TODO: update constraints to meet 100% coverage 
+
   // ---- Control Signals ----
   // Drives the randomization of dllp_type based on the current Link state
   rand pcie_dlcmsm_state_e  current_state;  
@@ -30,7 +32,7 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
 
   // ---- UVM Factory Registration & Field Macros ----
   `uvm_object_utils_begin(pcie_dll_dllp_seq_item)
-    `uvm_field_enum(pcie_dlcmsm_state_e, current_state,   UVM_ALL_ON)
+    `uvm_field_enum(pcie_dlcmsm_state_e, current_state,  UVM_ALL_ON)
     `uvm_field_enum(pcie_dllp_type_e, dllp_type,         UVM_ALL_ON)
     `uvm_field_int (crc,                                 UVM_ALL_ON)
     `uvm_field_int (dllp_payload,                        UVM_ALL_ON)
@@ -69,12 +71,12 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
   constraint dllp_type_constr { 
     
     // Feature Exchange State
-    if (current_state == 3'b001) { 
+    if (current_state == DL_FEATURE_EXCH) { 
       dllp_type == DLLP_FEATURE_REQ;
     } 
     
     // InitFC1 State
-    else if (current_state == 3'b010) { 
+    else if (current_state == DL_INIT_FC1) { 
       dllp_type inside { 
         DLLP_INITFC1_P, 
         DLLP_INITFC1_NP, 
@@ -83,7 +85,7 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
     } 
     
     // InitFC2 State
-    else if (current_state == 3'b110) { 
+    else if (current_state == DL_INIT_FC2) { 
       dllp_type inside { 
         DLLP_INITFC2_P, 
         DLLP_INITFC2_NP, 
@@ -108,7 +110,7 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
 
     // Calculate the 16-bit CRC
     full_data = {dllp_type, dllp_payload};
-    crc       = pcie_dll_pkg::crc_generator::calculate_pcie_crc(full_data);
+    crc       = pcie_dll_pkg::crc16_generator::calculate_dllp_crc(full_data);
       
     // Assemble the final 48-bit DLLP (Type + Payload + CRC)
     dllp      = pack();
