@@ -60,6 +60,7 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                     if (dllp_item_rx.dllp_type == DLLP_INITFC1_P) begin
                         counter++;
                         `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP POSTED, count: %0d", counter), UVM_LOW)
+                        // TODO : Save Credit value to internal peer counter
                     end
 
                     else 

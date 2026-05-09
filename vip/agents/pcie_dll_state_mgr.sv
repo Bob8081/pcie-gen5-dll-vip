@@ -21,6 +21,8 @@ class pcie_dll_state_mgr extends uvm_component;
     
     pcie_dlcmsm_state_e dlsm_state; //to track the current state of the DLCM state machine, which is used in some states to decide the next steps
 
+    uvm_analysis_port #(pcie_dlcmsm_state_e) state_ap; //broadcast state changes to the scoreboard
+
     uvm_event target_reached; //to be triggered when the state machine reaches the target state (DL_ACTIVE) to let the testbench know about it and to check the coverage at that point
 
     function new(string name = "pcie_dll_state_mgr", uvm_component parent = null);
@@ -28,6 +30,7 @@ class pcie_dll_state_mgr extends uvm_component;
         dllp_fifo = new("dllp_fifo", this);
         dllp_export = new("dllp_export", this);
         target_reached = new("target_reached");
+        state_ap = new("state_ap", this);
     endfunction
 
     function void write (pcie_dll_base_seq_item item);
@@ -85,6 +88,9 @@ class pcie_dll_state_mgr extends uvm_component;
         end  
         
         dlsm_state = new_state; //update the current state variable to the new state
+
+        // Broadcast the new state to the scoreboard
+        state_ap.write(dlsm_state);
 
         //pass the satate manager handle to the state created to let it access the state manager and its methods and properties
         current_state.start_state(this); 
