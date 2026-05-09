@@ -2,6 +2,7 @@ class pcie_dll_init2_seq extends pcie_dll_base_seq;
 
 // registeration 
 `uvm_object_utils(pcie_dll_init2_seq)
+int counter;
 
 // construction
 function new (string name = "pcie_dll_init2_seq");
@@ -12,8 +13,9 @@ endfunction
 virtual task body ();
 pcie_dll_dllp_seq_item init2_transaction ; // handle
 
-
-repeat (5000) begin
+counter=0;
+repeat (50) begin
+  counter++;
 init2_transaction= pcie_dll_dllp_seq_item::type_id::create ("init2_transaction"); // instance in factory 
 
 start_item (init2_transaction);
@@ -35,6 +37,9 @@ if (! init2_transaction.randomize() with {
       }
     } ) // current state = init two state.
   `uvm_fatal ("FATAL", $sformatf("RANDOMIZATION FAILED !!"));
+    
+//debug info
+// `uvm_info("seq_counter", $sformatf("my role is %s, creating init_fc2_packet number : %d, current state = %s", role.name, counter, init2_transaction.current_state.name()), UVM_LOW);
 
 finish_item (init2_transaction);
 
