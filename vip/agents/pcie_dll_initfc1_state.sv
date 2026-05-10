@@ -1,6 +1,9 @@
 class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
 
- 
+    bit rx_p;
+    bit rx_np;
+    bit rx_cpl;
+    pcie_dllp_type_e last_recieved;
     uvm_event finished;
 
     pcie_dll_init1_seq init1_seq;
@@ -8,7 +11,7 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
     //for monitoring the recieved sequence of DLLPS
     int counter;
     pcie_dll_dllp_seq_item dllp_item_rx;
-
+    
 
     `uvm_object_utils(pcie_dll_DL_INIT_FC1)
 
@@ -27,98 +30,156 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
 
         fork 
         begin
-        init1_seq.start(manager.dllp_sequencer);
+            init1_seq.start(manager.dllp_sequencer);
         end
 
         begin
-        forever begin 
-            
-            if (counter == 3) begin
-                //TODO :add event for setting the initfc1 flag and make it break the loop not the counter check (done)
-                //TODO : add check for initfc2 recieve and make it trigger the flag only  (done)
-                break;
-            end
+            forever 
+            begin 
 
-            else 
-            begin //TODO : throw errors when the protocol is violated 
-                //TODO : add checks for the timing using the timing check in the sequences 
-                //TODO : add check for values of credits recieved is matched in each packet 
-                
-
-                manager.dllp_fifo.get(dllp_item_rx);
-
-                if ((dllp_item_rx.dllp_type == DLLP_INITFC2_P) || (dllp_item_rx.dllp_type == DLLP_INITFC2_NP) || (dllp_item_rx.dllp_type == DLLP_INITFC2_CPL)) 
+                if (counter == 3) 
                 begin
-                    
+                    //TODO :add event for setting the initfc1 flag and make it break the loop not the counter check (done)
+                    //TODO : add check for initfc2 recieve and make it trigger the flag only  (done)
                     break;
-
                 end
 
-                else if(counter==0)
-                begin
+                else 
+                begin 
+                    //TODO : throw errors when the protocol is violated 
+                    //TODO : add checks for the timing using the timing check in the sequences 
+                    //TODO : add check for values of credits recieved is matched in each packet 
 
-                    if (dllp_item_rx.dllp_type == DLLP_INITFC1_P) begin
-                        counter++;
-                        `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP POSTED, count: %0d", counter), UVM_LOW)
-                        // TODO : Save Credit value to internal peer counter
-                    end
 
-                    else 
-                        `uvm_error("INITFC1_STATE", $sformatf("Received unexpected Packet of type : %s, resetting counter, count: %0d", dllp_item_rx.dllp_type.name, counter))
-                    
-                end
+                    manager.dllp_fifo.get(dllp_item_rx);
 
-                else if(counter==1)
-
-                begin
-                    if (dllp_item_rx.dllp_type == DLLP_INITFC1_NP)
+                    if ((dllp_item_rx.dllp_type == DLLP_INITFC2_P && rx_p && rx_np && rx_cpl)) 
                     begin
-                        counter++;
-                        `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP NON-POSTED, count: %0d", counter), UVM_LOW)
+                        break;
                     end
                     else if (dllp_item_rx.dllp_type == DLLP_INITFC1_P)
                     begin
-                        `uvm_error("INITFC1_STATE", $sformatf("Received duplicated FC1 DLLP POSTED, count: %0d", counter))
-                    end
-                    else 
-                    begin
-                        counter=0;
-                        `uvm_error("INITFC1_STATE", $sformatf("Received unexpected Packet of type : %s, resetting counter, count: %0d", dllp_item_rx.dllp_type.name, counter))
-                    end
-                end
-                else if (counter==2) 
-                begin
-                    if (dllp_item_rx.dllp_type == DLLP_INITFC1_CPL)
-                    begin
-                        counter++;
-                        `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP COMPLETION, count: %0d", counter), UVM_LOW)
-                    end
+                        if (rx_p)
+                        begin
+                            if (!(dllp_item_rx.hdr_FC == manager.partner_hdr_fc_p_limit))
+                            begin
+                            `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.partner_hdr_fc_p_limit))     
+                            end
+                        end
+                        else 
+                        begin
+                            manager.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC);
+                            rx_p = 1;
+                        end 
+
+                        if(counter==0) 
+                        begin
+                            counter++;
+                            `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP POSTED, count: %0d", counter), UVM_LOW)
+                        end
+                        else 
+                        begin  
+                            if (last_recieved == DLLP_INITFC1_CPL) 
+                            begin
+                                counter++ ; 
+                                `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP CPL, count: %0d", counter), UVM_LOW)
+                            end 
+                            else 
+                            begin
+                                counter = 0;
+                                `uvm_error("INITFC1_STATE", $sformatf("Received unexpected Packet of type : %s, resetting counter, count: %0d",
+                                                                        dllp_item_rx.dllp_type.name, counter))
+                            end 
+                        end //end of counter = 0  else
+                    end//end of posted case
                     else if (dllp_item_rx.dllp_type == DLLP_INITFC1_NP)
                     begin
-                        `uvm_error("INITFC1_STATE", $sformatf("Received duplicated FC1 DLLP NON-POSTED, count: %0d", counter))
-                    end
-                    else if (dllp_item_rx.dllp_type == DLLP_INITFC1_P)
+                        if (rx_np)
+                        begin
+                            if (!(dllp_item_rx.hdr_FC == manager.partner_hdr_fc_p_limit))
+                            begin
+                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.partner_hdr_fc_np_limit))     
+                            end
+                        end
+                        else 
+                        begin
+                            manager.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC);
+                            rx_np = 1;
+                        end
+
+                        if (counter == 0)
+                        begin
+                            counter++;
+                            `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP NON_POSTED, count: %0d", counter), UVM_LOW)
+                        end
+                        else 
+                        begin
+                            if (last_recieved == DLLP_INITFC1_P)
+                            begin
+                                counter++;
+                                `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP NON_POSTED, count: %0d", counter), UVM_LOW)
+                            end
+                            else 
+                            begin 
+                                counter = 0;
+                                `uvm_error("INITFC1_STATE", $sformatf("Received unexpected Packet of type : %s, resetting counter, count: %0d",
+                                                                        dllp_item_rx.dllp_type.name, counter))
+                            end
+                        end //end of counter=0 else case
+
+                    end   //end of non posted case
+                    else if (dllp_item_rx.dllp_type == DLLP_INITFC1_CPL)
                     begin
-                        counter = 1 ;
-                        `uvm_error("INITFC1_STATE", $sformatf("Received unexpected FC1 DLLP POSTED, count: %0d", counter))
+                        if (rx_cpl)
+                        begin
+                            if (!(dllp_item_rx.hdr_FC == manager.partner_hdr_fc_cpl_limit))
+                            begin
+                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong CPL HDR CREDITS, real value = %d",manager.partner_hdr_fc_cpl_limit))     
+                            end
+                        end
+                        else 
+                        begin
+                            manager.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC);
+                            rx_cpl = 1;
+                        end 
+
+                        if(counter==0) 
+                        begin
+                            counter++;
+                            `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP POSTED, count: %0d", counter), UVM_LOW)
+                        end
+                        else 
+                        begin  
+                            if (last_recieved == DLLP_INITFC1_NP) 
+                            begin
+                                counter++;
+                                `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP COMPELETION, count: %0d", counter), UVM_LOW)
+                            end
+                            else 
+                            begin
+                                counter = 0;
+                                `uvm_error("INITFC1_STATE", $sformatf("Received unexpected Packet of type : %s, resetting counter, count: %0d",
+                                                                    dllp_item_rx.dllp_type.name, counter))
+                            end
+                        end
+
                     end
-                    else
-                    begin
-                        counter=0;
-                        `uvm_error("INITFC1_STATE", $sformatf("Received unexpected packet of type : %s, resetting counter, count: %0d", dllp_item_rx.dllp_type.name, counter))
-                    end
-                end
-                    
-            end
-         end //end of forever loop
+                end // big else
+
+                last_recieved = dllp_item_rx.dllp_type; //save last recieved dllp for sequence proper tracking
+            end // forever loop
+
+
+
             next_state = DL_INIT_FC2;
             finished.trigger();
-        end //end of thread 2
-       
-        //TODO : add third fork to  check for the pl_linkup signal and set next state to DL_INACTIVE whenever the link is down
-    join_none
 
-    //TODO : here let the recieving thread only decide the transition to the next state don't make it join_any
+        end //end of thread 2
+
+        //TODO : add third fork to  check for the pl_linkup signal and set next state to DL_INACTIVE whenever the link is down
+        join_none
+
+        //TODO : here let the recieving thread only decide the transition to the next state don't make it join_any
 
         finished.wait_trigger(); // wait till any protocol of the two completes and triggers the event
 

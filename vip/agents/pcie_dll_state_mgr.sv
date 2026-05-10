@@ -1,7 +1,7 @@
 //state manager class to handle all the states in the Data Link Layer
 class pcie_dll_state_mgr extends uvm_component;
     `uvm_component_utils(pcie_dll_state_mgr);
-  
+        
     pcie_dll_role_e role;
 
     uvm_analysis_imp #(pcie_dll_base_seq_item, pcie_dll_state_mgr) dllp_export; //connected to the monitor on the agent level
@@ -24,6 +24,18 @@ class pcie_dll_state_mgr extends uvm_component;
     uvm_analysis_port #(pcie_dlcmsm_state_e) state_ap; //broadcast state changes to the scoreboard
 
     uvm_event target_reached; //to be triggered when the state machine reaches the target state (DL_ACTIVE) to let the testbench know about it and to check the coverage at that point
+
+    // Posted credits
+    int unsigned partner_hdr_fc_p_limit;
+    int unsigned partner_data_fc_p_limit;
+
+    // Non-Posted credits
+    int unsigned partner_hdr_fc_np_limit;
+    int unsigned partner_data_fc_np_limit;
+
+    // Completion credits
+    int unsigned partner_hdr_fc_cpl_limit;
+    int unsigned partner_data_fc_cpl_limit;
 
     function new(string name = "pcie_dll_state_mgr", uvm_component parent = null);
         super.new(name, parent);
@@ -96,6 +108,25 @@ class pcie_dll_state_mgr extends uvm_component;
         current_state.start_state(this); 
 
     endtask
+
+    function void set_credits_value(pcie_dllp_type_e t, int unsigned hdr_fc, int unsigned data_fc);
+
+        if (t == DLLP_INITFC1_P) begin
+            partner_hdr_fc_p_limit = hdr_fc;
+            partner_data_fc_p_limit = data_fc;
+        end
+        else if (t == DLLP_INITFC1_NP) begin
+            partner_hdr_fc_np_limit = hdr_fc;
+            partner_data_fc_np_limit = data_fc;
+        end
+        else if (t == DLLP_INITFC1_CPL) begin
+            partner_hdr_fc_cpl_limit = hdr_fc;
+            partner_data_fc_cpl_limit = data_fc;
+        end
+        `uvm_info("CRD SAVED",$sformatf("Recieved the credits for %s \n current credits saved for each type : \n Posted : hdr = %d , data = %d \n NON_Posted : hdr =%d, data= %d \n Compeletion : hdr = %d , data= %d ",
+                    t.name(),partner_hdr_fc_p_limit,partner_data_fc_p_limit,partner_hdr_fc_np_limit,partner_data_fc_np_limit,partner_hdr_fc_cpl_limit,
+                    partner_data_fc_cpl_limit),UVM_LOW)
+    endfunction
 
     virtual task send_to_driver(pcie_dll_base_seq_item packet); //to be used in case of the state decides what to send next 
         send_single_packet single_seq;
