@@ -94,6 +94,10 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
     } 
   }
 
+  constraint scl_flow_control {
+    feature_support inside {0, 1};
+  }
+
   // ---- Methods ----
 
   // post_randomize() — Assembles payload, calculates CRC, and concatenates final 48-bit DLLP
@@ -108,28 +112,30 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
       dllp_payload = {hdr_scale, hdr_FC, data_scale, data_FC};
     end
 
-    // Calculate the 16-bit CRC
-    full_data = {dllp_type, dllp_payload};
-    crc       = pcie_dll_pkg::crc16_generator::calculate_dllp_crc(full_data);
-      
-    // Assemble the final 48-bit DLLP (Type + Payload + CRC)
-    dllp      = pack();
+    // Compute CRC on the 4 wire-ordered data bytes directly.
+    crc  = pcie_dll_pkg::crc16_generator::calculate_dllp_crc(pack_data());
+    // Assemble the 48-bit wire word
+    dllp = pack();
+
   endfunction
 
-  // pack() — serialize the transaction into the 48-bit wire representation.
-  // Layout (MSB→LSB): [47:40] dllp_type | [39:16] dllp_payload | [15:0] crc
-  // Driver calls this to get the value to place on lp_data[47:0].
+  // Returns the 4 pre-CRC bytes in wire order (byte 0 at [7:0]).
+  function bit [31:0] pack_data();
+    return {dllp_payload[7:0], dllp_payload[15:8], dllp_payload[23:16], dllp_type[7:0]};
+  endfunction
+
+
   function bit [47:0] pack();
-    return {dllp_type, dllp_payload, crc};
+    // Byte 0 (dllp_type) at LSB, CRC at MSB
+    return {crc, dllp_payload, dllp_type};
   endfunction
 
-  // unpack() — deserialize a raw 48-bit bus word back into all named fields.
   // Monitor calls this after reconstructing the wire word from lp_data/pl_data.
   function void unpack(bit [47:0] raw);
     dllp         = raw;
-    dllp_type    = pcie_dllp_type_e'(raw[47:40]);
-    dllp_payload = raw[39:16];
-    crc          = raw[15:0];
+    dllp_type    = pcie_dllp_type_e'(raw[7:0]);
+    dllp_payload = raw[31:8];
+    crc          = raw[47:32];
 
     // Expand payload sub-fields based on decoded type
     if (dllp_type == DLLP_FEATURE_REQ) begin
@@ -141,6 +147,12 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
       data_scale = dllp_payload[13:12];
       data_FC    = dllp_payload[11:0];
     end
+  endfunction
+
+  // Verifies the unpacked CRC against the computed CRC for the unpacked payload.
+  // Can be used by monitors or scoreboards to check data integrity.
+  function bit verify_crc();
+    return (crc == pcie_dll_pkg::crc16_generator::calculate_dllp_crc(pack_data()));
   endfunction
 
 endclass : pcie_dll_dllp_seq_item
