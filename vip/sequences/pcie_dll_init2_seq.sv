@@ -1,50 +1,146 @@
+// ---- pcie_dll_init2_seq ----
+
 class pcie_dll_init2_seq extends pcie_dll_base_seq;
 
-// registeration 
-`uvm_object_utils(pcie_dll_init2_seq)
-int counter;
+  // ---- UVM Factory Registration ----
+  `uvm_object_utils(pcie_dll_init2_seq)
 
-// construction
-function new (string name = "pcie_dll_init2_seq");
-super.new(name);
-endfunction
+  // ---- Sequence Configuration & State Variables ----
+  // number of iterations
+  rand int unsigned req_count;
 
-// generate a sequence of sequence items
-virtual task body ();
-pcie_dll_dllp_seq_item init2_transaction ; // handle
+  // Local variables for config-driven credits
+  pcie_dll_env_cfg   cfg;
+  bit [1:0]          hdr_scale_p;
+  bit [7:0]          hdr_fc_p;
+  bit [1:0]          data_scale_p;
+  bit [11:0]         data_fc_p;
+  bit [1:0]          hdr_scale_np;
+  bit [7:0]          hdr_fc_np;
+  bit [1:0]          data_scale_np;
+  bit [11:0]         data_fc_np;
+  bit [1:0]          hdr_scale_cpl;
+  bit [7:0]          hdr_fc_cpl;
+  bit [1:0]          data_scale_cpl;
+  bit [11:0]         data_fc_cpl;
 
-counter=0;
-repeat (50) begin
-  counter++;
-init2_transaction= pcie_dll_dllp_seq_item::type_id::create ("init2_transaction"); // instance in factory 
+  // ---- Constructor ----
+  function new (string name = "pcie_dll_init2_seq");
+    super.new(name);
+  endfunction
 
-start_item (init2_transaction);
+  // ---- Main Body Task ----
+  virtual task body();
+    pcie_dll_dllp_seq_item init2_transaction;
 
-// randomization
-if (! init2_transaction.randomize() with {
-      current_state == DL_INIT_FC2;
-      
-      // Pull credits from config based on DLLP type (role agnostic, as cfg is role-specific)
-      if (dllp_type == DLLP_INITFC2_P) {
-        hdr_scale == cfg.init_fc_hdr_scale_p;   hdr_FC == cfg.init_fc_hdr_p;
-        data_scale == cfg.init_fc_data_scale_p; data_FC == cfg.init_fc_data_p;
-      } else if (dllp_type == DLLP_INITFC2_NP) {
-        hdr_scale == cfg.init_fc_hdr_scale_np;   hdr_FC == cfg.init_fc_hdr_np;
-        data_scale == cfg.init_fc_data_scale_np; data_FC == cfg.init_fc_data_np;
-      } else if (dllp_type == DLLP_INITFC2_CPL) {
-        hdr_scale == cfg.init_fc_hdr_scale_cpl;   hdr_FC == cfg.init_fc_hdr_cpl;
-        data_scale == cfg.init_fc_data_scale_cpl; data_FC == cfg.init_fc_data_cpl;
-      }
-    } ) // current state = init two state.
-  `uvm_fatal ("FATAL", $sformatf("RANDOMIZATION FAILED !!"));
-    
-//debug info
-// `uvm_info("seq_counter", $sformatf("my role is %s, creating init_fc2_packet number : %d, current state = %s", role.name, counter, init2_transaction.current_state.name()), UVM_LOW);
+    `uvm_info("SEQ", "Starting InitFC2 Phased Traffic Generation...", UVM_LOW)
 
-finish_item (init2_transaction);
+    // Get config from uvm_config_db using sequencer context
+    if (!uvm_config_db#(pcie_dll_env_cfg)::get(m_sequencer, "", "cfg", cfg)) begin
+      `uvm_fatal("SEQ", "Failed to get pcie_dll_env_cfg from config_db")
+    end
 
-end
+    // Extract fixed FC credit values from config for each VC
+    hdr_scale_p    = cfg.init_fc_hdr_scale_p;
+    hdr_fc_p       = cfg.init_fc_hdr_p;
+    data_scale_p   = cfg.init_fc_data_scale_p;
+    data_fc_p      = cfg.init_fc_data_p;
 
-endtask
+    hdr_scale_np   = cfg.init_fc_hdr_scale_np;
+    hdr_fc_np      = cfg.init_fc_hdr_np;
+    data_scale_np  = cfg.init_fc_data_scale_np;
+    data_fc_np     = cfg.init_fc_data_np;
 
-endclass : pcie_dll_init2_seq 
+    hdr_scale_cpl  = cfg.init_fc_hdr_scale_cpl;
+    hdr_fc_cpl     = cfg.init_fc_hdr_cpl;
+    data_scale_cpl = cfg.init_fc_data_scale_cpl;
+    data_fc_cpl    = cfg.init_fc_data_cpl;
+
+    // Randomize req_count
+    if (!this.randomize() with { 
+          req_count   inside {[150:200]};
+        }) begin
+      `uvm_fatal("SEQ", "Sequence Randomization Failed!")
+    end
+
+
+    repeat (req_count) begin
+      // ---- Phase 1: P-Heavy Traffic (98% P, 1% NP, 1% CPL) ----
+      init2_transaction = pcie_dll_dllp_seq_item::type_id::create("init2_transaction"); 
+
+      start_item(init2_transaction);
+
+      if (!init2_transaction.randomize() with { 
+            current_state == DL_INIT_FC2; 
+
+            hdr_scale  == hdr_scale_p;
+            data_scale == data_scale_p;
+            hdr_FC     == hdr_fc_p;
+            data_FC    == data_fc_p;
+            
+            dllp_type dist { 
+              DLLP_INITFC2_P   := 98, 
+              DLLP_INITFC2_NP  := 1, 
+              DLLP_INITFC2_CPL := 1 
+            }; 
+          }) begin
+        `uvm_fatal("SEQ_ITEM", "INITFC2-P Phase: Item Randomization Failed!")
+      end
+
+      finish_item(init2_transaction);
+
+
+      // ---- Phase 2: NP-Heavy Traffic (1% P, 98% NP, 1% CPL) ----
+      init2_transaction = pcie_dll_dllp_seq_item::type_id::create("init2_transaction");
+
+      start_item(init2_transaction);
+
+      if (!init2_transaction.randomize() with { 
+            current_state == DL_INIT_FC2; 
+
+             hdr_scale  == hdr_scale_np;
+             data_scale == data_scale_np;
+             hdr_FC     == hdr_fc_np;
+             data_FC    == data_fc_np;
+            
+            dllp_type dist { 
+              DLLP_INITFC2_P   := 1, 
+              DLLP_INITFC2_NP  := 98, 
+              DLLP_INITFC2_CPL := 1 
+            };
+          }) begin
+        `uvm_fatal("SEQ_ITEM", "INITFC2-NP Phase: Item Randomization Failed!")
+      end
+
+      finish_item(init2_transaction);
+
+      // ---- Phase 3: CPL-Heavy Traffic (2% P, 2% NP, 96% CPL) ----
+      init2_transaction = pcie_dll_dllp_seq_item::type_id::create("init2_transaction");
+
+      start_item(init2_transaction);
+
+      if (!init2_transaction.randomize() with { 
+            current_state == DL_INIT_FC2; 
+
+            hdr_scale  == hdr_scale_cpl;
+            data_scale == data_scale_cpl;
+            hdr_FC     == hdr_fc_cpl;
+            data_FC    == data_fc_cpl;
+            
+            dllp_type dist { 
+              DLLP_INITFC2_P   := 1, 
+              DLLP_INITFC2_NP  := 1, 
+              DLLP_INITFC2_CPL := 98 
+            }; 
+          }) begin
+        `uvm_fatal("SEQ_ITEM", "INITFC2-CPL Phase: Item Randomization Failed!")
+      end
+
+      finish_item(init2_transaction);
+    end
+
+    `uvm_info("SEQ", "InitFC2 Generation Complete.", UVM_LOW)
+
+  endtask
+
+endclass : pcie_dll_init2_seq

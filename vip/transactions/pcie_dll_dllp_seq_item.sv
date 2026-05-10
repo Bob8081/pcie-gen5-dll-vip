@@ -1,111 +1,135 @@
+// ---- pcie_dll_dllp_seq_item ----
+// Represents a well-formed Data Link Layer Packet (DLLP) for PCIe.
+// Handles the generation of InitFC and Feature Request payloads,
+// along with automatic CRC calculation post-randomization.
+
 class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
 
-  // DLCMSM state — drives which DLLP types are legal for this transaction
-  rand pcie_dlcmsm_state_e  current_state;
+  // TODO: update constraints to meet 100% coverage 
 
-  // internal signals
-  rand pcie_dllp_type_e     dllp_type;
-  bit  [15:0]               crc;
-  bit  [23:0]               dllp_payload;
+  // ---- Control Signals ----
+  // Drives the randomization of dllp_type based on the current Link state
+  rand pcie_dlcmsm_state_e  current_state;  
 
-  // initFC signals
+  // ---- Core DLLP Fields ----
+  rand pcie_dllp_type_e     dllp_type;      // INITFC1_P, FEATURE_REQ
+  bit  [15:0]               crc;            // Calculated automatically in post_randomize
+  bit  [23:0]               dllp_payload;   // Constructed based on dllp_type
+
+  // ---- InitFC Specific Fields (Credits) ----
   rand bit [1:0]            hdr_scale;
   rand bit [1:0]            data_scale;
   rand bit [7:0]            hdr_FC;
   rand bit [11:0]           data_FC;
 
-  // feature request signals
+  // ---- Feature Request Specific Fields ----
   rand bit [22:0]           feature_support;
   rand bit                  feature_ack;
 
-  // protocol signal
-  bit  [47:0]               dllp;
-  rand int unsigned         delay;
+  // ---- Final Assembled Packet & Timing ----
+  bit  [47:0]               dllp;           // The complete 6-byte DLLP sent to the driver
+  rand int unsigned         delay;          // Delay in cycles before sending the packet
 
-  // registration
+  // ---- UVM Factory Registration & Field Macros ----
   `uvm_object_utils_begin(pcie_dll_dllp_seq_item)
-    `uvm_field_enum(pcie_dlcmsm_state_e, current_state, UVM_ALL_ON)
-    `uvm_field_enum(pcie_dllp_type_e, dllp_type, UVM_ALL_ON)
-    `uvm_field_int(crc, UVM_ALL_ON)
-    `uvm_field_int(dllp_payload, UVM_ALL_ON)
-    `uvm_field_int(hdr_scale, UVM_ALL_ON)
-    `uvm_field_int(data_scale, UVM_ALL_ON)
-    `uvm_field_int(hdr_FC, UVM_ALL_ON)
-    `uvm_field_int(data_FC, UVM_ALL_ON)
-    `uvm_field_int(feature_support, UVM_ALL_ON)
-    `uvm_field_int(feature_ack, UVM_ALL_ON)
-    `uvm_field_int(delay, UVM_ALL_ON)
+    `uvm_field_enum(pcie_dlcmsm_state_e, current_state,  UVM_ALL_ON)
+    `uvm_field_enum(pcie_dllp_type_e, dllp_type,         UVM_ALL_ON)
+    `uvm_field_int (crc,                                 UVM_ALL_ON)
+    `uvm_field_int (dllp_payload,                        UVM_ALL_ON)
+    `uvm_field_int (hdr_scale,                           UVM_ALL_ON)
+    `uvm_field_int (data_scale,                          UVM_ALL_ON)
+    `uvm_field_int (hdr_FC,                              UVM_ALL_ON)
+    `uvm_field_int (data_FC,                             UVM_ALL_ON)
+    `uvm_field_int (feature_support,                     UVM_ALL_ON)
+    `uvm_field_int (feature_ack,                         UVM_ALL_ON)
+    `uvm_field_int (dllp,                                UVM_ALL_ON)
+    `uvm_field_int (delay,                               UVM_ALL_ON)
   `uvm_object_utils_end
 
-  // construction
+  // ---- Constructor ----
   function new(string name = "pcie_dll_dllp_seq_item");
     super.new(name);
   endfunction
 
+  // ---- Constraints ----
 
-  constraint delay_constr {
-    delay dist {0:=90, 10:=9, 20:=1};
-  } // constraint of delay
-
-  // Restrict legal DLLP types to those handled by this item
-  constraint dllp_type_constr {
-    dllp_type inside {DLLP_FEATURE_REQ,
-      DLLP_INITFC1_P, DLLP_INITFC1_NP, DLLP_INITFC1_CPL,
-      DLLP_INITFC2_P, DLLP_INITFC2_NP, DLLP_INITFC2_CPL};
+  // Default state is inactive, can be overridden by Sequences
+  constraint state_constr { 
+    soft current_state inside {DL_INACTIVE};
   }
 
-  // Bind DLLP type to the active DLCMSM state
-  constraint state_type_constr {
-    if (current_state == DL_FEATURE_EXCH) {
+  // Back-to-back traffic is highly probable, with occasional slight delays
+  constraint delay_constr { 
+    delay dist {
+      0  := 90, 
+      10 := 9, 
+      20 := 1
+    };
+  }
+
+  // Ensures the generated DLLP type strictly matches the current Link state
+  constraint dllp_type_constr { 
+    
+    // Feature Exchange State
+    if (current_state == DL_FEATURE_EXCH) { 
       dllp_type == DLLP_FEATURE_REQ;
-    } else if (current_state == DL_INIT_FC1) {
-      dllp_type dist {
-        DLLP_INITFC1_P   := 60,
-        DLLP_INITFC1_NP  := 20,
-        DLLP_INITFC1_CPL := 20
+    } 
+    
+    // InitFC1 State
+    else if (current_state == DL_INIT_FC1) { 
+      dllp_type inside { 
+        DLLP_INITFC1_P, 
+        DLLP_INITFC1_NP, 
+        DLLP_INITFC1_CPL 
       };
-    } else if (current_state == DL_INIT_FC2) {
-      dllp_type dist {
-        DLLP_INITFC2_P   := 60,
-        DLLP_INITFC2_NP  := 20,
-        DLLP_INITFC2_CPL := 20
+    } 
+    
+    // InitFC2 State
+    else if (current_state == DL_INIT_FC2) { 
+      dllp_type inside { 
+        DLLP_INITFC2_P, 
+        DLLP_INITFC2_NP, 
+        DLLP_INITFC2_CPL  
       };
-    }
+    } 
   }
 
-  // Build dllp_payload from the typed sub-fields, then assemble the full wire word.
+  // ---- Methods ----
+
+  // post_randomize() — Assembles payload, calculates CRC, and concatenates final 48-bit DLLP
   function void post_randomize();
-    // Assemble payload from typed sub-fields
+    bit [31:0] full_data; // Temporary variable to hold Type + Payload for CRC calculation
+       
+    // Construct the 24-bit Payload based on the randomized type
     if (dllp_type == DLLP_FEATURE_REQ) begin
       dllp_payload = {feature_ack, feature_support};
-    end else begin // InitFC1 / InitFC2
+    end 
+    else begin // Applies to both InitFC1 and InitFC2
       dllp_payload = {hdr_scale, hdr_FC, data_scale, data_FC};
     end
 
-    // Compute CRC on the 4 wire-ordered data bytes directly.
-    crc  = pcie_dll_pkg::crc16_generator::calculate_dllp_crc(pack_data());
-    // Assemble the 48-bit wire word
-    dllp = pack();
-
+    // Calculate the 16-bit CRC
+    full_data = {dllp_type, dllp_payload};
+    crc       = pcie_dll_pkg::crc16_generator::calculate_dllp_crc(full_data);
+      
+    // Assemble the final 48-bit DLLP (Type + Payload + CRC)
+    dllp      = pack();
   endfunction
 
-  // Returns the 4 pre-CRC bytes in wire order (byte 0 at [7:0]).
-  function bit [31:0] pack_data();
-    return {dllp_payload[7:0], dllp_payload[15:8], dllp_payload[23:16], dllp_type[7:0]};
-  endfunction
-
-
+  // pack() — serialize the transaction into the 48-bit wire representation.
+  // Layout (MSB→LSB): [47:40] dllp_type | [39:16] dllp_payload | [15:0] crc
+  // Driver calls this to get the value to place on lp_data[47:0].
   function bit [47:0] pack();
-    // Byte 0 (dllp_type) at LSB, CRC at MSB
-    return {crc, dllp_payload, dllp_type};
+    return {dllp_type, dllp_payload, crc};
   endfunction
 
+  // unpack() — deserialize a raw 48-bit bus word back into all named fields.
   // Monitor calls this after reconstructing the wire word from lp_data/pl_data.
   function void unpack(bit [47:0] raw);
     dllp         = raw;
-    dllp_type    = pcie_dllp_type_e'(raw[7:0]);
-    dllp_payload = raw[31:8];
-    crc          = raw[47:32];
+    dllp_type    = pcie_dllp_type_e'(raw[47:40]);
+    dllp_payload = raw[39:16];
+    crc          = raw[15:0];
 
     // Expand payload sub-fields based on decoded type
     if (dllp_type == DLLP_FEATURE_REQ) begin
@@ -117,12 +141,6 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
       data_scale = dllp_payload[13:12];
       data_FC    = dllp_payload[11:0];
     end
-  endfunction
-
-  // Verifies the unpacked CRC against the computed CRC for the unpacked payload.
-  // Can be used by monitors or scoreboards to check data integrity.
-  function bit verify_crc();
-    return (crc == pcie_dll_pkg::crc16_generator::calculate_dllp_crc(pack_data()));
   endfunction
 
 endclass : pcie_dll_dllp_seq_item
