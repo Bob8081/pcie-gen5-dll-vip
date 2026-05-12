@@ -14,7 +14,7 @@ class pcie_dll_state_mgr extends uvm_component;
     pcie_dll_env_cfg cfg; //to hold the configuration of the environment to be used in the state manager and passed to the states when needed, to decide the flow based on the features supported
     
     uvm_tlm_fifo#(pcie_dll_dllp_seq_item) dllp_fifo; //for dllp-only storage 
-
+    uvm_tlm_fifo#(pcie_dll_tlp_seq_item) tlp_fifo;    
     //TODO: add tlp fifo if needed in the future
 
     pcie_dll_base_state current_state; //handle for the current state to track the state and to be accesed by the testbench
@@ -40,23 +40,29 @@ class pcie_dll_state_mgr extends uvm_component;
     function new(string name = "pcie_dll_state_mgr", uvm_component parent = null);
         super.new(name, parent);
         dllp_fifo = new("dllp_fifo", this);
+        tlp_fifo = new("tlp_fifo", this);
         dllp_export = new("dllp_export", this);
         target_reached = new("target_reached");
         state_ap = new("state_ap", this);
     endfunction
 
     function void write (pcie_dll_base_seq_item item);
-      if($cast(dllp_item, item)) begin
+        if($cast(dllp_item, item)) 
+        begin
         //TODO : check crc and drop it if it is wrong
 
         dllp_fifo.try_put(dllp_item); //non-blocking becuse the write is a function , to avoid compiling error
-        
-      end
-      else
-        begin
-            `uvm_fatal("ITEM_ERR", $sformatf("Received item of type %s, expected pcie_dll_dllp_seq_item", item.get_type_name()))
+
         end
-      //TODO: handle tlp items if needed in the future
+        else if($cast(tlp_item,item))
+        begin
+            tlp_fifo.try_put(tlp_item);
+        end
+        else
+        begin
+            `uvm_fatal("ITEM_ERR", $sformatf("Received item of type %s, expected pcie_dll_dllp_seq_item or pcie_dll_tlp_seq_item", item.get_type_name()))
+        end
+        //TODO: handle tlp items if needed in the future
     endfunction
 
     function void build_phase(uvm_phase phase);
