@@ -15,7 +15,7 @@ class pcie_dll_tx_drv_cb_dl_feature_exch extends pcie_dll_tx_drv_cb_base;
     s_object_number++;
   endfunction
 
-  virtual task pre_transmit(pcie_dll_dllp_seq_item req = null);
+  virtual task pre_transmit(pcie_dll_dllp_seq_item req = null, bit drop = 1'b0);
     if (req == null) return;
 
     // 1. Update the bit corresponding to THIS object instance

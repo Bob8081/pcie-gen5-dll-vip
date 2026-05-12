@@ -36,13 +36,13 @@ package pcie_dll_pkg;
   typedef enum bit [7:0] {
     DLLP_ACK           = 8'h00,  // 0000 0000
     DLLP_NAK           = 8'h10,  // 0001 0000
-    DLLP_FEATURE_REQ   = 8'h02,  // 0000 0010
+    DLLP_FEATURE_REQ   = 8'h02,  // 0000 0010 >> start
     DLLP_INITFC1_P     = 8'h40,  // 0100 0000 (VC0)
     DLLP_INITFC1_NP    = 8'h50,  // 0101 0000 (VC0)
     DLLP_INITFC1_CPL   = 8'h60,  // 0110 0000 (VC0)
     DLLP_INITFC2_P     = 8'hC0,  // 1100 0000 (VC0)
     DLLP_INITFC2_NP    = 8'hD0,  // 1101 0000 (VC0)
-    DLLP_INITFC2_CPL   = 8'hE0,  // 1110 0000 (VC0)
+    DLLP_INITFC2_CPL   = 8'hE0,  // 1110 0000 (VC0) >> end
     DLLP_UPDATEFC_P    = 8'h80,  // 1000 0000 (VC0)
     DLLP_UPDATEFC_NP   = 8'h90,  // 1001 0000 (VC0)
     DLLP_UPDATEFC_CPL  = 8'hA0,  // 1010 0000 (VC0)

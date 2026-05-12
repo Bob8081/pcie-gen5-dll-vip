@@ -6,6 +6,6 @@ class pcie_dll_tx_drv_cb_base extends uvm_callback; // the base class
     endfunction
 
     // tasks that would be overriden
-    virtual task pre_transmit(pcie_dll_dllp_seq_item req = null);  endtask
+    virtual task pre_transmit(pcie_dll_dllp_seq_item req = null, bit drop = 1'b0);  endtask
     virtual task post_transmit(pcie_dll_dllp_seq_item req = null); endtask
 endclass

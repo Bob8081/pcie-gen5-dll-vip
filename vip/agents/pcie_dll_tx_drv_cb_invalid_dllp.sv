@@ -9,7 +9,7 @@ class pcie_dll_tx_drv_cb_invalid_dllp extends pcie_dll_tx_drv_cb_base;
     super.new(name);
   endfunction
 
-  virtual task pre_transmit(pcie_dll_dllp_seq_item req = null);
+  virtual task pre_transmit(pcie_dll_dllp_seq_item req = null, bit drop = 1'b0);
   
     bit trigger = 0;
     int roll;
@@ -27,7 +27,7 @@ class pcie_dll_tx_drv_cb_invalid_dllp extends pcie_dll_tx_drv_cb_base;
 
     // Phase 2: Low Priority (0.01% chance)
     else begin
-        roll = $urandom_range(1, 10000); // 1 out of 10,000
+        roll = $urandom_range(1, 500); // 1 out of 10,000
         if (roll == 1) begin
             trigger = 1;
             $display("MMMMMMMMMMMMMMMMMMMM");
