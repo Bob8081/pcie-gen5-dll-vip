@@ -61,6 +61,7 @@ package pcie_dll_pkg;
   // Included class files
 
   `include "env/pcie_dll_env_cfg.sv"
+  `include "env/pcie_dll_dynamic_cfg.sv"
   `include "helpers/crc16_generator.sv"
 
   `include "transactions/pcie_dll_base_seq_item.sv"

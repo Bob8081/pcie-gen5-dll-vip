@@ -60,15 +60,18 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                     begin
 
                         if (rx_p)
-                        begin
-                            if (!(dllp_item_rx.hdr_FC == manager.partner_hdr_fc_p_limit))
+                        begin 
+                            //comparsion with the recieved not_scaled values with the actual not_scaled stored values
+                            //TODO : add checks for the hdr and data scale fileds too
+                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_hdr_fc_limit_p_not_scaled))
                             begin
-                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.partner_hdr_fc_p_limit))     
+                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_hdr_fc_limit_p_not_scaled))     
                             end
                         end
                         else 
                         begin   
-                            manager.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC);
+                            manager.dyn_cfg.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC,
+                                                                    dllp_item_rx.hdr_scale, dllp_item_rx.data_scale);
                             rx_p = 1;
                         end 
 
@@ -88,14 +91,15 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                     begin
                         if (rx_np)
                         begin
-                            if (!(dllp_item_rx.hdr_FC == manager.partner_hdr_fc_p_limit))
+                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_hdr_fc_limit_np_not_scaled))
                             begin
-                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.partner_hdr_fc_np_limit))     
+                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_hdr_fc_limit_np_not_scaled))     
                             end
                         end
                         else 
                         begin
-                            manager.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC);
+                           manager.dyn_cfg.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC,
+                                                                    dllp_item_rx.hdr_scale, dllp_item_rx.data_scale);
                             rx_np = 1;
                         end
                         
@@ -115,14 +119,15 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                     begin
                         if (rx_cpl)
                         begin
-                            if (!(dllp_item_rx.hdr_FC == manager.partner_hdr_fc_cpl_limit))
+                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_hdr_fc_limit_cpl_not_scaled))
                             begin
-                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong CPL HDR CREDITS, real value = %d",manager.partner_hdr_fc_cpl_limit))     
+                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong CPL HDR CREDITS, real value = %d",manager.dyn_cfg.partner_hdr_fc_limit_cpl_not_scaled))     
                             end
                         end
                         else 
                         begin
-                            manager.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC);
+                            manager.dyn_cfg.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC,
+                                                                    dllp_item_rx.hdr_scale, dllp_item_rx.data_scale);
                             rx_cpl = 1;
                         end 
                         

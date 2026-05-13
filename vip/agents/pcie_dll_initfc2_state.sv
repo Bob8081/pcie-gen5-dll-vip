@@ -53,13 +53,13 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
                     if(counter == 0) 
                     begin
                     
-                        if (!(dllp_item_rx.hdr_FC == manager.partner_hdr_fc_p_limit))
+                        if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_hdr_fc_limit_p_not_scaled))
                         begin
-                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.partner_hdr_fc_p_limit))     
+                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_hdr_fc_limit_p_not_scaled))     
                         end
 
                         counter++;
-                        `uvm_info("INITFC2_STATE", $sformatf("Received expected FC1 DLLP POSTED, count: %0d", counter), UVM_LOW)
+                        `uvm_info("INITFC2_STATE", $sformatf("Received expected FC2 DLLP POSTED, count: %0d", counter), UVM_LOW)
                     end // end of IN_ORDER posted recieved
                     else 
                     begin  
@@ -72,13 +72,13 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
                     if (counter == 1)
                     begin
                       
-                        if (!(dllp_item_rx.hdr_FC == manager.partner_hdr_fc_p_limit))
+                        if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_hdr_fc_limit_np_not_scaled))
                         begin
-                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.partner_hdr_fc_np_limit))     
+                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_hdr_fc_limit_np_not_scaled))     
                         end
                        
                         counter++;
-                        `uvm_info("INITFC2_STATE", $sformatf("Received expected FC1 DLLP NON_POSTED, count: %0d", counter), UVM_LOW)
+                        `uvm_info("INITFC2_STATE", $sformatf("Received expected FC2 DLLP NON_POSTED, count: %0d", counter), UVM_LOW)
                     end
                     else 
                     begin
@@ -93,13 +93,13 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
                     if(counter == 2) 
                     begin
                         
-                        if (!(dllp_item_rx.hdr_FC == manager.partner_hdr_fc_cpl_limit))
+                        if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_hdr_fc_limit_cpl_not_scaled))
                         begin
-                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong CPL HDR CREDITS, real value = %d",manager.partner_hdr_fc_cpl_limit))     
+                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong CPL HDR CREDITS, real value = %d",manager.dyn_cfg.partner_hdr_fc_limit_cpl_not_scaled))     
                         end
                         
                         counter++;
-                        `uvm_info("INITFC2_STATE", $sformatf("Received expected FC1 DLLP POSTED, count: %0d", counter), UVM_LOW)
+                        `uvm_info("INITFC2_STATE", $sformatf("Received expected FC2 DLLP CPL, count: %0d", counter), UVM_LOW)
                     end
                     else 
                     begin  
