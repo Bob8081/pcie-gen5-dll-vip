@@ -26,17 +26,7 @@ class pcie_dll_state_mgr extends uvm_component;
 
     uvm_event target_reached; //to be triggered when the state machine reaches the target state (DL_ACTIVE) to let the testbench know about it and to check the coverage at that point
 
-    // Posted credits
-    // int unsigned partner_hdr_fc_p_limit;
-    // int unsigned partner_data_fc_p_limit;
-
-    // // Non-Posted credits
-    // int unsigned partner_hdr_fc_np_limit;
-    // int unsigned partner_data_fc_np_limit;
-
-    // // Completion credits
-    // int unsigned partner_hdr_fc_cpl_limit;
-    // int unsigned partner_data_fc_cpl_limit;
+    
 
     function new(string name = "pcie_dll_state_mgr", uvm_component parent = null);
         super.new(name, parent);
@@ -75,6 +65,8 @@ class pcie_dll_state_mgr extends uvm_component;
         if(!uvm_config_db#(pcie_dll_dynamic_cfg)::get(this, "", "dyn_cfg", dyn_cfg))begin
             `uvm_fatal("NOCFG",$sformatf("no dynamic cfg found in teh config_db for %s state_manager",role.name()))
         end
+        
+        dyn_cfg.role=role;
         
     endfunction
 
@@ -120,24 +112,6 @@ class pcie_dll_state_mgr extends uvm_component;
 
     endtask
 
-    // function void set_credits_value(pcie_dllp_type_e t, int unsigned hdr_fc, int unsigned data_fc);
-
-    //     if (t == DLLP_INITFC1_P) begin
-    //         partner_hdr_fc_p_limit = hdr_fc;
-    //         partner_data_fc_p_limit = data_fc;
-    //     end
-    //     else if (t == DLLP_INITFC1_NP) begin
-    //         partner_hdr_fc_np_limit = hdr_fc;
-    //         partner_data_fc_np_limit = data_fc;
-    //     end
-    //     else if (t == DLLP_INITFC1_CPL) begin
-    //         partner_hdr_fc_cpl_limit = hdr_fc;
-    //         partner_data_fc_cpl_limit = data_fc;
-    //     end
-    //     `uvm_info("CRD SAVED",$sformatf("Recieved the credits for %s \n current credits saved for each type : \n Posted : hdr = %d , data = %d \n NON_Posted : hdr =%d, data= %d \n Compeletion : hdr = %d , data= %d ",
-    //                 t.name(),partner_hdr_fc_p_limit,partner_data_fc_p_limit,partner_hdr_fc_np_limit,partner_data_fc_np_limit,partner_hdr_fc_cpl_limit,
-    //                 partner_data_fc_cpl_limit),UVM_LOW)
-    // endfunction
 
     virtual task send_to_driver(pcie_dll_base_seq_item packet); //to be used in case of the state decides what to send next 
         send_single_packet single_seq;

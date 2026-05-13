@@ -53,9 +53,9 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
                     if(counter == 0) 
                     begin
                     
-                        if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_hdr_fc_limit_p_not_scaled))
+                        if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_POSTED].hdr_limit))
                         begin
-                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_hdr_fc_limit_p_not_scaled))     
+                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_POSTED].hdr_limit))     
                         end
 
                         counter++;
@@ -72,9 +72,9 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
                     if (counter == 1)
                     begin
                       
-                        if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_hdr_fc_limit_np_not_scaled))
+                        if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_NON_POSTED].hdr_limit))
                         begin
-                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_hdr_fc_limit_np_not_scaled))     
+                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_NON_POSTED].hdr_limit))     
                         end
                        
                         counter++;
@@ -93,9 +93,9 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
                     if(counter == 2) 
                     begin
                         
-                        if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_hdr_fc_limit_cpl_not_scaled))
+                        if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_CPL].hdr_limit))
                         begin
-                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong CPL HDR CREDITS, real value = %d",manager.dyn_cfg.partner_hdr_fc_limit_cpl_not_scaled))     
+                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong CPL HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_CPL].hdr_limit))     
                         end
                         
                         counter++;

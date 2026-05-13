@@ -56,7 +56,32 @@ package pcie_dll_pkg;
     DL_INIT_FC2        = 3'b011,  // confirming received credits (InitFC2 round)
     DL_ACTIVE          = 3'b100   // link fully active; all DLL traffic permitted
   } pcie_dlcmsm_state_e;
+  
+  //enum just for credits (only three types)
+  typedef enum {
+    FC_POSTED = 0,
+    FC_NON_POSTED = 1,
+    FC_CPL = 2
+  } pcie_fc_type_e;
 
+  //credits struct 
+  typedef struct {
+    pcie_fc_type_e fc_type;
+
+    int unsigned hdr_limit;
+    int unsigned data_limit;
+    bit [1:0] hdr_scale;
+    bit [1:0] data_scale;
+
+    //for saving the absolute values for flow control equations
+    int unsigned absolute_hdr_limit;
+    int unsigned absolute_data_limit;
+
+    bit [2:0] vc_id = 3'b0; //currently only equals 0
+
+  } pcie_fc_credits_values_s;
+
+  
 
   // Included class files
 
