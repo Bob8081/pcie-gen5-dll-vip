@@ -5,6 +5,8 @@ class pcie_dll_dynamic_cfg extends uvm_object;
     //FC credits associative array
     pcie_fc_credits_values_s partner_credits[pcie_fc_type_e];
 
+    bit partner_feature_valid;
+    bit [22 : 0] partner_feature_support;
 
     `uvm_object_utils(pcie_dll_dynamic_cfg)
 

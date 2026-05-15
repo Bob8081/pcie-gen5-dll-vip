@@ -32,6 +32,8 @@ class pcie_dll_test_base extends uvm_test;
     cfg_rc.set_defaults();
     cfg_ep.set_defaults();
 
+  
+
     // Read testbench-level parameters from config_db and apply to both.
     if (uvm_config_db#(int)::get(this, "", "tb_nbytes", tb_nbytes)) begin
       cfg_rc.nbytes = tb_nbytes; cfg_ep.nbytes = tb_nbytes;
@@ -54,6 +56,10 @@ class pcie_dll_test_base extends uvm_test;
     cfg_ep.init_fc_hdr_p = 8'h40;  cfg_ep.init_fc_data_p = 12'h200;
     cfg_ep.init_fc_hdr_np = 8'h40; cfg_ep.init_fc_data_np = 12'h200;
     cfg_ep.init_fc_hdr_cpl = 8'h40; cfg_ep.init_fc_data_cpl = 12'h200;
+
+    //for feature exchange test 
+    // cfg_rc.scaled_fc_supported = 1'b1;
+    // cfg_ep.scaled_fc_supported = 1'b1;
 
     if (!cfg_rc.validate(validation_error_msg)) `uvm_fatal("CFG_RC_INV", validation_error_msg)
     if (!cfg_ep.validate(validation_error_msg)) `uvm_fatal("CFG_EP_INV", validation_error_msg)
