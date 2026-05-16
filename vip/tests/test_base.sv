@@ -22,6 +22,10 @@ class pcie_dll_test_base extends uvm_test;
   pcie_dll_tx_drv_cb_dl_feature_exch pcie_dll_tx_drv_cb_dl_feature_exch_env_rc;
   pcie_dll_tx_drv_cb_dl_feature_exch pcie_dll_tx_drv_cb_dl_feature_exch_env_ep;
 
+  // vc
+  pcie_dll_tx_drv_cb_vc pcie_dll_tx_drv_cb_vc_env_rc;
+  pcie_dll_tx_drv_cb_vc pcie_dll_tx_drv_cb_vc_env_ep;
+
   `uvm_component_utils(pcie_dll_test_base)
 
   function new(string name = "pcie_dll_test_base", uvm_component parent = null);
@@ -49,6 +53,9 @@ class pcie_dll_test_base extends uvm_test;
     pcie_dll_tx_drv_cb_dl_feature_exch_env_rc = pcie_dll_tx_drv_cb_dl_feature_exch::type_id::create("pcie_dll_tx_drv_cb_dl_feature_exch_env_rc");
     pcie_dll_tx_drv_cb_dl_feature_exch_env_ep = pcie_dll_tx_drv_cb_dl_feature_exch::type_id::create("pcie_dll_tx_drv_cb_dl_feature_exch_env_ep");
 
+    // vc
+    pcie_dll_tx_drv_cb_vc_env_rc = pcie_dll_tx_drv_cb_vc::type_id::create("pcie_dll_tx_drv_cb_vc_env_rc");
+    pcie_dll_tx_drv_cb_vc_env_ep = pcie_dll_tx_drv_cb_vc::type_id::create("pcie_dll_tx_drv_cb_vc_env_ep");
 
 
     super.build_phase(phase);
@@ -120,6 +127,9 @@ class pcie_dll_test_base extends uvm_test;
     // uvm_callbacks#(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_dl_feature_exch)::add(env_rc.agent.tx_drv, pcie_dll_tx_drv_cb_dl_feature_exch_env_rc);
     // uvm_callbacks#(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_dl_feature_exch)::add(env_ep.agent.tx_drv, pcie_dll_tx_drv_cb_dl_feature_exch_env_ep);
 
+    // inject the callback vc object to the driver
+    uvm_callbacks#(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_vc)::add(env_rc.agent.tx_drv, pcie_dll_tx_drv_cb_vc_env_rc);
+    uvm_callbacks#(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_vc)::add(env_ep.agent.tx_drv, pcie_dll_tx_drv_cb_vc_env_ep);
 
   endfunction
 
