@@ -41,6 +41,7 @@ class pcie_dll_rx_mon extends uvm_monitor;
         //   - exactly the 6 DLLP bytes are valid on pl_valid (upper bytes = 0)
         //   - dlpstart < dlpend framing flags indicate a DLLP frame
         //TODO : make it more dynamic
+
         if ((!(vif.cb_mon_rx.pl_dlpstart >= vif.cb_mon_rx.pl_dlpend)) &
              (vif.cb_mon_rx.pl_valid == 6'b111_111)) begin //TODO : add more link checks
           dllp_item = pcie_dll_dllp_seq_item::type_id::create("dllp_item");
@@ -48,6 +49,15 @@ class pcie_dll_rx_mon extends uvm_monitor;
           dllp_item.unpack(vif.cb_mon_rx.pl_data[47:0]);
           mon_rx_ap.write(dllp_item);
           `uvm_info("MON", $sformatf("Observed RX DLLP: %h", dllp_item.dllp), UVM_LOW)
+        end
+        else if ((!(vif.cb_mon_rx.pl_tlpstart >= vif.cb_mon_rx.pl_tlpend)) &
+             (vif.cb_mon_rx.pl_valid == 16'b1111_1111_1111_1111)) 
+        begin //TODO : add more link checks
+          tlp_item = pcie_dll_tlp_seq_item::type_id::create("tlp_item");
+          // DLLP is always packed into the lowest 48 bits of pl_data
+          tlp_item.tlp=vif.cb_mon_rx.pl_data[127:0];
+          mon_rx_ap.write(tlp_item);
+          `uvm_info("MON", $sformatf("Observed RX TLP: %h", tlp_item.tlp), UVM_LOW)
         end
       end
     end

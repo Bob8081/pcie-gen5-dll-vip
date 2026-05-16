@@ -68,11 +68,30 @@ class pcie_dll_tx_drv extends uvm_driver #(pcie_dll_base_seq_item);
                     vif.cb_drv.lp_dlpend  <= 'd5;   // DLLP ends at byte 6
                 end
 
-                // else begin
-                //TODO : add the TLP path for next stage
-                // end
+                else begin
+                
+                    //TODO : add the TLP path for next stage
+                    vif.cb_drv.lp_irdy    <= 1'b1;
+                    // put the TLP data on the interface
+                    vif.cb_drv.lp_data    <= tlp_txn.tlp;
+                    // Mark 16 byte for TLP
+                    vif.cb_drv.lp_valid   <= 16'b1111_1111_1111_1111;
+                    vif.cb_drv.lp_tlpstart <= '0;    // TLP starts at byte 0
+                    vif.cb_drv.lp_tlpend  <= 'd15;   // TLP ends at byte 15
+                
+                end
+
+                // //reset interface signals
+                // vif.cb_drv.lp_irdy     <= 1'b0;
+                // vif.cb_drv.lp_valid    <= '0;
+                // vif.cb_drv.lp_dlpstart <= '0;
+                // vif.cb_drv.lp_dlpend   <= '0;
+                // vif.cb_drv.lp_tlpstart <= '0;
+                // vif.cb_drv.lp_tlpend   <= '0;
+                // vif.cb_drv.lp_data     <= '0;
 
                 seq_item_port.item_done();
+                
             end
         end
     endtask

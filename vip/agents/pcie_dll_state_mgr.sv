@@ -12,9 +12,10 @@ class pcie_dll_state_mgr extends uvm_component;
     pcie_dll_tlp_seq_item tlp_item; 
     
     pcie_dll_env_cfg cfg; //to hold the configuration of the environment to be used in the state manager and passed to the states when needed, to decide the flow based on the features supported
-    
-    uvm_tlm_fifo#(pcie_dll_dllp_seq_item) dllp_fifo; //for dllp-only storage 
+    pcie_dll_dynamic_cfg dyn_cfg; //to hold the link aprtner chagnign data and all other dynamic parameters 
 
+    uvm_tlm_fifo#(pcie_dll_dllp_seq_item) dllp_fifo;
+    uvm_tlm_fifo#(pcie_dll_tlp_seq_item) tlp_fifo;    
     //TODO: add tlp fifo if needed in the future
 
     pcie_dll_base_state current_state; //handle for the current state to track the state and to be accesed by the testbench
@@ -25,46 +26,48 @@ class pcie_dll_state_mgr extends uvm_component;
 
     uvm_event target_reached; //to be triggered when the state machine reaches the target state (DL_ACTIVE) to let the testbench know about it and to check the coverage at that point
 
-    // Posted credits
-    int unsigned partner_hdr_fc_p_limit;
-    int unsigned partner_data_fc_p_limit;
-
-    // Non-Posted credits
-    int unsigned partner_hdr_fc_np_limit;
-    int unsigned partner_data_fc_np_limit;
-
-    // Completion credits
-    int unsigned partner_hdr_fc_cpl_limit;
-    int unsigned partner_data_fc_cpl_limit;
+    
 
     function new(string name = "pcie_dll_state_mgr", uvm_component parent = null);
         super.new(name, parent);
         dllp_fifo = new("dllp_fifo", this);
+        tlp_fifo = new("tlp_fifo", this);
         dllp_export = new("dllp_export", this);
         target_reached = new("target_reached");
         state_ap = new("state_ap", this);
     endfunction
 
     function void write (pcie_dll_base_seq_item item);
-      if($cast(dllp_item, item)) begin
+        if($cast(dllp_item, item)) 
+        begin
         //TODO : check crc and drop it if it is wrong
 
         dllp_fifo.try_put(dllp_item); //non-blocking becuse the write is a function , to avoid compiling error
-        
-      end
-      else
-        begin
-            `uvm_fatal("ITEM_ERR", $sformatf("Received item of type %s, expected pcie_dll_dllp_seq_item", item.get_type_name()))
+
         end
-      //TODO: handle tlp items if needed in the future
+        else if($cast(tlp_item,item))
+        begin
+            tlp_fifo.try_put(tlp_item);
+        end
+        else
+        begin
+            `uvm_fatal("ITEM_ERR", $sformatf("Received item of type %s, expected pcie_dll_dllp_seq_item or pcie_dll_tlp_seq_item", item.get_type_name()))
+        end
     endfunction
 
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        //TODO : make two separate events for rc and ep
+        //each device's state manager in the vip gets a differnet instance of the event according to thier env
         if(!uvm_config_db#(uvm_event)::get(this, "", "event", target_reached)) begin
-            `uvm_fatal("NOEV", "No event found in config_db for pcie_dll_state_mgr.")
+            `uvm_fatal("NOEV", $sformatf("No event found in config_db for %s state_manager.",role.name()))
         end
+        
+        if(!uvm_config_db#(pcie_dll_dynamic_cfg)::get(this, "", "dyn_cfg", dyn_cfg))begin
+            `uvm_fatal("NOCFG",$sformatf("no dynamic cfg found in teh config_db for %s state_manager",role.name()))
+        end
+        
+        dyn_cfg.role=role;
+        
     endfunction
 
    
@@ -75,8 +78,8 @@ class pcie_dll_state_mgr extends uvm_component;
     task run_phase(uvm_phase phase);
         super.run_phase(phase);
         `uvm_info("STATE_CTRL", "Starting State Manager run_phase", UVM_LOW)
-        dlsm_state = DL_INACTIVE; //start with the idle state, and the state will decide when to change to other states
-        change_state(dlsm_state); //start with the inactive state, and the state will decide when to change to other states
+        dlsm_state = DL_INACTIVE;
+        change_state(dlsm_state); 
         
     endtask
 
@@ -109,24 +112,6 @@ class pcie_dll_state_mgr extends uvm_component;
 
     endtask
 
-    function void set_credits_value(pcie_dllp_type_e t, int unsigned hdr_fc, int unsigned data_fc);
-
-        if (t == DLLP_INITFC1_P) begin
-            partner_hdr_fc_p_limit = hdr_fc;
-            partner_data_fc_p_limit = data_fc;
-        end
-        else if (t == DLLP_INITFC1_NP) begin
-            partner_hdr_fc_np_limit = hdr_fc;
-            partner_data_fc_np_limit = data_fc;
-        end
-        else if (t == DLLP_INITFC1_CPL) begin
-            partner_hdr_fc_cpl_limit = hdr_fc;
-            partner_data_fc_cpl_limit = data_fc;
-        end
-        `uvm_info("CRD SAVED",$sformatf("Recieved the credits for %s \n current credits saved for each type : \n Posted : hdr = %d , data = %d \n NON_Posted : hdr =%d, data= %d \n Compeletion : hdr = %d , data= %d ",
-                    t.name(),partner_hdr_fc_p_limit,partner_data_fc_p_limit,partner_hdr_fc_np_limit,partner_data_fc_np_limit,partner_hdr_fc_cpl_limit,
-                    partner_data_fc_cpl_limit),UVM_LOW)
-    endfunction
 
     virtual task send_to_driver(pcie_dll_base_seq_item packet); //to be used in case of the state decides what to send next 
         send_single_packet single_seq;

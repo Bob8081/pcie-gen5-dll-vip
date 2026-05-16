@@ -3,7 +3,6 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
     bit rx_p;
     bit rx_np;
     bit rx_cpl;
-    pcie_dllp_type_e last_recieved;
     uvm_event finished;
 
     pcie_dll_init1_seq init1_seq;
@@ -59,16 +58,19 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                     end
                     else if (dllp_item_rx.dllp_type == DLLP_INITFC1_P)
                     begin
+
                         if (rx_p)
-                        begin
-                            if (!(dllp_item_rx.hdr_FC == manager.partner_hdr_fc_p_limit))
+                        begin 
+                            //comparsion with the recieved not_scaled values with the actual not_scaled stored values
+                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_POSTED].hdr_limit)) //TODO : add checks for the data_limit and hdr_scale and data_scale fields too (maybe use a temp. fc_struct to loop-check it)
                             begin
-                            `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.partner_hdr_fc_p_limit))     
+                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_POSTED].hdr_limit))     
                             end
                         end
                         else 
-                        begin
-                            manager.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC);
+                        begin   
+                            manager.dyn_cfg.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC,
+                                                                    dllp_item_rx.hdr_scale, dllp_item_rx.data_scale);
                             rx_p = 1;
                         end 
 
@@ -76,97 +78,75 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                         begin
                             counter++;
                             `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP POSTED, count: %0d", counter), UVM_LOW)
-                        end
+                        end // end of IN_ORDER posted recieved
                         else 
                         begin  
-                            if (last_recieved == DLLP_INITFC1_CPL) 
-                            begin
-                                counter++ ; 
-                                `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP CPL, count: %0d", counter), UVM_LOW)
-                            end 
-                            else 
-                            begin
-                                counter = 0;
-                                `uvm_error("INITFC1_STATE", $sformatf("Received unexpected Packet of type : %s, resetting counter, count: %0d",
-                                                                        dllp_item_rx.dllp_type.name, counter))
-                            end 
-                        end //end of counter = 0  else
+                            counter = 1 ;
+                            `uvm_error("INITFC1_ERR",$sformatf("recieved OUT_OF_ORDER packet of type : %s",dllp_item_rx.dllp_type))
+                        end 
                     end//end of posted case
+
                     else if (dllp_item_rx.dllp_type == DLLP_INITFC1_NP)
                     begin
                         if (rx_np)
                         begin
-                            if (!(dllp_item_rx.hdr_FC == manager.partner_hdr_fc_p_limit))
+                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_NON_POSTED].hdr_limit))
                             begin
-                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.partner_hdr_fc_np_limit))     
+                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_NON_POSTED].hdr_limit))     
                             end
                         end
                         else 
                         begin
-                            manager.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC);
+                           manager.dyn_cfg.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC,
+                                                                    dllp_item_rx.hdr_scale, dllp_item_rx.data_scale);
                             rx_np = 1;
                         end
-
-                        if (counter == 0)
+                        
+                        if (counter == 1)
                         begin
                             counter++;
                             `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP NON_POSTED, count: %0d", counter), UVM_LOW)
                         end
                         else 
                         begin
-                            if (last_recieved == DLLP_INITFC1_P)
-                            begin
-                                counter++;
-                                `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP NON_POSTED, count: %0d", counter), UVM_LOW)
-                            end
-                            else 
-                            begin 
-                                counter = 0;
-                                `uvm_error("INITFC1_STATE", $sformatf("Received unexpected Packet of type : %s, resetting counter, count: %0d",
-                                                                        dllp_item_rx.dllp_type.name, counter))
-                            end
-                        end //end of counter=0 else case
-
+                            counter =0;
+                            `uvm_error("INITFC1_ERR",$sformatf("recieved OUT_OF_ORDER packet of type : %s",dllp_item_rx.dllp_type))
+                        end 
                     end   //end of non posted case
+
                     else if (dllp_item_rx.dllp_type == DLLP_INITFC1_CPL)
                     begin
                         if (rx_cpl)
                         begin
-                            if (!(dllp_item_rx.hdr_FC == manager.partner_hdr_fc_cpl_limit))
+                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_CPL].hdr_limit))
                             begin
-                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong CPL HDR CREDITS, real value = %d",manager.partner_hdr_fc_cpl_limit))     
+                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong CPL HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_CPL].hdr_limit))     
                             end
                         end
                         else 
                         begin
-                            manager.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC);
+                            manager.dyn_cfg.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC,
+                                                                    dllp_item_rx.hdr_scale, dllp_item_rx.data_scale);
                             rx_cpl = 1;
                         end 
-
-                        if(counter==0) 
+                        
+                        if(counter==2) 
                         begin
                             counter++;
                             `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP POSTED, count: %0d", counter), UVM_LOW)
                         end
                         else 
                         begin  
-                            if (last_recieved == DLLP_INITFC1_NP) 
-                            begin
-                                counter++;
-                                `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP COMPELETION, count: %0d", counter), UVM_LOW)
-                            end
-                            else 
-                            begin
-                                counter = 0;
-                                `uvm_error("INITFC1_STATE", $sformatf("Received unexpected Packet of type : %s, resetting counter, count: %0d",
-                                                                    dllp_item_rx.dllp_type.name, counter))
-                            end
+                            counter =0;
+                            `uvm_error("INITFC1_ERR",$sformatf("recieved OUT_OF_ORDER packet of type : %s",dllp_item_rx.dllp_type))
                         end
-
+                    end // end of compeletion state
+                    else // else for any non initfc1 packet types recieved in initfc1 state
+                    begin
+                        counter =0;
+                        `uvm_error("INITFC1_ERR",$sformatf("recieved WRONG STATE DLLP of type : %s in INITFC1_STATE",dllp_item_rx.dllp_type))
                     end
                 end // big else
-
-                last_recieved = dllp_item_rx.dllp_type; //save last recieved dllp for sequence proper tracking
             end // forever loop
 
 

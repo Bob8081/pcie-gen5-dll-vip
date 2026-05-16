@@ -46,12 +46,25 @@ class pcie_dll_tx_mon extends uvm_monitor;
         if ((!(vif.cb_mon_tx.lp_dlpstart >= vif.cb_mon_tx.lp_dlpend))             &
              (vif.cb_mon_tx.lp_irdy  == 1'b1)                                       &
              (vif.cb_mon_tx.lp_valid == 6'b111_111)       &
-             (vif.cb_mon_tx.pl_trdy  == 1'b1)) begin
+             (vif.cb_mon_tx.pl_trdy  == 1'b1)) 
+        begin
           dllp_item = pcie_dll_dllp_seq_item::type_id::create("dllp_item");
           // DLLP is always packed into the lowest 48 bits of lp_data
           dllp_item.unpack(vif.cb_mon_tx.lp_data[47:0]);
           mon_tx_ap.write(dllp_item);
           `uvm_info("MON", $sformatf("Observed TX DLLP: %h", dllp_item.dllp), UVM_LOW)
+        end
+
+        else if ((!(vif.cb_mon_tx.lp_tlpstart >= vif.cb_mon_tx.lp_tlpend))             &
+             (vif.cb_mon_tx.lp_irdy  == 1'b1)                                       &
+             (vif.cb_mon_tx.lp_valid == 16'b1111_1111_1111_1111)       &
+             (vif.cb_mon_tx.pl_trdy  == 1'b1)) 
+        begin
+          tlp_item = pcie_dll_tlp_seq_item::type_id::create("tlp_item");
+          // DLLP is always packed into the lowest 48 bits of lp_data
+          tlp_item.tlp=vif.cb_mon_tx.lp_data[127:0];
+          mon_tx_ap.write(tlp_item);
+          `uvm_info("MON", $sformatf("Observed TX TLP: %h", tlp_item.tlp), UVM_LOW)
         end
       end
     end
