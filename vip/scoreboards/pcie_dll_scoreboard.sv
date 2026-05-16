@@ -36,7 +36,7 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     curr_state = new_state;
 
     // 2. Perform state transition checks
-    // TODO:  Need a way to pass pl_lnk_up and initfc flags to checks 
+    // TODO:  Need to pass pl_lnk_up and initfc flags to checks 
     
     // checks.check_init_trigger(prev_state, curr_state, pl_lnk_up);
   endfunction

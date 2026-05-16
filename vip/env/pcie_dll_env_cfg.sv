@@ -1,7 +1,6 @@
 class pcie_dll_env_cfg extends uvm_object;
-  //TODO : add fc credits (hardware fixed)
   //TODO : add more feature support details in config
-  //TODO : fix config to work for any role (dont add fields for both roles, just one role and make two instances one for each role)
+  
   // Link configuration (hardware-fixed at compile time, set from tb_top)
   pcie_link_width_e link_width;
   pcie_speed_mode_e speed_mode;
@@ -105,7 +104,7 @@ class pcie_dll_env_cfg extends uvm_object;
     scaled_fc_supported = 1'b0;
 
     init_fc_hdr_scale_p    = 2'b00;
-    init_fc_hdr_p          = 8'h20;  // Default
+    init_fc_hdr_p          = 8'h20;
     init_fc_data_scale_p   = 2'b00;
     init_fc_data_p         = 12'h100;
 
