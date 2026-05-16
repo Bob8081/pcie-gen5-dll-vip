@@ -34,8 +34,8 @@ class pcie_dll_env extends uvm_env;
     //agent.state_ap.connect(scoreboard.state_export);
     agent.agent_tx_ap.connect(cov_tx.analysis_export);
     agent.agent_rx_ap.connect(cov_rx.analysis_export);
-    agent.state_ap.connect(cov_tx.state_export);
-    agent.state_ap.connect(cov_rx.state_export);  
+    agent.state_ap.connect(cov_tx.state_export); 
+    agent.agent_rx_state_ap.connect(cov_rx.state_export);
   endfunction
 
 endclass : pcie_dll_env
