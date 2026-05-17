@@ -6,14 +6,16 @@ class pcie_dll_tx_drv_cb_vc extends pcie_dll_tx_drv_cb_base;
     super.new(name);
   endfunction
 
-  virtual task pre_transmit(pcie_dll_dllp_seq_item req = null, bit drop = 1'b0);
+  virtual function bit pre_transmit(pcie_dll_dllp_seq_item req = null, bit drop = 1'b0);
     
     bit trigger = 1'b0;
     int roll;
 
+    // req.dllp_type.name() != "DLLP_FEATURE_REQ";
+
       if (req.enable_errors == 1'b1) begin
-        roll = $urandom_range(1, 10); // 90%
-        if (roll != 1) begin
+        roll = $urandom_range(1, 3); // 30%
+        if (roll == 1) begin
             trigger = 1'b1;
         end
 
@@ -21,7 +23,10 @@ class pcie_dll_tx_drv_cb_vc extends pcie_dll_tx_drv_cb_base;
 
     if (trigger) begin
         req.dllp[2:0] = 3'b111;
+        $display("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
+        return 1'b1;
+
     end
 
-  endtask
+  endfunction
 endclass

@@ -54,7 +54,8 @@ class pcie_dll_tx_drv extends uvm_driver #(pcie_dll_base_seq_item);
 
                 if ($cast(dllp_txn, req)) begin
                     // callback pre_transmit
-                    `uvm_do_callbacks(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_base, pre_transmit(req))
+                    //`uvm_do_callbacks(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_base, pre_transmit(req))
+                    `pcie_do_callbacks_one_hot(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_base, pre_transmit(req))
                    // `uvm_info("CAST", "Successfully cast to DLLP", UVM_HIGH)
                     txn_type = 1;
                   //  `uvm_info("callback", $sformatf("dllp: %b", dllp_txn.dllp), UVM_LOW)
@@ -100,7 +101,7 @@ class pcie_dll_tx_drv extends uvm_driver #(pcie_dll_base_seq_item);
                 // vif.cb_drv.lp_tlpend   <= '0;
                 // vif.cb_drv.lp_data     <= '0;
 
-                `uvm_do_callbacks(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_base, post_transmit(req))
+                //`uvm_do_callbacks(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_base, post_transmit(req))
                 seq_item_port.item_done();
                 
             end
