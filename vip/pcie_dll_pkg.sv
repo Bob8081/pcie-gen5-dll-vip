@@ -110,6 +110,7 @@ package pcie_dll_pkg;
   `include "sequences/send_single_packet.sv"
 
   `include "agents/pcie_dll_tx_drv_cb_base.sv"
+  `include "agents/pcie_dll_tx_drv_cb_macro.svh"
   `include "agents/pcie_dll_tx_drv_cb_crc.sv"
   `include "agents/pcie_dll_tx_drv_cb_invalid_dllp.sv"
   `include "agents/pcie_dll_tx_drv_cb_vc.sv"

@@ -1,19 +1,3 @@
-// T is the driver, CB is the base to use it as a hnadle, method is the method that 
-// we wanna call from the callback
-
-
-`define pcie_do_callbacks_one_hot(T, CB, METHOD) \
-  begin \
-    uvm_callback_iter#(T, CB) iter = new(this); \
-    CB cb = iter.first(); \
-    while (cb != null) begin \
-      //if (cb.METHOD) break; \
-      cb.METHOD; // to run the code noramally exactly as 'uvm_do_callbacks \
-      cb = iter.next(); \
-    end \
-  end
-
-
 
 class pcie_dll_tx_drv extends uvm_driver #(pcie_dll_base_seq_item);
 
