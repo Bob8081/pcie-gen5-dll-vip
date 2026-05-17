@@ -67,13 +67,22 @@ class pcie_dll_test_base extends uvm_test;
     end
 
     // Differentiate the initial flow control credits
-    cfg_rc.init_fc_hdr_p = 8'h20;  cfg_rc.init_fc_data_p = 12'h100;
-    cfg_rc.init_fc_hdr_np = 8'h20; cfg_rc.init_fc_data_np = 12'h100;
-    cfg_rc.init_fc_hdr_cpl = 8'h20; cfg_rc.init_fc_data_cpl = 12'h100;
+    //cfg_rc.init_fc_hdr_p = 8'h20;  cfg_rc.init_fc_data_p = 12'h100;
+    //cfg_rc.init_fc_hdr_np = 8'h20; cfg_rc.init_fc_data_np = 12'h100;
+    //cfg_rc.init_fc_hdr_cpl = 8'h20; cfg_rc.init_fc_data_cpl = 12'h100;
 
-    cfg_ep.init_fc_hdr_p = 8'h40;  cfg_ep.init_fc_data_p = 12'h200;
-    cfg_ep.init_fc_hdr_np = 8'h40; cfg_ep.init_fc_data_np = 12'h200;
-    cfg_ep.init_fc_hdr_cpl = 8'h40; cfg_ep.init_fc_data_cpl = 12'h200;
+    //cfg_ep.init_fc_hdr_p = 8'h40;  cfg_ep.init_fc_data_p = 12'h200;
+    //cfg_ep.init_fc_hdr_np = 8'h40; cfg_ep.init_fc_data_np = 12'h200;
+    //cfg_ep.init_fc_hdr_cpl = 8'h40; cfg_ep.init_fc_data_cpl = 12'h200;
+
+    // Either delete them entirely, or set to zero:
+    cfg_rc.init_fc_hdr_p   = 8'h00;  cfg_rc.init_fc_data_p   = 12'h000;
+    cfg_rc.init_fc_hdr_np  = 8'h00;  cfg_rc.init_fc_data_np  = 12'h000;
+    cfg_rc.init_fc_hdr_cpl = 8'h00;  cfg_rc.init_fc_data_cpl = 12'h000;
+
+    cfg_ep.init_fc_hdr_p   = 8'h00;  cfg_ep.init_fc_data_p   = 12'h000;
+    cfg_ep.init_fc_hdr_np  = 8'h00;  cfg_ep.init_fc_data_np  = 12'h000;
+    cfg_ep.init_fc_hdr_cpl = 8'h00;  cfg_ep.init_fc_data_cpl = 12'h000;
     
     // Set the number of transactions to generate for each role (can be overridden from config_db)
     cfg_rc.req_count = 500;

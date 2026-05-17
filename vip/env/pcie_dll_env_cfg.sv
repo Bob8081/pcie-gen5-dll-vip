@@ -21,18 +21,18 @@ class pcie_dll_env_cfg extends uvm_object;
 
   // Initial Flow Control Credits
   rand bit [1:0]         init_fc_hdr_scale_p;
-  rand bit [7:0]         init_fc_hdr_p;
+       bit [7:0]         init_fc_hdr_p;
   rand bit [1:0]         init_fc_data_scale_p;
-  rand bit [11:0]        init_fc_data_p;
+       bit [11:0]        init_fc_data_p;
 
   rand bit [1:0]         init_fc_hdr_scale_np;
-  rand bit [7:0]         init_fc_hdr_np;
+       bit [7:0]         init_fc_hdr_np;
   rand bit [1:0]         init_fc_data_scale_np;
-  rand bit [11:0]        init_fc_data_np;
+       bit [11:0]        init_fc_data_np;
 
   rand bit [1:0]         init_fc_hdr_scale_cpl;
-  rand bit [7:0]         init_fc_hdr_cpl;
-  rand bit [1:0]         init_fc_data_scale_cpl;
+       bit [7:0]         init_fc_hdr_cpl;
+       bit [1:0]         init_fc_data_scale_cpl;
   rand bit [11:0]        init_fc_data_cpl;
 
   // number of items iterations in sequences

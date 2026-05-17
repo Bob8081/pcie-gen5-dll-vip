@@ -35,7 +35,7 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
       option.comment = " Tracks DL state machine transitions";
       bins old_device              = (DL_INACTIVE => DL_INIT_FC1 => DL_INIT_FC2 => DL_ACTIVE);
       bins modern_device           = (DL_INACTIVE => DL_FEATURE_EXCH => DL_INIT_FC1 => DL_INIT_FC2 => DL_ACTIVE);
-      bins going_through_states [] = {DL_INACTIVE, DL_FEATURE_EXCH, DL_INIT_FC1, DL_INIT_FC2, DL_ACTIVE}; 
+      bins going_through_states [] = {DL_FEATURE_EXCH, DL_INIT_FC1, DL_INIT_FC2}; 
     }
 
     cp_dllp_type: coverpoint dllp_type {
@@ -68,19 +68,20 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
       ignore_bins scl_fc = !binsof(cp_dllp_type.feature_state);
     }
 
-    cr_inv_dllp: cross cp_dllp_type, cp_error_status {
+    cr_inv_dllp: cross cp_state, cp_error_status {
       option.comment = " Invalid DLLP scenarios during states";
-      ignore_bins not_invalid_dllp = !binsof(cp_error_status.invalid_dllp) ;
+      ignore_bins not_invalid_dllp = !binsof(cp_error_status.invalid_dllp) || !binsof (cp_state.going_through_states);
     }
 
-    cr_wrong_crc: cross cp_dllp_type, cp_error_status {
+    cr_wrong_crc: cross cp_state, cp_error_status {
       option.comment = " Wrong CRC scenarios during states";
-      ignore_bins not_wrong_crc = !binsof(cp_error_status.wrong_crc);
+      ignore_bins not_wrong_crc = !binsof(cp_error_status.wrong_crc) || !binsof (cp_state.going_through_states);
     }
 
-    cr_invalid_vc: cross cp_dllp_type, cp_error_status {
+    cr_invalid_vc: cross cp_state, cp_error_status {
       option.comment = " Invalid VC scenarios during states";
-      ignore_bins not_invalid_vc = !binsof(cp_error_status.invalid_vc) || (!binsof(cp_dllp_type.init_state_1) && !binsof(cp_dllp_type.init_state_2));
+      ignore_bins not_invalid_vc  = !binsof(cp_error_status.invalid_vc);
+      ignore_bins not_init_states = !binsof(cp_state.going_through_states[DL_INIT_FC1]) && !binsof(cp_state.going_through_states[DL_INIT_FC2]);
     }
     
 
@@ -124,15 +125,16 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     }
 
 
-    cr_zero_data_credits: cross cp_dllp_type, cp_data_credits {
+    cr_zero_data_credits: cross cp_dllp_type, cp_data_credits { 
       option.comment = " Checks zero data credit advertisement during Init states";
-      ignore_bins zero_credit = !binsof(cp_dllp_type.init_state_1) && !binsof(cp_dllp_type.init_state_2);
+      ignore_bins zero_credit   = !binsof(cp_dllp_type.init_state_1) && !binsof(cp_dllp_type.init_state_2);
     }
 
-    cr_zero_hdr_credits: cross cp_dllp_type, cp_hdr_credits {
+    cr_zero_hdr_credits: cross cp_dllp_type, cp_hdr_credits { 
       option.comment = " Checks zero header credit advertisement during Init states";
-      ignore_bins zero_credit = !binsof(cp_dllp_type.init_state_1) && !binsof(cp_dllp_type.init_state_2);
+      ignore_bins zero_credit   = !binsof(cp_dllp_type.init_state_1) && !binsof(cp_dllp_type.init_state_2);
     }
+    
 
   endgroup
 
@@ -203,8 +205,8 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
 
       bit [31:0] full_data = {dllp_item.dllp_type, dllp_item.dllp_payload};
 
-    `uvm_info("COVERAGE", $sformatf("-------------------- the whole DLLP: %h --------------------", dllp_item.dllp), UVM_LOW)
-    `uvm_info("COVERAGE", $sformatf("---------------- DLLP type: %s & state: %s ------------------", dllp_item.dllp_type.name(), state.name()), UVM_LOW)
+    `uvm_info("COVERAGE", $sformatf("----------------- the whole DLLP: %h ----------------", dllp_item.dllp), UVM_LOW)
+    `uvm_info("COVERAGE", $sformatf("------------ DLLP type: %s & state: %s ---------------", dllp_item.dllp_type.name(), state.name()), UVM_LOW)
     `uvm_info("COVERAGE", $sformatf("---------------- verify CRC result: %b & expected CRC: %h ----------------", dllp_item.verify_crc(), dllp_item.crc), UVM_LOW)
     `uvm_info("COVERAGE", $sformatf("-------------------------- VC: %b -------------------------------", dllp_item.dllp_type[2:0]), UVM_LOW)
     `uvm_info("COVERAGE", $sformatf("---------------------- hdr_fc: %h & data_fc: %h -------------------", dllp_item.dllp_payload[21:14], dllp_item.dllp_payload[11:0]), UVM_LOW)
