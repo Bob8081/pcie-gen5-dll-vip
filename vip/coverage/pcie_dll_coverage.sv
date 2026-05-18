@@ -35,7 +35,7 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
       option.comment = " Tracks DL state machine transitions";
       bins old_device              = (DL_INACTIVE => DL_INIT_FC1 => DL_INIT_FC2 => DL_ACTIVE);
       bins modern_device           = (DL_INACTIVE => DL_FEATURE_EXCH => DL_INIT_FC1 => DL_INIT_FC2 => DL_ACTIVE);
-      bins going_through_states [] = {DL_FEATURE_EXCH, DL_INIT_FC1, DL_INIT_FC2}; 
+      bins going_through_states [] = {DL_INACTIVE, DL_FEATURE_EXCH, DL_INIT_FC1, DL_INIT_FC2, DL_ACTIVE}; 
     }
 
     cp_dllp_type: coverpoint dllp_type {
@@ -139,17 +139,17 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
   endgroup
 
   // ---- 2. TLP Coverage Group ----
-  covergroup cg_tlp_transitions (string path_label);
+  //covergroup cg_tlp_transitions (string path_label);
 
-    option.per_instance = 1;
-    option.name         = path_label;
-    option.comment      = " Tracks TLP transmission during DL states ";
+  //  option.per_instance = 1;
+  //  option.name         = path_label;
+  //  option.comment      = " Tracks TLP transmission during DL states ";
 
-    cp_tlp: coverpoint tlp {
-      bins send_tlp = {128'hDEADBEEF_CAFEBABE_11223344_55667788};
-    }
+  //  cp_tlp: coverpoint tlp {
+  //    bins send_tlp = {128'hDEADBEEF_CAFEBABE_11223344_55667788};
+  //  }
 
-  endgroup
+  //endgroup
 
   // ---- Constructor ----
   function new(string name = "pcie_dll_coverage", uvm_component parent = null);
@@ -159,11 +159,11 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
 
     if (uvm_is_match("*tx*", name)) begin
       cg_dllp_transitions = new("Tx_path_dllp");
-      cg_tlp_transitions  = new("Tx_path_tlp");
+     // cg_tlp_transitions  = new("Tx_path_tlp");
     end
     else begin
       cg_dllp_transitions = new("Rx_path_dllp");
-      cg_tlp_transitions  = new("Rx_path_tlp");
+     // cg_tlp_transitions  = new("Rx_path_tlp");
     end
   endfunction
 
@@ -192,7 +192,7 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     else if ($cast(tlp_item, t)) begin
       tlp   = tlp_item.tlp;
 
-      cg_tlp_transitions.sample();
+     // cg_tlp_transitions.sample();
     end
   endfunction
 

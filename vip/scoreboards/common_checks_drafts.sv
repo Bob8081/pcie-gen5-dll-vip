@@ -112,15 +112,16 @@ class pcie_dll_common_checks_drafts extends uvm_subscriber #(pcie_dll_base_seq_i
         unsigned int count= sb_count;
 
 
+        // todo: compare the behavior of state manager not your count for bob
         if (current_state inside {DL_INIT_FC1, DL_INIT_FC2}) begin
             if (pcie_dll_pkg::error_status::determine_error_status(dllp_item) != ERROR_FREE) begin 
                 count= count;
             end
-            // repeated INITFC packets
+            // repeated INITFC packets --> reset if 5 reptations
             else (current_dllp_type == previous_dllp_type) begin // repeated initfc
                 count= count;
             end
-            // disorder INITFC packets
+            // disorder INITFC packets --> zero
             else (   (current_dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC2_P    } && previous_dllp_type inside {DLLP_INITFC1_NP, DLLP_INITFC2_NP  })
                    ||(current_dllp_type inside {DLLP_INITFC1_NP, DLLP_INITFC2_NP  } && previous_dllp_type inside {DLLP_INITFC1_CPL, DLLP_INITFC2_CPL}) 
                    ||(current_dllp_type inside {DLLP_INITFC1_CPL, DLLP_INITFC2_CPL} && previous_dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC2_P    }) ) begin

@@ -144,7 +144,7 @@ package pcie_dll_pkg;
 
   
 
-  `include "tests/test_base.sv"
+  `include "tests/test_base_error_injected.sv"
   `include "tests/test_dlcmsm_fc_init.sv"
 
 endpackage : pcie_dll_pkg
