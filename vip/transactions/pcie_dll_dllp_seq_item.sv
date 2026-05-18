@@ -156,6 +156,8 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
     // Assemble the 48-bit wire word
     dllp = pack();
 
+    `uvm_info("SEQ_ITEM", $sformatf("--- current_state: %s ---", current_state.name()), UVM_LOW)
+
   endfunction
 
   // Returns the 4 pre-CRC bytes in wire order (byte 0 at [7:0]).

@@ -143,7 +143,7 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                     end // end of compeletion state
                     else // else for any non initfc1 packet types recieved in initfc1 state
                     begin
-                        counter =0;
+                        counter =0; // i think we keep the counter without reset as we drop the packet only 
                         `uvm_error("INITFC1_ERR",$sformatf("recieved WRONG STATE DLLP of type : %s in INITFC1_STATE",dllp_item_rx.dllp_type))
                     end
                 end // big else

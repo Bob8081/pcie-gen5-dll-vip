@@ -14,7 +14,8 @@ class pcie_dll_tx_drv_cb_vc extends pcie_dll_tx_drv_cb_base;
     // req.dllp_type.name() != "DLLP_FEATURE_REQ";
 
       if (req.enable_errors == 1'b1) begin
-        roll = $urandom_range(1, 3); // 30%
+        //roll = $urandom_range(1, 2); // 25%
+        roll = 1;
         if (roll == 1) begin
             trigger = 1'b1;
         end
@@ -22,8 +23,8 @@ class pcie_dll_tx_drv_cb_vc extends pcie_dll_tx_drv_cb_base;
       end
 
     if (trigger) begin
-        req.dllp[2:0] = 3'b111;
-        $display("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
+        req.dllp = {pcie_dll_pkg::crc16_generator::calculate_dllp_crc({req.dllp[31:3] ,3'b111}), req.dllp[31:3] ,3'b111};
+        //$display("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
         return 1'b1;
 
     end

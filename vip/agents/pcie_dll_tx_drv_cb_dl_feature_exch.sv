@@ -20,7 +20,7 @@ class pcie_dll_tx_drv_cb_dl_feature_exch extends pcie_dll_tx_drv_cb_base;
 
     // 1. Update the bit corresponding to THIS object instance
     state[a_object_number] = req.dllp[0];
-    $display(req.dllp[0]);
+    //$display(req.dllp[0]);
 
     // 2. Only check combinations if both bits are valid (not X)
     if (state[0] !== 1'bx && state[1] !== 1'bx) begin
@@ -39,13 +39,13 @@ class pcie_dll_tx_drv_cb_dl_feature_exch extends pcie_dll_tx_drv_cb_base;
       
       // 4. Check if all are done
       if (seen_combinations == 4'b1111) begin
-        `uvm_info("CB_LOGIC", "DONE: All 4 combinations have been exercised!", UVM_LOW)
+        //`uvm_info("CB_LOGIC", "DONE: All 4 combinations have been exercised!", UVM_LOW)
       end
 
       state = 2'bxx;
       
     end else begin
-      `uvm_info("CB_LOGIC", $sformatf("Waiting for other object. Current state: %b", state), UVM_MEDIUM)
+      //`uvm_info("CB_LOGIC", $sformatf("Waiting for other object. Current state: %b", state), UVM_MEDIUM)
     end
 
   endtask

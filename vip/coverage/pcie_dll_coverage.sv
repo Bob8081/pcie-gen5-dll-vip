@@ -53,7 +53,7 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     // -- Errors --
     cp_error_status: coverpoint error_status {
       option.comment = " cover different error injection and protocol violations";
-      bins sent_tlp        = {SENT_TLP};
+      //bins sent_tlp        = {SENT_TLP};
       bins invalid_dllp    = {INVALID_DLLP};
       bins wrong_crc       = {WRONG_CRC};
       bins invalid_vc      = {INVALID_VC};
@@ -154,7 +154,7 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
   // ---- Constructor ----
   function new(string name = "pcie_dll_coverage", uvm_component parent = null);
     super.new(name, parent);
-
+    state = DL_INACTIVE;
     state_export = new("state_export", this);
 
     if (uvm_is_match("*tx*", name)) begin
@@ -185,58 +185,15 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
       crc           = dllp_item.crc;
       expected_dllp = {dllp_type, dllp_payload, crc};
 
-      error_status  = determine_error_status(dllp_item);
+      error_status  = pcie_dll_pkg::error_expector::determine_error_status(dllp_item, state);
 
       cg_dllp_transitions.sample();
     end
     else if ($cast(tlp_item, t)) begin
       tlp   = tlp_item.tlp;
 
-      error_status  = SENT_TLP; 
-
       cg_tlp_transitions.sample();
     end
-  endfunction
-
-
-
-  // -------------- Helper Function: to determine error status -------------
-  function pcie_dllp_error_e determine_error_status(pcie_dll_dllp_seq_item dllp_item);
-
-      bit [31:0] full_data = {dllp_item.dllp_type, dllp_item.dllp_payload};
-
-    `uvm_info("COVERAGE", $sformatf("----------------- the whole DLLP: %h ----------------", dllp_item.dllp), UVM_LOW)
-    `uvm_info("COVERAGE", $sformatf("------------ DLLP type: %s & state: %s ---------------", dllp_item.dllp_type.name(), state.name()), UVM_LOW)
-    `uvm_info("COVERAGE", $sformatf("---------------- verify CRC result: %b & expected CRC: %h ----------------", dllp_item.verify_crc(), dllp_item.crc), UVM_LOW)
-    `uvm_info("COVERAGE", $sformatf("-------------------------- VC: %b -------------------------------", dllp_item.dllp_type[2:0]), UVM_LOW)
-    `uvm_info("COVERAGE", $sformatf("---------------------- hdr_fc: %h & data_fc: %h -------------------", dllp_item.dllp_payload[21:14], dllp_item.dllp_payload[11:0]), UVM_LOW)
-    
-    // wrong CRC
-    if (!(dllp_item.verify_crc())) begin
-      return WRONG_CRC;
-    end
-
-    // invalid DLLP 
-    else if (state == DL_FEATURE_EXCH && dllp_item.dllp_type != DLLP_FEATURE_REQ) begin
-      `uvm_info("COVERAGE", $sformatf("Invalid DLLP type %s ", dllp_item.dllp_type.name()), UVM_LOW)
-      return INVALID_DLLP;
-    end
-    else if ((state == DL_INIT_FC1 || state == DL_INIT_FC2) && !(dllp_item.dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC1_NP, DLLP_INITFC1_CPL, DLLP_INITFC2_P, DLLP_INITFC2_NP, DLLP_INITFC2_CPL})) begin
-      `uvm_info("COVERAGE", $sformatf("Invalid DLLP type %s ", dllp_item.dllp_type.name()), UVM_LOW)
-      return INVALID_DLLP;
-    end
-
-    // invalid VC (only InitFC DLLPs should be for VC0)
-    else if (state inside {DL_INIT_FC1, DL_INIT_FC2} && dllp_item.dllp_type[2:0] != 3'b000) begin
-      `uvm_info("COVERAGE", $sformatf("Invalid VC: %b ", dllp_item.dllp_type[2:0]), UVM_LOW)
-      return INVALID_VC;
-    end
-
-    // errors free
-    else begin
-      return ERROR_FREE;
-    end
-
   endfunction
 
 endclass : pcie_dll_coverage

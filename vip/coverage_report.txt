@@ -4,10 +4,10 @@ Covergroup                                             Metric       Goal    Stat
                                                                                               
 -----------------------------------------------------------------------------------------------
  TYPE /pcie_dll_pkg/pcie_dll_coverage/cg_dllp_transitions 
-                                                        62.6%        100    Uncovered            
-    covered/total bins:                                   131        240                      
-    missing/total bins:                                   109        240                      
-    % Hit:                                              54.5%        100                      
+                                                        68.3%        100    Uncovered            
+    covered/total bins:                                   141        236                      
+    missing/total bins:                                    95        236                      
+    % Hit:                                              59.7%        100                      
     Coverpoint cg_dllp_transitions::cp_state            60.0%        100    Uncovered            
         covered/total bins:                                12         20                      
         missing/total bins:                                 8         20                      
@@ -22,14 +22,14 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 0          8                      
         % Hit:                                         100.0%        100                      
     Coverpoint cg_dllp_transitions::cp_error_status 
-                                                        50.0%        100    Uncovered            
-        covered/total bins:                                10         20                      
-        missing/total bins:                                10         20                      
-        % Hit:                                          50.0%        100                      
-    Coverpoint cg_dllp_transitions::cp_initfc           12.5%        100    Uncovered            
-        covered/total bins:                                 8         64                      
-        missing/total bins:                                56         64                      
-        % Hit:                                          12.5%        100                      
+                                                        87.5%        100    Uncovered            
+        covered/total bins:                                14         16                      
+        missing/total bins:                                 2         16                      
+        % Hit:                                          87.5%        100                      
+    Coverpoint cg_dllp_transitions::cp_initfc           15.6%        100    Uncovered            
+        covered/total bins:                                10         64                      
+        missing/total bins:                                54         64                      
+        % Hit:                                          15.6%        100                      
     Coverpoint cg_dllp_transitions::cp_data_credits 
                                                        100.0%        100    Covered              
         covered/total bins:                                 4          4                      
@@ -51,10 +51,10 @@ Covergroup                                             Metric       Goal    Stat
         covered/total bins:                                 3         12                      
         missing/total bins:                                 9         12                      
         % Hit:                                          25.0%        100                      
-    Cross cg_dllp_transitions::cr_invalid_vc             0.0%        100    ZERO                 
-        covered/total bins:                                 0         12                      
-        missing/total bins:                                12         12                      
-        % Hit:                                           0.0%        100                      
+    Cross cg_dllp_transitions::cr_invalid_vc            33.3%        100    Uncovered            
+        covered/total bins:                                 4         12                      
+        missing/total bins:                                 8         12                      
+        % Hit:                                          33.3%        100                      
     Cross cg_dllp_transitions::cr_zero_data_credits 
                                                        100.0%        100    Covered              
         covered/total bins:                                24         24                      
@@ -65,10 +65,10 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 0         24                      
         % Hit:                                         100.0%        100                      
  CLASS pcie_dll_coverage
- Covergroup instance Tx_path_dllp                       65.3%        100    Uncovered            
-    covered/total bins:                                    34         60                      
-    missing/total bins:                                    26         60                      
-    % Hit:                                              56.6%        100                      
+ Covergroup instance Tx_path_dllp                       71.4%        100    Uncovered            
+    covered/total bins:                                    37         59                      
+    missing/total bins:                                    22         59                      
+    % Hit:                                              62.7%        100                      
     Coverpoint cp_state                                 60.0%        100    Uncovered            
         covered/total bins:                                 3          5                      
         missing/total bins:                                 2          5                      
@@ -83,7 +83,7 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 0          7                      
         % Hit:                                         100.0%        100                      
         bin feature_state                                   2          1    Covered              
-        bin init_state_1[DLLP_INITFC1_P]                    1          1    Covered              
+        bin init_state_1[DLLP_INITFC1_P]                    3          1    Covered              
         bin init_state_1[DLLP_INITFC1_NP]                   1          1    Covered              
         bin init_state_1[DLLP_INITFC1_CPL]                  2          1    Covered              
         bin init_state_2[DLLP_INITFC2_P]                    1          1    Covered              
@@ -95,19 +95,18 @@ Covergroup                                             Metric       Goal    Stat
         % Hit:                                         100.0%        100                      
         bin scl_flow[0]                                    12          1    Covered              
         bin scl_flow[1]                                     2          1    Covered              
-    Coverpoint cp_error_status                          60.0%        100    Uncovered            
-        covered/total bins:                                 3          5                      
-        missing/total bins:                                 2          5                      
-        % Hit:                                          60.0%        100                      
-        bin sent_tlp                                        0          1    ZERO                 
+    Coverpoint cp_error_status                         100.0%        100    Covered              
+        covered/total bins:                                 4          4                      
+        missing/total bins:                                 0          4                      
+        % Hit:                                         100.0%        100                      
         bin invalid_dllp                                    1          1    Covered              
-        bin wrong_crc                                       4          1    Covered              
-        bin invalid_vc                                      0          1    ZERO                 
+        bin wrong_crc                                       2          1    Covered              
+        bin invalid_vc                                      2          1    Covered              
         bin error_free                                      9          1    Covered              
-    Coverpoint cp_initfc                                12.5%        100    Uncovered            
-        covered/total bins:                                 2         16                      
-        missing/total bins:                                14         16                      
-        % Hit:                                          12.5%        100                      
+    Coverpoint cp_initfc                                18.7%        100    Uncovered            
+        covered/total bins:                                 3         16                      
+        missing/total bins:                                13         16                      
+        % Hit:                                          18.7%        100                      
         bin initfc1_B2B                                     1          1    Covered              
         bin initfc1_disorder[DLLP_INITFC1_P=>DLLP_INITFC1_CPL] 
                                                             0          1    ZERO                 
@@ -116,7 +115,7 @@ Covergroup                                             Metric       Goal    Stat
         bin initfc1_disorder[DLLP_INITFC1_CPL=>DLLP_INITFC1_NP] 
                                                             0          1    ZERO                 
         bin initfc1_repeated[DLLP_INITFC1_P=>DLLP_INITFC1_P] 
-                                                            0          1    ZERO                 
+                                                            1          1    Covered              
         bin initfc1_repeated[DLLP_INITFC1_NP=>DLLP_INITFC1_NP] 
                                                             0          1    ZERO                 
         bin initfc1_repeated[DLLP_INITFC1_CPL=>DLLP_INITFC1_CPL] 
@@ -151,7 +150,7 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 1          2                      
         % Hit:                                          50.0%        100                      
         bin <feature_state,scl_flow[1]>                     2          1    Covered              
-        ignore_bin scl_fc                                   7               Occurred             
+        ignore_bin scl_fc                                   9               Occurred             
         bin <feature_state,scl_flow[0]>                     0          1    ZERO                 
     Cross cr_inv_dllp                                   33.3%        100    Uncovered            
         covered/total bins:                                 1          3                      
@@ -169,21 +168,21 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 2          3                      
         % Hit:                                          33.3%        100                      
         bin <going_through_states[DL_INIT_FC1],wrong_crc> 
-                                                            4          1    Covered              
-        ignore_bin not_wrong_crc                           10               Occurred             
+                                                            2          1    Covered              
+        ignore_bin not_wrong_crc                           12               Occurred             
         bin <going_through_states[DL_FEATURE_EXCH],wrong_crc> 
                                                             0          1    ZERO                 
         bin <going_through_states[DL_INIT_FC2],wrong_crc> 
                                                             0          1    ZERO                 
-    Cross cr_invalid_vc                                  0.0%        100    ZERO                 
-        covered/total bins:                                 0          3                      
-        missing/total bins:                                 3          3                      
-        % Hit:                                           0.0%        100                      
-        ignore_bin not_invalid_vc                          14               Occurred             
+    Cross cr_invalid_vc                                 33.3%        100    Uncovered            
+        covered/total bins:                                 1          3                      
+        missing/total bins:                                 2          3                      
+        % Hit:                                          33.3%        100                      
+        bin <going_through_states[DL_INIT_FC1],invalid_vc> 
+                                                            2          1    Covered              
+        ignore_bin not_invalid_vc                          12               Occurred             
         ignore_bin not_init_states                          0               ZERO                 
         bin <going_through_states[DL_FEATURE_EXCH],invalid_vc> 
-                                                            0          1    ZERO                 
-        bin <going_through_states[DL_INIT_FC1],invalid_vc> 
                                                             0          1    ZERO                 
         bin <going_through_states[DL_INIT_FC2],invalid_vc> 
                                                             0          1    ZERO                 
@@ -192,7 +191,7 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 0          6                      
         % Hit:                                         100.0%        100                      
         bin <init_state_1[DLLP_INITFC1_P],no_data_credits> 
-                                                            1          1    Covered              
+                                                            3          1    Covered              
         bin <init_state_1[DLLP_INITFC1_NP],no_data_credits> 
                                                             1          1    Covered              
         bin <init_state_1[DLLP_INITFC1_CPL],no_data_credits> 
@@ -209,7 +208,7 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 0          6                      
         % Hit:                                         100.0%        100                      
         bin <init_state_1[DLLP_INITFC1_P],no_hdr_credits> 
-                                                            1          1    Covered              
+                                                            3          1    Covered              
         bin <init_state_1[DLLP_INITFC1_NP],no_hdr_credits> 
                                                             1          1    Covered              
         bin <init_state_1[DLLP_INITFC1_CPL],no_hdr_credits> 
@@ -221,10 +220,10 @@ Covergroup                                             Metric       Goal    Stat
         bin <init_state_2[DLLP_INITFC2_CPL],no_hdr_credits> 
                                                             1          1    Covered              
         ignore_bin zero_credit                              2               Occurred             
- Covergroup instance Rx_path_dllp                       61.2%        100    Uncovered            
-    covered/total bins:                                    32         60                      
-    missing/total bins:                                    28         60                      
-    % Hit:                                              53.3%        100                      
+ Covergroup instance Rx_path_dllp                       63.9%        100    Uncovered            
+    covered/total bins:                                    33         59                      
+    missing/total bins:                                    26         59                      
+    % Hit:                                              55.9%        100                      
     Coverpoint cp_state                                 60.0%        100    Uncovered            
         covered/total bins:                                 3          5                      
         missing/total bins:                                 2          5                      
@@ -232,14 +231,14 @@ Covergroup                                             Metric       Goal    Stat
         bin old_device                                      0          1    ZERO                 
         bin modern_device                                   0          1    ZERO                 
         bin going_through_states[DL_FEATURE_EXCH]           2          1    Covered              
-        bin going_through_states[DL_INIT_FC1]               4          1    Covered              
+        bin going_through_states[DL_INIT_FC1]               5          1    Covered              
         bin going_through_states[DL_INIT_FC2]               2          1    Covered              
     Coverpoint cp_dllp_type                            100.0%        100    Covered              
         covered/total bins:                                 7          7                      
         missing/total bins:                                 0          7                      
         % Hit:                                         100.0%        100                      
         bin feature_state                                   2          1    Covered              
-        bin init_state_1[DLLP_INITFC1_P]                    1          1    Covered              
+        bin init_state_1[DLLP_INITFC1_P]                    2          1    Covered              
         bin init_state_1[DLLP_INITFC1_NP]                   1          1    Covered              
         bin init_state_1[DLLP_INITFC1_CPL]                  2          1    Covered              
         bin init_state_2[DLLP_INITFC2_P]                    1          1    Covered              
@@ -251,15 +250,14 @@ Covergroup                                             Metric       Goal    Stat
         % Hit:                                         100.0%        100                      
         bin scl_flow[0]                                    12          1    Covered              
         bin scl_flow[1]                                     2          1    Covered              
-    Coverpoint cp_error_status                          40.0%        100    Uncovered            
-        covered/total bins:                                 2          5                      
-        missing/total bins:                                 3          5                      
-        % Hit:                                          40.0%        100                      
-        bin sent_tlp                                        0          1    ZERO                 
+    Coverpoint cp_error_status                          75.0%        100    Uncovered            
+        covered/total bins:                                 3          4                      
+        missing/total bins:                                 1          4                      
+        % Hit:                                          75.0%        100                      
         bin invalid_dllp                                    0          1    ZERO                 
-        bin wrong_crc                                       5          1    Covered              
-        bin invalid_vc                                      0          1    ZERO                 
-        bin error_free                                      9          1    Covered              
+        bin wrong_crc                                       1          1    Covered              
+        bin invalid_vc                                      1          1    Covered              
+        bin error_free                                     12          1    Covered              
     Coverpoint cp_initfc                                12.5%        100    Uncovered            
         covered/total bins:                                 2         16                      
         missing/total bins:                                14         16                      
@@ -307,39 +305,39 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 1          2                      
         % Hit:                                          50.0%        100                      
         bin <feature_state,scl_flow[1]>                     2          1    Covered              
-        ignore_bin scl_fc                                   7               Occurred             
+        ignore_bin scl_fc                                   8               Occurred             
         bin <feature_state,scl_flow[0]>                     0          1    ZERO                 
     Cross cr_inv_dllp                                    0.0%        100    ZERO                 
         covered/total bins:                                 0          3                      
         missing/total bins:                                 3          3                      
         % Hit:                                           0.0%        100                      
-        ignore_bin not_invalid_dllp                         8               Occurred             
+        ignore_bin not_invalid_dllp                         9               Occurred             
         bin <going_through_states[DL_FEATURE_EXCH],invalid_dllp> 
                                                             0          1    ZERO                 
         bin <going_through_states[DL_INIT_FC1],invalid_dllp> 
                                                             0          1    ZERO                 
         bin <going_through_states[DL_INIT_FC2],invalid_dllp> 
                                                             0          1    ZERO                 
-    Cross cr_wrong_crc                                  33.3%        100    Uncovered            
-        covered/total bins:                                 1          3                      
-        missing/total bins:                                 2          3                      
-        % Hit:                                          33.3%        100                      
+    Cross cr_wrong_crc                                   0.0%        100    ZERO                 
+        covered/total bins:                                 0          3                      
+        missing/total bins:                                 3          3                      
+        % Hit:                                           0.0%        100                      
+        ignore_bin not_wrong_crc                            9               Occurred             
         bin <going_through_states[DL_FEATURE_EXCH],wrong_crc> 
-                                                            1          1    Covered              
-        ignore_bin not_wrong_crc                            7               Occurred             
+                                                            0          1    ZERO                 
         bin <going_through_states[DL_INIT_FC1],wrong_crc> 
                                                             0          1    ZERO                 
         bin <going_through_states[DL_INIT_FC2],wrong_crc> 
                                                             0          1    ZERO                 
-    Cross cr_invalid_vc                                  0.0%        100    ZERO                 
-        covered/total bins:                                 0          3                      
-        missing/total bins:                                 3          3                      
-        % Hit:                                           0.0%        100                      
+    Cross cr_invalid_vc                                 33.3%        100    Uncovered            
+        covered/total bins:                                 1          3                      
+        missing/total bins:                                 2          3                      
+        % Hit:                                          33.3%        100                      
+        bin <going_through_states[DL_INIT_FC1],invalid_vc> 
+                                                            1          1    Covered              
         ignore_bin not_invalid_vc                           8               Occurred             
         ignore_bin not_init_states                          0               ZERO                 
         bin <going_through_states[DL_FEATURE_EXCH],invalid_vc> 
-                                                            0          1    ZERO                 
-        bin <going_through_states[DL_INIT_FC1],invalid_vc> 
                                                             0          1    ZERO                 
         bin <going_through_states[DL_INIT_FC2],invalid_vc> 
                                                             0          1    ZERO                 
@@ -348,7 +346,7 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 0          6                      
         % Hit:                                         100.0%        100                      
         bin <init_state_1[DLLP_INITFC1_P],no_data_credits> 
-                                                            1          1    Covered              
+                                                            2          1    Covered              
         bin <init_state_1[DLLP_INITFC1_NP],no_data_credits> 
                                                             1          1    Covered              
         bin <init_state_1[DLLP_INITFC1_CPL],no_data_credits> 
@@ -365,7 +363,7 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 0          6                      
         % Hit:                                         100.0%        100                      
         bin <init_state_1[DLLP_INITFC1_P],no_hdr_credits> 
-                                                            1          1    Covered              
+                                                            2          1    Covered              
         bin <init_state_1[DLLP_INITFC1_NP],no_hdr_credits> 
                                                             1          1    Covered              
         bin <init_state_1[DLLP_INITFC1_CPL],no_hdr_credits> 
@@ -377,10 +375,10 @@ Covergroup                                             Metric       Goal    Stat
         bin <init_state_2[DLLP_INITFC2_CPL],no_hdr_credits> 
                                                             1          1    Covered              
         ignore_bin zero_credit                              2               Occurred             
- Covergroup instance Tx_path_dllp#1                     61.2%        100    Uncovered            
-    covered/total bins:                                    32         60                      
-    missing/total bins:                                    28         60                      
-    % Hit:                                              53.3%        100                      
+ Covergroup instance Tx_path_dllp#1                     70.9%        100    Uncovered            
+    covered/total bins:                                    36         59                      
+    missing/total bins:                                    23         59                      
+    % Hit:                                              61.0%        100                      
     Coverpoint cp_state                                 60.0%        100    Uncovered            
         covered/total bins:                                 3          5                      
         missing/total bins:                                 2          5                      
@@ -395,7 +393,7 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 0          7                      
         % Hit:                                         100.0%        100                      
         bin feature_state                                   2          1    Covered              
-        bin init_state_1[DLLP_INITFC1_P]                    1          1    Covered              
+        bin init_state_1[DLLP_INITFC1_P]                    2          1    Covered              
         bin init_state_1[DLLP_INITFC1_NP]                   1          1    Covered              
         bin init_state_1[DLLP_INITFC1_CPL]                  2          1    Covered              
         bin init_state_2[DLLP_INITFC2_P]                    1          1    Covered              
@@ -407,14 +405,13 @@ Covergroup                                             Metric       Goal    Stat
         % Hit:                                         100.0%        100                      
         bin scl_flow[0]                                    12          1    Covered              
         bin scl_flow[1]                                     2          1    Covered              
-    Coverpoint cp_error_status                          40.0%        100    Uncovered            
-        covered/total bins:                                 2          5                      
-        missing/total bins:                                 3          5                      
-        % Hit:                                          40.0%        100                      
-        bin sent_tlp                                        0          1    ZERO                 
-        bin invalid_dllp                                    0          1    ZERO                 
-        bin wrong_crc                                       5          1    Covered              
-        bin invalid_vc                                      0          1    ZERO                 
+    Coverpoint cp_error_status                         100.0%        100    Covered              
+        covered/total bins:                                 4          4                      
+        missing/total bins:                                 0          4                      
+        % Hit:                                         100.0%        100                      
+        bin invalid_dllp                                    2          1    Covered              
+        bin wrong_crc                                       1          1    Covered              
+        bin invalid_vc                                      2          1    Covered              
         bin error_free                                      9          1    Covered              
     Coverpoint cp_initfc                                12.5%        100    Uncovered            
         covered/total bins:                                 2         16                      
@@ -463,16 +460,16 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 1          2                      
         % Hit:                                          50.0%        100                      
         bin <feature_state,scl_flow[1]>                     2          1    Covered              
-        ignore_bin scl_fc                                   7               Occurred             
+        ignore_bin scl_fc                                   8               Occurred             
         bin <feature_state,scl_flow[0]>                     0          1    ZERO                 
-    Cross cr_inv_dllp                                    0.0%        100    ZERO                 
-        covered/total bins:                                 0          3                      
-        missing/total bins:                                 3          3                      
-        % Hit:                                           0.0%        100                      
-        ignore_bin not_invalid_dllp                        14               Occurred             
-        bin <going_through_states[DL_FEATURE_EXCH],invalid_dllp> 
-                                                            0          1    ZERO                 
+    Cross cr_inv_dllp                                   33.3%        100    Uncovered            
+        covered/total bins:                                 1          3                      
+        missing/total bins:                                 2          3                      
+        % Hit:                                          33.3%        100                      
         bin <going_through_states[DL_INIT_FC1],invalid_dllp> 
+                                                            2          1    Covered              
+        ignore_bin not_invalid_dllp                        12               Occurred             
+        bin <going_through_states[DL_FEATURE_EXCH],invalid_dllp> 
                                                             0          1    ZERO                 
         bin <going_through_states[DL_INIT_FC2],invalid_dllp> 
                                                             0          1    ZERO                 
@@ -481,21 +478,21 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 2          3                      
         % Hit:                                          33.3%        100                      
         bin <going_through_states[DL_INIT_FC1],wrong_crc> 
-                                                            5          1    Covered              
-        ignore_bin not_wrong_crc                            9               Occurred             
+                                                            1          1    Covered              
+        ignore_bin not_wrong_crc                           13               Occurred             
         bin <going_through_states[DL_FEATURE_EXCH],wrong_crc> 
                                                             0          1    ZERO                 
         bin <going_through_states[DL_INIT_FC2],wrong_crc> 
                                                             0          1    ZERO                 
-    Cross cr_invalid_vc                                  0.0%        100    ZERO                 
-        covered/total bins:                                 0          3                      
-        missing/total bins:                                 3          3                      
-        % Hit:                                           0.0%        100                      
-        ignore_bin not_invalid_vc                          14               Occurred             
+    Cross cr_invalid_vc                                 33.3%        100    Uncovered            
+        covered/total bins:                                 1          3                      
+        missing/total bins:                                 2          3                      
+        % Hit:                                          33.3%        100                      
+        bin <going_through_states[DL_INIT_FC1],invalid_vc> 
+                                                            2          1    Covered              
+        ignore_bin not_invalid_vc                          12               Occurred             
         ignore_bin not_init_states                          0               ZERO                 
         bin <going_through_states[DL_FEATURE_EXCH],invalid_vc> 
-                                                            0          1    ZERO                 
-        bin <going_through_states[DL_INIT_FC1],invalid_vc> 
                                                             0          1    ZERO                 
         bin <going_through_states[DL_INIT_FC2],invalid_vc> 
                                                             0          1    ZERO                 
@@ -504,7 +501,7 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 0          6                      
         % Hit:                                         100.0%        100                      
         bin <init_state_1[DLLP_INITFC1_P],no_data_credits> 
-                                                            1          1    Covered              
+                                                            2          1    Covered              
         bin <init_state_1[DLLP_INITFC1_NP],no_data_credits> 
                                                             1          1    Covered              
         bin <init_state_1[DLLP_INITFC1_CPL],no_data_credits> 
@@ -521,7 +518,7 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 0          6                      
         % Hit:                                         100.0%        100                      
         bin <init_state_1[DLLP_INITFC1_P],no_hdr_credits> 
-                                                            1          1    Covered              
+                                                            2          1    Covered              
         bin <init_state_1[DLLP_INITFC1_NP],no_hdr_credits> 
                                                             1          1    Covered              
         bin <init_state_1[DLLP_INITFC1_CPL],no_hdr_credits> 
@@ -533,10 +530,10 @@ Covergroup                                             Metric       Goal    Stat
         bin <init_state_2[DLLP_INITFC2_CPL],no_hdr_credits> 
                                                             1          1    Covered              
         ignore_bin zero_credit                              2               Occurred             
- Covergroup instance Rx_path_dllp#1                     62.7%        100    Uncovered            
-    covered/total bins:                                    33         60                      
-    missing/total bins:                                    27         60                      
-    % Hit:                                              55.0%        100                      
+ Covergroup instance Rx_path_dllp#1                     66.9%        100    Uncovered            
+    covered/total bins:                                    35         59                      
+    missing/total bins:                                    24         59                      
+    % Hit:                                              59.3%        100                      
     Coverpoint cp_state                                 60.0%        100    Uncovered            
         covered/total bins:                                 3          5                      
         missing/total bins:                                 2          5                      
@@ -544,14 +541,14 @@ Covergroup                                             Metric       Goal    Stat
         bin old_device                                      0          1    ZERO                 
         bin modern_device                                   0          1    ZERO                 
         bin going_through_states[DL_FEATURE_EXCH]           2          1    Covered              
-        bin going_through_states[DL_INIT_FC1]               4          1    Covered              
+        bin going_through_states[DL_INIT_FC1]               6          1    Covered              
         bin going_through_states[DL_INIT_FC2]               2          1    Covered              
     Coverpoint cp_dllp_type                            100.0%        100    Covered              
         covered/total bins:                                 7          7                      
         missing/total bins:                                 0          7                      
         % Hit:                                         100.0%        100                      
         bin feature_state                                   2          1    Covered              
-        bin init_state_1[DLLP_INITFC1_P]                    1          1    Covered              
+        bin init_state_1[DLLP_INITFC1_P]                    3          1    Covered              
         bin init_state_1[DLLP_INITFC1_NP]                   1          1    Covered              
         bin init_state_1[DLLP_INITFC1_CPL]                  2          1    Covered              
         bin init_state_2[DLLP_INITFC2_P]                    1          1    Covered              
@@ -563,19 +560,18 @@ Covergroup                                             Metric       Goal    Stat
         % Hit:                                         100.0%        100                      
         bin scl_flow[0]                                    12          1    Covered              
         bin scl_flow[1]                                     2          1    Covered              
-    Coverpoint cp_error_status                          60.0%        100    Uncovered            
-        covered/total bins:                                 3          5                      
-        missing/total bins:                                 2          5                      
-        % Hit:                                          60.0%        100                      
-        bin sent_tlp                                        0          1    ZERO                 
-        bin invalid_dllp                                    1          1    Covered              
-        bin wrong_crc                                       4          1    Covered              
-        bin invalid_vc                                      0          1    ZERO                 
-        bin error_free                                      9          1    Covered              
-    Coverpoint cp_initfc                                12.5%        100    Uncovered            
-        covered/total bins:                                 2         16                      
-        missing/total bins:                                14         16                      
-        % Hit:                                          12.5%        100                      
+    Coverpoint cp_error_status                          75.0%        100    Uncovered            
+        covered/total bins:                                 3          4                      
+        missing/total bins:                                 1          4                      
+        % Hit:                                          75.0%        100                      
+        bin invalid_dllp                                    0          1    ZERO                 
+        bin wrong_crc                                       2          1    Covered              
+        bin invalid_vc                                      1          1    Covered              
+        bin error_free                                     11          1    Covered              
+    Coverpoint cp_initfc                                18.7%        100    Uncovered            
+        covered/total bins:                                 3         16                      
+        missing/total bins:                                13         16                      
+        % Hit:                                          18.7%        100                      
         bin initfc1_B2B                                     1          1    Covered              
         bin initfc1_disorder[DLLP_INITFC1_P=>DLLP_INITFC1_CPL] 
                                                             0          1    ZERO                 
@@ -584,7 +580,7 @@ Covergroup                                             Metric       Goal    Stat
         bin initfc1_disorder[DLLP_INITFC1_CPL=>DLLP_INITFC1_NP] 
                                                             0          1    ZERO                 
         bin initfc1_repeated[DLLP_INITFC1_P=>DLLP_INITFC1_P] 
-                                                            0          1    ZERO                 
+                                                            1          1    Covered              
         bin initfc1_repeated[DLLP_INITFC1_NP=>DLLP_INITFC1_NP] 
                                                             0          1    ZERO                 
         bin initfc1_repeated[DLLP_INITFC1_CPL=>DLLP_INITFC1_CPL] 
@@ -619,39 +615,39 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 1          2                      
         % Hit:                                          50.0%        100                      
         bin <feature_state,scl_flow[1]>                     2          1    Covered              
-        ignore_bin scl_fc                                   7               Occurred             
+        ignore_bin scl_fc                                   9               Occurred             
         bin <feature_state,scl_flow[0]>                     0          1    ZERO                 
-    Cross cr_inv_dllp                                   33.3%        100    Uncovered            
-        covered/total bins:                                 1          3                      
-        missing/total bins:                                 2          3                      
-        % Hit:                                          33.3%        100                      
+    Cross cr_inv_dllp                                    0.0%        100    ZERO                 
+        covered/total bins:                                 0          3                      
+        missing/total bins:                                 3          3                      
+        % Hit:                                           0.0%        100                      
+        ignore_bin not_invalid_dllp                        10               Occurred             
         bin <going_through_states[DL_FEATURE_EXCH],invalid_dllp> 
-                                                            1          1    Covered              
-        ignore_bin not_invalid_dllp                         7               Occurred             
+                                                            0          1    ZERO                 
         bin <going_through_states[DL_INIT_FC1],invalid_dllp> 
                                                             0          1    ZERO                 
         bin <going_through_states[DL_INIT_FC2],invalid_dllp> 
                                                             0          1    ZERO                 
-    Cross cr_wrong_crc                                   0.0%        100    ZERO                 
-        covered/total bins:                                 0          3                      
-        missing/total bins:                                 3          3                      
-        % Hit:                                           0.0%        100                      
-        ignore_bin not_wrong_crc                            8               Occurred             
-        bin <going_through_states[DL_FEATURE_EXCH],wrong_crc> 
-                                                            0          1    ZERO                 
+    Cross cr_wrong_crc                                  33.3%        100    Uncovered            
+        covered/total bins:                                 1          3                      
+        missing/total bins:                                 2          3                      
+        % Hit:                                          33.3%        100                      
         bin <going_through_states[DL_INIT_FC1],wrong_crc> 
+                                                            1          1    Covered              
+        ignore_bin not_wrong_crc                            9               Occurred             
+        bin <going_through_states[DL_FEATURE_EXCH],wrong_crc> 
                                                             0          1    ZERO                 
         bin <going_through_states[DL_INIT_FC2],wrong_crc> 
                                                             0          1    ZERO                 
-    Cross cr_invalid_vc                                  0.0%        100    ZERO                 
-        covered/total bins:                                 0          3                      
-        missing/total bins:                                 3          3                      
-        % Hit:                                           0.0%        100                      
-        ignore_bin not_invalid_vc                           8               Occurred             
+    Cross cr_invalid_vc                                 33.3%        100    Uncovered            
+        covered/total bins:                                 1          3                      
+        missing/total bins:                                 2          3                      
+        % Hit:                                          33.3%        100                      
+        bin <going_through_states[DL_INIT_FC1],invalid_vc> 
+                                                            1          1    Covered              
+        ignore_bin not_invalid_vc                           9               Occurred             
         ignore_bin not_init_states                          0               ZERO                 
         bin <going_through_states[DL_FEATURE_EXCH],invalid_vc> 
-                                                            0          1    ZERO                 
-        bin <going_through_states[DL_INIT_FC1],invalid_vc> 
                                                             0          1    ZERO                 
         bin <going_through_states[DL_INIT_FC2],invalid_vc> 
                                                             0          1    ZERO                 
@@ -660,7 +656,7 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 0          6                      
         % Hit:                                         100.0%        100                      
         bin <init_state_1[DLLP_INITFC1_P],no_data_credits> 
-                                                            1          1    Covered              
+                                                            3          1    Covered              
         bin <init_state_1[DLLP_INITFC1_NP],no_data_credits> 
                                                             1          1    Covered              
         bin <init_state_1[DLLP_INITFC1_CPL],no_data_credits> 
@@ -677,7 +673,7 @@ Covergroup                                             Metric       Goal    Stat
         missing/total bins:                                 0          6                      
         % Hit:                                         100.0%        100                      
         bin <init_state_1[DLLP_INITFC1_P],no_hdr_credits> 
-                                                            1          1    Covered              
+                                                            3          1    Covered              
         bin <init_state_1[DLLP_INITFC1_NP],no_hdr_credits> 
                                                             1          1    Covered              
         bin <init_state_1[DLLP_INITFC1_CPL],no_hdr_credits> 
@@ -737,4 +733,4 @@ Covergroup                                             Metric       Goal    Stat
         % Hit:                                           0.0%        100                      
         bin send_tlp                                        0          1    ZERO                 
 
-TOTAL COVERGROUP COVERAGE: 31.3%  COVERGROUP TYPES: 2
+TOTAL COVERGROUP COVERAGE: 34.1%  COVERGROUP TYPES: 2

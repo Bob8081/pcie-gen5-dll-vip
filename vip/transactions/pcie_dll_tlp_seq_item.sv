@@ -1,7 +1,7 @@
 class pcie_dll_tlp_seq_item extends pcie_dll_base_seq_item;
 
-    bit [127:0] tlp;
     rand pcie_dlcmsm_state_e current_state;
+    rand bit [127:0]   tlp;
 
     // ---- Registration ----
     `uvm_object_utils_begin (pcie_dll_tlp_seq_item)

@@ -6,6 +6,8 @@ class pcie_dll_common_checks_drafts extends uvm_subscriber #(pcie_dll_base_seq_i
   `uvm_object_utils(pcie_dll_common_checks_drafts)
 
   pcie_dll_env_cfg   cfg;
+  pcie_dllp_type_e   previous_dllp_type;
+  pcie_dllp_type_e   current_dllp_type;
 
   // Get config from uvm_config_db 
   // note: will be in scoreboard class not here
@@ -22,11 +24,14 @@ class pcie_dll_common_checks_drafts extends uvm_subscriber #(pcie_dll_base_seq_i
 
     if ($cast(dllp_item, item)) begin
         `uvm_info("COMMON_CHECKS", "DLLP Item Detected - Performing Common Checks...", UVM_LOW) 
+        previous_dllp_type = current_dllp_type;
+        current_dllp_type = dllp_item.dllp_type;
+        
         traffic_isolation_check (dllp_item);
         data_integrity_check    (dllp_item, cfg);
         // TODO: add bob's checks here...
     end
-    else if ($cast(tlp_item, item)) begin  
+    else if ($cast(tlp_item, item) && tlp_item.current_state != DL_ACTIVE) begin  
          `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
     end
 
@@ -41,32 +46,32 @@ class pcie_dll_common_checks_drafts extends uvm_subscriber #(pcie_dll_base_seq_i
         // Only proper DLLPs are transmitted during states
         case (dllp_item.current_state)
             DL_FEATURE_EXCH: begin
-                if (dllp_item.dllp_type != DLLP_FEATURE_EXCH) begin
-                    `uvm_error("TRAFFIC_ISOLATION", "Violation: Only FEATURE_EXCH DLLPs allowed in FEATURE_EXCH state!")
+                if (dllp_item.dllp_type == DLLP_ACK) begin
+                    `uvm_error("SB: TRAFFIC_ISOLATION", "Violation: Only FEATURE_EXCH DLLPs allowed in FEATURE_EXCH state!")
                 end
                 else begin
-                    `uvm_info("TRAFFIC_ISOLATION", "Valid: FEATURE_EXCH DLLP detected in FEATURE_EXCH state.", UVM_LOW)
+                    `uvm_info("SB: TRAFFIC_ISOLATION", "Valid: FEATURE_EXCH DLLP detected in FEATURE_EXCH state.", UVM_LOW)
                 end
             end
 
-            DL_INIT_FC1, DL_INIT_FC2: begin
-                if (!(dllp_item.dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC1_NP, DLLP_INITFC1_CPL, DLLP_INITFC2_P, DLLP_INITFC2_NP, DLLP_INITFC2_CPL})) begin
-                    `uvm_error("TRAFFIC_ISOLATION", "Violation: Only InitFC DLLPs allowed in INIT_FC states!")
+            DL_INIT_FC1, DL_INIT_FC2: begin // note: we use ack to separate betweeninvalid dllp and invalid VC 
+                if ((dllp_item.dllp_type == DLLP_ACK)) begin
+                    `uvm_error("SB: TRAFFIC_ISOLATION", "Violation: Only InitFC DLLPs allowed in INIT_FC states!")
                 end
                 else begin
-                    `uvm_info("TRAFFIC_ISOLATION", "Valid: InitFC DLLP detected in INIT_FC state.", UVM_LOW)
+                    `uvm_info("SB: TRAFFIC_ISOLATION", "Valid: InitFC DLLP detected in INIT_FC state.", UVM_LOW)
                 end
             end
         endcase
 
 
         // All InitFC DLLPs are strictly addressed to Virtual Channel 0 (VCO).
-        if (dllp_item.current_state inside {DL_INIT_FC1, DL_INIT_FC2}) begin
+        if (dllp_item.dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC1_NP, DLLP_INITFC1_CPL, DLLP_INITFC2_P, DLLP_INITFC2_NP, DLLP_INITFC2_CPL}) begin
             if (dllp_item.dllp_type[2:0] != 3'b000) begin // note: make sure this bits hit VC ID in DLLP header
-                `uvm_error("TRAFFIC_ISOLATION", "Violation: Only credit advertisement DLLPs allowed for Virtual Channel 0 (VCO) during InitFC states!")
+                `uvm_error("SB: TRAFFIC_ISOLATION", "Violation: Only credit advertisement DLLPs allowed for Virtual Channel 0 (VCO) during InitFC states!")
             end
             else begin
-                `uvm_info("TRAFFIC_ISOLATION", "Valid: credit advertisement DLLPs is for Virtual Channel 0 (VCO) during InitFC states!", UVM_LOW)
+                `uvm_info("SB: TRAFFIC_ISOLATION", "Valid: credit advertisement DLLPs is for Virtual Channel 0 (VCO) during InitFC states!", UVM_LOW)
             end
         end
 
@@ -74,67 +79,64 @@ class pcie_dll_common_checks_drafts extends uvm_subscriber #(pcie_dll_base_seq_i
 
     
     
-    
-    // TODO
-    function void data_integrity_check (pcie_dll_dllp_seq_item dllp_item, pcie_dll_env_cfg cfg, unsigned int st_count);
-        
-
-        // signals advertised credits in Tx InitFC1
-        bit [1:0]          hdr_scale_p   = cfg.init_fc_hdr_scale_p;
-        bit [7:0]          hdr_fc_p      = cfg.init_fc_hdr_p;
-        bit [1:0]          data_scale_p  = cfg.init_fc_data_scale_p;
-        bit [11:0]         data_fc_p     = cfg.init_fc_data_p;
-        bit [1:0]          hdr_scale_np  = cfg.init_fc_hdr_scale_np;
-        bit [7:0]          hdr_fc_np     = cfg.init_fc_hdr_np;
-        bit [1:0]          data_scale_np = cfg.init_fc_data_scale_np;
-        bit [11:0]         data_fc_np    = cfg.init_fc_data_np;
-        bit [1:0]          hdr_scale_cpl = cfg.init_fc_hdr_scale_cpl;
-        bit [7:0]          hdr_fc_cpl    = cfg.init_fc_hdr_cpl;
-        bit [1:0]          data_scale_cpl= cfg.init_fc_data_scale_cpl;
-        bit [11:0]         data_fc_cpl   = cfg.init_fc_data_cpl;
-
-        // signals to get correct CRC
-        bit  [31:0]       full_data      = {dllp_item.dllp_type, dllp_item.dllp_payload}; 
-        bit  [15:0]       correct_crc    = pcie_dll_pkg::crc16_generator::calculate_dllp_crc(full_data);
+    // data_integrity check implementation...
+    function void data_integrity_check (pcie_dll_dllp_seq_item dllp_item, unsigned int st_count, unsigned int sb_count);
 
         // counter to track number of InitFC1 packets sent in Tx path
         unsigned int sb_count ;
 
         // TODO: data integrity checks "CRC ERROR drops & symmetric active" ...
+        if (sb_count != st_count) begin
+            `uvm_error("SB: DATA_INTEGRITY", "Violation: packet not dropped")
+        end
+        else begin
+            `uvm_info("SB: DATA_INTEGRITY", "Valid: No data integrity issues detected.", UVM_LOW)
+        end
 
-
-
-        // make sure Initial credit values advertised in Tx InitFC1 match the initialized counters in the peer's state manager.
-        case (dllp_item.dllp_type)
-            DLLP_INITFC1_P, DLLP_INITFC2_P: begin
-                if ( (dllp_item.hdr_scale == hdr_scale_p) && (dllp_item.hdr_FC == hdr_fc_p) && (dllp_item.data_scale == data_scale_p) && (dllp_item.data_FC == data_fc_p) ) begin
-                    `uvm_info("DATA_INTEGRITY", "Tx InitFC1_P Credit match: Configured values match peer's State Manager", UVM_LOW)          
-                end
-                else begin
-                    `uvm_error("DATA_INTEGRITY", "Tx InitFC1_P Credit Mismatch: Configured values do not match peer's State Manager!")
-                end
-            end
-
-            DLLP_INITFC1_NP, DLLP_INITFC2_NP: begin
-                if ( (dllp_item.hdr_scale == hdr_scale_np) && (dllp_item.hdr_FC == hdr_fc_np) && (dllp_item.data_scale == data_scale_np) && (dllp_item.data_FC == data_fc_np) ) begin
-                    `uvm_info("DATA_INTEGRITY", "Tx InitFC1_NP Credit match: Configured values match peer's State Manager", UVM_LOW)          
-                end
-                else begin
-                    `uvm_error("DATA_INTEGRITY", "Tx InitFC1_NP Credit Mismatch: Configured values do not match peer's State Manager!")
-                end
-            end
-
-            DLLP_INITFC1_CPL, DLLP_INITFC2_CPL: begin
-                if ( (dllp_item.hdr_scale == hdr_scale_cpl) && (dllp_item.hdr_FC == hdr_fc_cpl) && (dllp_item.data_scale == data_scale_cpl) && (dllp_item.data_FC == data_fc_cpl) ) begin
-                    `uvm_info("DATA_INTEGRITY", "Tx InitFC1_CPL Credit match: Configured values match peer's State Manager", UVM_LOW)          
-                end
-                else begin
-                    `uvm_error("DATA_INTEGRITY", "Tx InitFC1_CPL Credit Mismatch: Configured values do not match peer's State Manager!")
-                end
-            end
-        endcase
 
     endfunction
+
+
+
+
+
+
+
+
+
+
+
+    // to count the number of packets and drops it in case of error
+    function unsigned int drop_packets (pcie_dllp_type_e current_dllp_type, pcie_dllp_type_e previous_dllp_type, pcie_dlcmsm_state_e current_state, unsigned int sb_count);
+
+        unsigned int count= sb_count;
+
+
+        if (current_state inside {DL_INIT_FC1, DL_INIT_FC2}) begin
+            if (pcie_dll_pkg::error_status::determine_error_status(dllp_item) != ERROR_FREE) begin 
+                count= count;
+            end
+            // repeated INITFC packets
+            else (current_dllp_type == previous_dllp_type) begin // repeated initfc
+                count= count;
+            end
+            // disorder INITFC packets
+            else (   (current_dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC2_P    } && previous_dllp_type inside {DLLP_INITFC1_NP, DLLP_INITFC2_NP  })
+                   ||(current_dllp_type inside {DLLP_INITFC1_NP, DLLP_INITFC2_NP  } && previous_dllp_type inside {DLLP_INITFC1_CPL, DLLP_INITFC2_CPL}) 
+                   ||(current_dllp_type inside {DLLP_INITFC1_CPL, DLLP_INITFC2_CPL} && previous_dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC2_P    }) ) begin
+
+                count= count;   
+            end
+            else begin // normal behavior
+                count= count+1;
+            end
+        end
+
+
+        return count;
+
+    endfunction
+
 
   // constructor
   function new(string name = "pcie_dll_common_checks_drafts");

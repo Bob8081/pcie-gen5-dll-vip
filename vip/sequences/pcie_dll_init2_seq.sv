@@ -50,7 +50,7 @@ class pcie_dll_init2_seq extends pcie_dll_base_seq;
             }
             else { // error injection enabled
             dllp_type dist { 
-              DLLP_INITFC2_P   := 60, 
+              //DLLP_INITFC2_P   := 60, 
               DLLP_INITFC2_NP  := 40, 
               DLLP_INITFC2_CPL := 40 
             }; 
@@ -76,7 +76,7 @@ class pcie_dll_init2_seq extends pcie_dll_base_seq;
             else { // error injection enabled
               dllp_type dist { 
                 DLLP_INITFC2_P   := 40, 
-                DLLP_INITFC2_NP  := 60, 
+                //DLLP_INITFC2_NP  := 60, 
                 DLLP_INITFC2_CPL := 40 
               };
             }
@@ -100,8 +100,8 @@ class pcie_dll_init2_seq extends pcie_dll_base_seq;
             else { // error injection enabled
               dllp_type dist { 
                 DLLP_INITFC2_P   := 40, 
-                DLLP_INITFC2_NP  := 40, 
-                DLLP_INITFC2_CPL := 60 
+                DLLP_INITFC2_NP  := 40 
+                //DLLP_INITFC2_CPL := 60 
               };
             }
           }) begin

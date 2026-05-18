@@ -59,12 +59,12 @@ package pcie_dll_pkg;
 
 
   typedef enum bit [2:0] {
-    SENT_TLP        = 3'b000,
+    //SENT_TLP        = 3'b000,
+    ERROR_FREE      = 3'b000,
     INVALID_DLLP    = 3'b001,
     WRONG_CRC       = 3'b010,
     INVALID_VC      = 3'b011,
-    INVALID_CREDITS = 3'b100,
-    ERROR_FREE      = 3'b101
+    INVALID_CREDITS = 3'b100
   } pcie_dllp_error_e;
 
 
@@ -108,6 +108,9 @@ package pcie_dll_pkg;
   `include "sequences/pcie_dll_init2_seq.sv"
   `include "sequences/pcie_dll_tlp_seq.sv"
   `include "sequences/send_single_packet.sv"
+
+  `include "helpers/error_expector.sv"
+
 
   `include "agents/pcie_dll_tx_drv_cb_base.sv"
   `include "agents/pcie_dll_tx_drv_cb_macro.svh"

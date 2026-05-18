@@ -12,16 +12,18 @@ class pcie_dll_tx_drv_cb_crc extends pcie_dll_tx_drv_cb_base;
     int roll;
 
       if (req.enable_errors == 1'b1) begin
-        roll = $urandom_range(1, 3); // 30%
+        roll = $urandom_range(1, 3); // 25%
+        //roll = 0;
         if (roll == 1) begin
             trigger = 1'b1;
         end
       end
+
       
     // Apply the change to the top 16 bits)
     if (trigger) begin
         req.dllp[47:32] = 16'h0000;
-        $display("cccccccccccccccccccccccccccccccccccccccccccccccccccccc");
+        //$display("cccccccccccccccccccccccccccccccccccccccccccccccccccccc");
         return 1'b1;
     end
 
