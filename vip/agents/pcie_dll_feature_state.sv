@@ -62,16 +62,13 @@ class pcie_dll_DL_FEATURE_EXCH extends pcie_dll_base_state;
                 end
             end
         end
-        //thread 3 : for featuer exhcange protocol check
-       
-
+        
         join_none
 
+        //exit conditions threads
         fork 
         begin
             finished.wait_trigger();
-        end
-        begin
             wait(feature_support_sent && manager.dyn_cfg.partner_feature_valid ); 
         end
         join_any

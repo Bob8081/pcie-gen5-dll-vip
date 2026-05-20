@@ -1,4 +1,4 @@
-class pcie_dll_dynamic_cfg extends uvm_object;
+class pcie_dll_partner_cfg extends uvm_object;
 
     pcie_dll_role_e role;
 
@@ -8,9 +8,9 @@ class pcie_dll_dynamic_cfg extends uvm_object;
     bit partner_feature_valid;
     bit [22 : 0] partner_feature_support;
 
-    `uvm_object_utils(pcie_dll_dynamic_cfg)
+    `uvm_object_utils(pcie_dll_partner_cfg)
 
-    function new(string name = "pcie_dll_dynamic_cfg");
+    function new(string name = "pcie_dll_partner_cfg");
         super.new(name);
 
         //initialize each struct with its type equal to its index
@@ -35,7 +35,7 @@ class pcie_dll_dynamic_cfg extends uvm_object;
         end
         else
         begin
-            `uvm_error("CRD_ERR",$sforamtf("can't save credits from a %s packet type",t.name()))
+            `uvm_error("CRD_ERR",$sformatf("can't save credits from a %s packet type",t.name()))
             return;
         end
 
@@ -82,4 +82,4 @@ class pcie_dll_dynamic_cfg extends uvm_object;
         end
     endfunction 
 
-endclass : pcie_dll_dynamic_cfg
+endclass : pcie_dll_partner_cfg

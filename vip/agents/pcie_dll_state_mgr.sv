@@ -11,16 +11,15 @@ class pcie_dll_state_mgr extends uvm_component;
     pcie_dll_dllp_seq_item dllp_item;
     pcie_dll_tlp_seq_item tlp_item; 
     
-    pcie_dll_env_cfg cfg; //to hold the configuration of the environment to be used in the state manager and passed to the states when needed, to decide the flow based on the features supported
-    pcie_dll_dynamic_cfg dyn_cfg; //to hold the link aprtner chagnign data and all other dynamic parameters 
 
     uvm_tlm_fifo#(pcie_dll_dllp_seq_item) dllp_fifo;
     uvm_tlm_fifo#(pcie_dll_tlp_seq_item) tlp_fifo;    
     //TODO: add tlp fifo if needed in the future
 
     pcie_dll_base_state current_state; //handle for the current state to track the state and to be accesed by the testbench
-    
-    pcie_dlcmsm_state_e dlsm_state; //to track the current state of the DLCM state machine, which is used in some states to decide the next steps
+    pcie_dll_partner_cfg dyn_cfg;
+    pcie_dll_env_cfg cfg; 
+    pcie_dll_my_cfg my_cfg; 
 
     uvm_analysis_port #(pcie_dlcmsm_state_e) state_ap; //broadcast state changes to the scoreboard
 
@@ -62,12 +61,17 @@ class pcie_dll_state_mgr extends uvm_component;
             `uvm_fatal("NOEV", $sformatf("No event found in config_db for %s state_manager.",role.name()))
         end
         
-        if(!uvm_config_db#(pcie_dll_dynamic_cfg)::get(this, "", "dyn_cfg", dyn_cfg))begin
+        if(!uvm_config_db#(pcie_dll_partner_cfg)::get(this, "", "dyn_cfg", dyn_cfg))begin
             `uvm_fatal("NOCFG",$sformatf("no dynamic cfg found in teh config_db for %s state_manager",role.name()))
         end
         
+        if (!uvm_config_db#(pcie_dll_my_cfg)::get(this, "", "my_cfg", my_cfg))begin
+            `uvm_fatal("NOCFG",$sformatf("no my_cfg found in teh config_db for %s state_manager",role.name()))
+        end
+
         dyn_cfg.role=role;
-        
+        my_cfg.role=role;
+
     endfunction
 
    
@@ -78,9 +82,7 @@ class pcie_dll_state_mgr extends uvm_component;
     task run_phase(uvm_phase phase);
         super.run_phase(phase);
         `uvm_info("STATE_CTRL", "Starting State Manager run_phase", UVM_LOW)
-        dlsm_state = DL_INACTIVE;
-        change_state(dlsm_state); 
-        
+        change_state(DL_INACTIVE); 
     endtask
 
 
@@ -102,10 +104,12 @@ class pcie_dll_state_mgr extends uvm_component;
             `uvm_fatal("STATE_ERR", $sformatf("Failed to cast object '%s' to pcie_dll_state. make sure it extends the correct base class", new_state.name()))
         end  
         
-        dlsm_state = new_state; //update the current state variable to the new state
+        my_cfg.dlsm_state = new_state; //update the current state variable to the new state
 
+        my_cfg.view_state(); //debug line
+        
         // Broadcast the new state to the scoreboard
-        state_ap.write(dlsm_state);
+        state_ap.write(my_cfg.dlsm_state);
 
         //pass the satate manager handle to the state created to let it access the state manager and its methods and properties
         current_state.start_state(this); 
