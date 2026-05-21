@@ -4,7 +4,8 @@ class pcie_dll_env extends uvm_env;
   pcie_dll_role_e  role;
   pcie_dll_agent   agent;
   pcie_dll_scoreboard scoreboard;
-  pcie_dll_dynamic_cfg dyn_cfg;
+  pcie_dll_partner_cfg dyn_cfg;
+  pcie_dll_my_cfg my_cfg;
 
   `uvm_component_utils(pcie_dll_env)
 
@@ -19,8 +20,11 @@ class pcie_dll_env extends uvm_env;
     scoreboard = pcie_dll_scoreboard::type_id::create("scoreboard", this);
 
     //create the dynamic cfg object for storing link partner data and other time changing values
-    dyn_cfg = pcie_dll_dynamic_cfg::type_id::create("dyn_cfg");
-    uvm_config_db#(pcie_dll_dynamic_cfg)::set(this, "*", "dyn_cfg", dyn_cfg);
+    dyn_cfg = pcie_dll_partner_cfg::type_id::create("dyn_cfg");
+    uvm_config_db#(pcie_dll_partner_cfg)::set(this, "*", "dyn_cfg", dyn_cfg);
+
+    my_cfg = pcie_dll_my_cfg::type_id::create("my_cfg");
+    uvm_config_db#(pcie_dll_my_cfg)::set(this, "*", "my_cfg", my_cfg);
     //TODO:add the coverage collector here in the next stage
 
   endfunction 
