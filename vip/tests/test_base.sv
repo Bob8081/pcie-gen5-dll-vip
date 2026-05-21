@@ -49,13 +49,13 @@ class pcie_dll_test_base extends uvm_test;
     end
 
     // Differentiate the initial flow control credits
-    cfg_rc.init_fc_hdr_p = 8'h20;  cfg_rc.init_fc_data_p = 12'h100;
-    cfg_rc.init_fc_hdr_np = 8'h20; cfg_rc.init_fc_data_np = 12'h100;
-    cfg_rc.init_fc_hdr_cpl = 8'h20; cfg_rc.init_fc_data_cpl = 12'h100;
+    cfg_rc.init_fc_hdr[FC_P]   = 8'h20;  cfg_rc.init_fc_data[FC_P]   = 12'h100;
+    cfg_rc.init_fc_hdr[FC_NP]  = 8'h20;  cfg_rc.init_fc_data[FC_NP]  = 12'h100;
+    cfg_rc.init_fc_hdr[FC_CPL] = 8'h20;  cfg_rc.init_fc_data[FC_CPL] = 12'h100;
 
-    cfg_ep.init_fc_hdr_p = 8'h40;  cfg_ep.init_fc_data_p = 12'h200;
-    cfg_ep.init_fc_hdr_np = 8'h40; cfg_ep.init_fc_data_np = 12'h200;
-    cfg_ep.init_fc_hdr_cpl = 8'h40; cfg_ep.init_fc_data_cpl = 12'h200;
+    cfg_ep.init_fc_hdr[FC_P]   = 8'h40;  cfg_ep.init_fc_data[FC_P]   = 12'h200;
+    cfg_ep.init_fc_hdr[FC_NP]  = 8'h40;  cfg_ep.init_fc_data[FC_NP]  = 12'h200;
+    cfg_ep.init_fc_hdr[FC_CPL] = 8'h40;  cfg_ep.init_fc_data[FC_CPL] = 12'h200;
 
     //for feature exchange test 
     // cfg_rc.scaled_fc_supported = 1'b1;

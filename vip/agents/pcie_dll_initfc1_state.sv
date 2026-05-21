@@ -62,9 +62,9 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                         if (rx_p)
                         begin 
                             //comparsion with the recieved not_scaled values with the actual not_scaled stored values
-                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_POSTED].hdr_limit)) //TODO : add checks for the data_limit and hdr_scale and data_scale fields too (maybe use a temp. fc_struct to loop-check it)
+                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_P].hdr_limit)) //TODO : add checks for the data_limit and hdr_scale and data_scale fields too (maybe use a temp. fc_struct to loop-check it)
                             begin
-                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_POSTED].hdr_limit))     
+                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_P].hdr_limit))     
                             end
                         end
                         else 
@@ -90,9 +90,9 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                     begin
                         if (rx_np)
                         begin
-                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_NON_POSTED].hdr_limit))
+                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_NP].hdr_limit))
                             begin
-                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_NON_POSTED].hdr_limit))     
+                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_NP].hdr_limit))     
                             end
                         end
                         else 

@@ -1,6 +1,6 @@
 class pcie_dll_env_cfg extends uvm_object;
   //TODO : add more feature support details in config
-  
+
   // Link configuration (hardware-fixed at compile time, set from tb_top)
   pcie_link_width_e link_width;
   pcie_speed_mode_e speed_mode;
@@ -16,20 +16,10 @@ class pcie_dll_env_cfg extends uvm_object;
   rand bit               scaled_fc_supported;
 
   // Initial Flow Control Credits
-  rand bit [1:0]         init_fc_hdr_scale_p;
-  rand bit [7:0]         init_fc_hdr_p;
-  rand bit [1:0]         init_fc_data_scale_p;
-  rand bit [11:0]        init_fc_data_p;
-
-  rand bit [1:0]         init_fc_hdr_scale_np;
-  rand bit [7:0]         init_fc_hdr_np;
-  rand bit [1:0]         init_fc_data_scale_np;
-  rand bit [11:0]        init_fc_data_np;
-
-  rand bit [1:0]         init_fc_hdr_scale_cpl;
-  rand bit [7:0]         init_fc_hdr_cpl;
-  rand bit [1:0]         init_fc_data_scale_cpl;
-  rand bit [11:0]        init_fc_data_cpl;
+  rand bit [1:0]         init_fc_hdr_scale[pcie_fc_type_e];
+  rand bit [7:0]         init_fc_hdr[pcie_fc_type_e];
+  rand bit [1:0]         init_fc_data_scale[pcie_fc_type_e];
+  rand bit [11:0]        init_fc_data[pcie_fc_type_e];
 
   // Timing and behavior knobs
   rand int unsigned      ack_max_latency;
@@ -71,18 +61,10 @@ class pcie_dll_env_cfg extends uvm_object;
     `uvm_field_int(enable_pwr_mgmt, UVM_DEFAULT)
     `uvm_field_int(enable_lcrc_checking, UVM_DEFAULT)
     `uvm_field_int(scaled_fc_supported, UVM_DEFAULT)
-    `uvm_field_int(init_fc_hdr_scale_p, UVM_DEFAULT)
-    `uvm_field_int(init_fc_hdr_p, UVM_DEFAULT)
-    `uvm_field_int(init_fc_data_scale_p, UVM_DEFAULT)
-    `uvm_field_int(init_fc_data_p, UVM_DEFAULT)
-    `uvm_field_int(init_fc_hdr_scale_np, UVM_DEFAULT)
-    `uvm_field_int(init_fc_hdr_np, UVM_DEFAULT)
-    `uvm_field_int(init_fc_data_scale_np, UVM_DEFAULT)
-    `uvm_field_int(init_fc_data_np, UVM_DEFAULT)
-    `uvm_field_int(init_fc_hdr_scale_cpl, UVM_DEFAULT)
-    `uvm_field_int(init_fc_hdr_cpl, UVM_DEFAULT)
-    `uvm_field_int(init_fc_data_scale_cpl, UVM_DEFAULT)
-    `uvm_field_int(init_fc_data_cpl, UVM_DEFAULT)
+    // `uvm_field_aa_int_enumkey(init_fc_hdr_scale, pcie_fc_type_e, UVM_DEFAULT)
+    // `uvm_field_aa_int_enumkey(init_fc_hdr, pcie_fc_type_e, UVM_DEFAULT)
+    // `uvm_field_aa_int_enumkey(init_fc_data_scale, pcie_fc_type_e, UVM_DEFAULT)
+    // `uvm_field_aa_int_enumkey(init_fc_data, pcie_fc_type_e, UVM_DEFAULT)
     `uvm_field_enum(uvm_verbosity, log_level, UVM_DEFAULT)
   `uvm_object_utils_end
 
@@ -103,20 +85,20 @@ class pcie_dll_env_cfg extends uvm_object;
 
     scaled_fc_supported = 1'b0;
 
-    init_fc_hdr_scale_p    = 2'b00;
-    init_fc_hdr_p          = 8'h20;
-    init_fc_data_scale_p   = 2'b00;
-    init_fc_data_p         = 12'h100;
+    init_fc_hdr_scale[FC_P]    = 2'b00;
+    init_fc_hdr[FC_P]          = 8'h20;
+    init_fc_data_scale[FC_P]   = 2'b00;
+    init_fc_data[FC_P]         = 12'h100;
 
-    init_fc_hdr_scale_np   = 2'b00;
-    init_fc_hdr_np         = 8'h20;
-    init_fc_data_scale_np  = 2'b00;
-    init_fc_data_np        = 12'h100;
+    init_fc_hdr_scale[FC_NP]   = 2'b00;
+    init_fc_hdr[FC_NP]         = 8'h20;
+    init_fc_data_scale[FC_NP]  = 2'b00;
+    init_fc_data[FC_NP]        = 12'h100;
 
-    init_fc_hdr_scale_cpl  = 2'b00;
-    init_fc_hdr_cpl        = 8'h20;
-    init_fc_data_scale_cpl = 2'b00;
-    init_fc_data_cpl       = 12'h100;
+    init_fc_hdr_scale[FC_CPL]  = 2'b00;
+    init_fc_hdr[FC_CPL]        = 8'h20;
+    init_fc_data_scale[FC_CPL] = 2'b00;
+    init_fc_data[FC_CPL]       = 12'h100;
 
     ack_max_latency       = 16;
     replay_timer_cycles   = 256;
