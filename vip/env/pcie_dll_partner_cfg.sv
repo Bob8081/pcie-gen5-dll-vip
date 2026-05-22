@@ -14,8 +14,8 @@ class pcie_dll_partner_cfg extends uvm_object;
         super.new(name);
 
         //initialize each struct with its type equal to its index
-        partner_credits[FC_POSTED].fc_type=FC_POSTED;
-        partner_credits[FC_NON_POSTED].fc_type=FC_NON_POSTED;
+        partner_credits[FC_P].fc_type=FC_P;
+        partner_credits[FC_NP].fc_type=FC_NP;
         partner_credits[FC_CPL].fc_type = FC_CPL;
 
     endfunction
@@ -25,10 +25,10 @@ class pcie_dll_partner_cfg extends uvm_object;
         pcie_fc_type_e target_type;
 
         if (t == DLLP_INITFC1_P) begin
-            target_type = FC_POSTED;
+                target_type = FC_P;
         end
         else if (t == DLLP_INITFC1_NP) begin
-           target_type = FC_NON_POSTED;
+              target_type = FC_NP;
         end
         else if (t == DLLP_INITFC1_CPL) begin
             target_type = FC_CPL;

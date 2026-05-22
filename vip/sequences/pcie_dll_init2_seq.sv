@@ -41,20 +41,20 @@ class pcie_dll_init2_seq extends pcie_dll_base_seq;
     end
 
     // Extract fixed FC credit values from config for each VC
-    hdr_scale_p    = cfg.init_fc_hdr_scale_p;
-    hdr_fc_p       = cfg.init_fc_hdr_p;
-    data_scale_p   = cfg.init_fc_data_scale_p;
-    data_fc_p      = cfg.init_fc_data_p;
+    hdr_scale_p    = cfg.init_fc_hdr_scale[FC_P];
+    hdr_fc_p       = cfg.init_fc_hdr[FC_P];
+    data_scale_p   = cfg.init_fc_data_scale[FC_P];
+    data_fc_p      = cfg.init_fc_data[FC_P];
 
-    hdr_scale_np   = cfg.init_fc_hdr_scale_np;
-    hdr_fc_np      = cfg.init_fc_hdr_np;
-    data_scale_np  = cfg.init_fc_data_scale_np;
-    data_fc_np     = cfg.init_fc_data_np;
+    hdr_scale_np   = cfg.init_fc_hdr_scale[FC_NP];
+    hdr_fc_np      = cfg.init_fc_hdr[FC_NP];
+    data_scale_np  = cfg.init_fc_data_scale[FC_NP];
+    data_fc_np     = cfg.init_fc_data[FC_NP];
 
-    hdr_scale_cpl  = cfg.init_fc_hdr_scale_cpl;
-    hdr_fc_cpl     = cfg.init_fc_hdr_cpl;
-    data_scale_cpl = cfg.init_fc_data_scale_cpl;
-    data_fc_cpl    = cfg.init_fc_data_cpl;
+    hdr_scale_cpl  = cfg.init_fc_hdr_scale[FC_CPL];
+    hdr_fc_cpl     = cfg.init_fc_hdr[FC_CPL];
+    data_scale_cpl = cfg.init_fc_data_scale[FC_CPL];
+    data_fc_cpl    = cfg.init_fc_data[FC_CPL];
 
     // Randomize req_count
     if (!this.randomize() with { 

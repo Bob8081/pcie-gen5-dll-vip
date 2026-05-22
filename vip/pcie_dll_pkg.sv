@@ -57,10 +57,10 @@ package pcie_dll_pkg;
     DL_ACTIVE          = 3'b100   // link fully active; all DLL traffic permitted
   } pcie_dlcmsm_state_e;
   
-  //enum just for credits (only three types)
+  //enum for credits
   typedef enum {
-    FC_POSTED = 0,
-    FC_NON_POSTED = 1,
+    FC_P = 0,
+    FC_NP = 1,
     FC_CPL = 2
   } pcie_fc_type_e;
 
