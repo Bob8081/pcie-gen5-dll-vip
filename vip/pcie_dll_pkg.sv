@@ -46,8 +46,17 @@ package pcie_dll_pkg;
     DLLP_UPDATEFC_P    = 8'h80,  // 1000 0000 (VC0)
     DLLP_UPDATEFC_NP   = 8'h90,  // 1001 0000 (VC0)
     DLLP_UPDATEFC_CPL  = 8'hA0,  // 1010 0000 (VC0)
-    DLLP_PWR_MGMT      = 8'h24   // 0010 0100
+    DLLP_PWR_MGMT      = 8'h24   // 0010 0104
   } pcie_dllp_type_e;
+
+  typedef enum bit [4:0] {
+    DLLP_INITFC1_P_VC     = 5'b0100_0,  // any virtual channel (VC) for InitFC
+    DLLP_INITFC1_NP_VC    = 5'b0101_0,  // any virtual channel (VC) for InitFC
+    DLLP_INITFC1_CPL_VC   = 5'b0110_0,  // any virtual channel (VC) for InitFC
+    DLLP_INITFC2_P_VC     = 5'b1100_0,  // any virtual channel (VC) for InitFC
+    DLLP_INITFC2_NP_VC    = 5'b1101_0,  // any virtual channel (VC) for InitFC
+    DLLP_INITFC2_CPL_VC   = 5'b1110_0   // any virtual channel (VC) for InitFC
+  } pcie_dllp_type_mask_e; // only used in helper classes to avoid invalid VC
 
   typedef enum bit [2:0] {
     DL_INACTIVE        = 3'b000,  // link not yet up; no DLLP traffic permitted
@@ -96,8 +105,10 @@ package pcie_dll_pkg;
   // Included class files
 
   `include "env/pcie_dll_env_cfg.sv"
-  `include "env/pcie_dll_dynamic_cfg.sv"
+  `include "env/pcie_dll_partner_cfg.sv"
+  `include "env/pcie_dll_my_cfg.sv"
   `include "helpers/crc16_generator.sv"
+  `include "helpers/partner_state_expector.sv"
 
   `include "transactions/pcie_dll_base_seq_item.sv"
   `include "transactions/pcie_dll_dllp_seq_item.sv"

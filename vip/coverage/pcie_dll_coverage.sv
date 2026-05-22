@@ -1,25 +1,28 @@
 // ---- pcie_dll_coverage ----
 
-`uvm_analysis_imp_decl(_state)
+//`uvm_analysis_imp_decl(_state)
 class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
 
 
   // to recieve tghe current state of state manager
-  uvm_analysis_imp_state #(pcie_dlcmsm_state_e, pcie_dll_coverage) state_export;
+ // uvm_analysis_imp_state #(pcie_dlcmsm_state_e, pcie_dll_coverage) state_export;
 
   // ---- UVM Factory Registration ----
   `uvm_component_utils(pcie_dll_coverage)
 
   // ---- Signals ----
-  bit [47:0]          dllp;           
-  bit [127:0]         tlp;
-  bit [23:0]          dllp_payload;
-  bit [15:0]          crc;            
-  bit [47:0]          expected_dllp;  
+  bit [47:0]            dllp;           
+  bit [127:0]           tlp;
+  bit [23:0]            dllp_payload;
+  bit [15:0]            crc;            
 
-  pcie_dlcmsm_state_e state;
-  pcie_dllp_type_e    dllp_type;
-  pcie_dllp_error_e   error_status;
+  pcie_dlcmsm_state_e   state;
+  pcie_dllp_type_e      dllp_type;
+  pcie_dllp_error_e     error_status;
+
+  pcie_dll_partner_cfg  dyn_cfg;
+  pcie_dll_my_cfg       my_cfg;
+
 
   // ---- Covergroups ----
 
@@ -27,15 +30,19 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
   covergroup cg_dllp_transitions (string path_label);
 
     option.per_instance = 1;
+    option.weight       = 10;  // 10x weight compared to TLP coverage
     option.name         = path_label;
     option.comment      = " Detailed DLLP Analysis — state, type, errors, credits ";
 
-    // -- State Machine --
+
     cp_state: coverpoint state {
       option.comment = " Tracks DL state machine transitions";
-      bins old_device              = (DL_INACTIVE => DL_INIT_FC1 => DL_INIT_FC2 => DL_ACTIVE);
-      bins modern_device           = (DL_INACTIVE => DL_FEATURE_EXCH => DL_INIT_FC1 => DL_INIT_FC2 => DL_ACTIVE);
-      bins going_through_states [] = {DL_INACTIVE, DL_FEATURE_EXCH, DL_INIT_FC1, DL_INIT_FC2, DL_ACTIVE}; 
+      bins state_machine_flow [] = (DL_INACTIVE => DL_FEATURE_EXCH),
+                                   (DL_INACTIVE => DL_INIT_FC1    ),  
+                                   (DL_INIT_FC1 => DL_INIT_FC2    ), 
+                                   (DL_INIT_FC2 => DL_ACTIVE      );
+
+      bins main_states        [] = {DL_FEATURE_EXCH, DL_INIT_FC1, DL_INIT_FC2}; // to be used in crosses 
     }
 
     cp_dllp_type: coverpoint dllp_type {
@@ -70,18 +77,18 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
 
     cr_inv_dllp: cross cp_state, cp_error_status {
       option.comment = " Invalid DLLP scenarios during states";
-      ignore_bins not_invalid_dllp = !binsof(cp_error_status.invalid_dllp) || !binsof (cp_state.going_through_states);
+      ignore_bins not_invalid_dllp = !binsof(cp_error_status.invalid_dllp) || !binsof (cp_state.main_states);
     }
 
     cr_wrong_crc: cross cp_state, cp_error_status {
       option.comment = " Wrong CRC scenarios during states";
-      ignore_bins not_wrong_crc = !binsof(cp_error_status.wrong_crc) || !binsof (cp_state.going_through_states);
+      ignore_bins not_wrong_crc = !binsof(cp_error_status.wrong_crc) || !binsof (cp_state.main_states);
     }
 
     cr_invalid_vc: cross cp_state, cp_error_status {
       option.comment = " Invalid VC scenarios during states";
       ignore_bins not_invalid_vc  = !binsof(cp_error_status.invalid_vc);
-      ignore_bins not_init_states = !binsof(cp_state.going_through_states[DL_INIT_FC1]) && !binsof(cp_state.going_through_states[DL_INIT_FC2]);
+      ignore_bins not_init_states = !binsof(cp_state.main_states[DL_INIT_FC1]) && !binsof(cp_state.main_states[DL_INIT_FC2]);
     }
     
 
@@ -138,62 +145,73 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
 
   endgroup
 
-  // ---- 2. TLP Coverage Group ----
-  //covergroup cg_tlp_transitions (string path_label);
+   //  ---- 2. TLP Coverage Group ----
+  covergroup cg_tlp_transitions (string path_label);
 
-  //  option.per_instance = 1;
-  //  option.name         = path_label;
-  //  option.comment      = " Tracks TLP transmission during DL states ";
+    option.per_instance = 1;
+    option.name         = path_label;
+    option.weight       = 1;  // baseline weight for TLP coverage
+    option.comment      = " Tracks TLP transmission during DL states ";
 
-  //  cp_tlp: coverpoint tlp {
-  //    bins send_tlp = {128'hDEADBEEF_CAFEBABE_11223344_55667788};
-  //  }
+    cp_tlp: coverpoint tlp {
+      bins send_tlp = {128'hDEADBEEF_CAFEBABE_11223344_55667788};
+    }
 
-  //endgroup
+  endgroup
 
   // ---- Constructor ----
   function new(string name = "pcie_dll_coverage", uvm_component parent = null);
     super.new(name, parent);
-    state = DL_INACTIVE;
-    state_export = new("state_export", this);
+    //state_export = new("state_export", this);
 
     if (uvm_is_match("*tx*", name)) begin
       cg_dllp_transitions = new("Tx_path_dllp");
-     // cg_tlp_transitions  = new("Tx_path_tlp");
+      cg_tlp_transitions  = new("Tx_path_tlp");
     end
     else begin
       cg_dllp_transitions = new("Rx_path_dllp");
-     // cg_tlp_transitions  = new("Rx_path_tlp");
+      cg_tlp_transitions  = new("Rx_path_tlp");
     end
   endfunction
 
+  virtual task run_phase(uvm_phase phase);
+    super.run_phase(phase);
+      state = DL_INACTIVE;
+      cg_dllp_transitions.sample();
+  endtask
+
 
   // ---- Write for state updates ----
-  virtual function void write_state(pcie_dlcmsm_state_e current_state);
-    state = current_state;
-  endfunction
+  //virtual function void write_state(pcie_dlcmsm_state_e current_state);
+    //state = current_state;
+  //endfunction
 
   // ---- Write for sequence item ----
   virtual function void write(pcie_dll_base_seq_item t);
     pcie_dll_dllp_seq_item dllp_item;
     pcie_dll_tlp_seq_item  tlp_item;
 
+
     if ($cast(dllp_item, t)) begin
       dllp          = dllp_item.dllp;
       dllp_type     = dllp_item.dllp_type;
       dllp_payload  = dllp_item.dllp_payload;
       crc           = dllp_item.crc;
-      expected_dllp = {dllp_type, dllp_payload, crc};
+      state         = dllp_item.current_state;
+      
+      error_status  = pcie_dll_pkg::error_expector::determine_error_status(dllp_item);
 
-      error_status  = pcie_dll_pkg::error_expector::determine_error_status(dllp_item, state);
-
-      cg_dllp_transitions.sample();
     end
     else if ($cast(tlp_item, t)) begin
       tlp   = tlp_item.tlp;
+      state = DL_ACTIVE; // TODO: determine state based on sequence item
+      `uvm_info("COVERAGE", $sformatf("Received TLP item in state: %s", state), UVM_LOW)
 
-     // cg_tlp_transitions.sample();
+      cg_tlp_transitions.sample();
     end
+
+    cg_dllp_transitions.sample();
+
   endfunction
 
 endclass : pcie_dll_coverage

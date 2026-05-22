@@ -53,9 +53,8 @@ class pcie_dll_rx_mon extends uvm_monitor;
           dllp_item = pcie_dll_dllp_seq_item::type_id::create("dllp_item");
           // DLLP is always packed into the lowest 48 bits of pl_data
           dllp_item.unpack(vif.cb_mon_rx.pl_data[47:0]);
-          rx_state= get_rx_current_state(dllp_item.dllp_type);
+          dllp_item.current_state = pcie_dll_pkg::partner_state_expector::get_rx_current_state(dllp_item.dllp_type, this.get_full_name());;
           mon_rx_ap.write(dllp_item);
-          mon_rx_state_ap.write(rx_state);
           `uvm_info("MON", $sformatf("Observed RX DLLP: %h  |  Type: %s", dllp_item.dllp, dllp_item.dllp_type.name()), UVM_LOW)
         end
         else if ((!(vif.cb_mon_rx.pl_tlpstart >= vif.cb_mon_rx.pl_tlpend)) &
@@ -71,23 +70,5 @@ class pcie_dll_rx_mon extends uvm_monitor;
     end
   endtask 
 
-
-  function pcie_dlcmsm_state_e get_rx_current_state (pcie_dllp_type_e dllp_type);
-    pcie_dlcmsm_state_e current_state;
-    
-    // TODO: handle current state when receiving a TLP as well
-
-    if (dllp_type == DLLP_FEATURE_REQ) begin
-      current_state = DL_FEATURE_EXCH;
-    end
-    else if (dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC1_NP, DLLP_INITFC1_CPL}) begin
-      current_state = DL_INIT_FC1;
-    end
-    else if (dllp_type inside {DLLP_INITFC2_P, DLLP_INITFC2_NP, DLLP_INITFC2_CPL}) begin
-      current_state = DL_INIT_FC2;
-    end
-
-    return current_state;
-  endfunction
 
 endclass : pcie_dll_rx_mon
