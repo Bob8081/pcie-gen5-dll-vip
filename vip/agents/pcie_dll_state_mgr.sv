@@ -20,7 +20,7 @@ class pcie_dll_state_mgr extends uvm_component;
     pcie_dll_partner_cfg dyn_cfg;
     pcie_dll_env_cfg cfg; 
     pcie_dll_my_cfg my_cfg; 
-
+    pcie_dll_link_cfg lnk_cfg;
     uvm_analysis_port #(pcie_dlcmsm_state_e) state_ap; //broadcast state changes to the scoreboard
 
     uvm_event target_reached; //to be triggered when the state machine reaches the target state (DL_ACTIVE) to let the testbench know about it and to check the coverage at that point
@@ -68,7 +68,9 @@ class pcie_dll_state_mgr extends uvm_component;
         if (!uvm_config_db#(pcie_dll_my_cfg)::get(this, "", "my_cfg", my_cfg))begin
             `uvm_fatal("NOCFG",$sformatf("no my_cfg found in teh config_db for %s state_manager",role.name()))
         end
-
+        if (!uvm_config_db#(pcie_dll_link_cfg)::get(this, "", "lnk_cfg", lnk_cfg))begin
+            `uvm_fatal("NOCFG",$sformatf("no link cfg found in teh config_db for %s state_manager",role.name()))
+        end
         dyn_cfg.role=role;
         my_cfg.role=role;
 

@@ -19,8 +19,9 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
 
     task start_state(pcie_dll_state_mgr manager);
         `uvm_info("STATE", "Entered DL_INIT_FC1 state", UVM_LOW)
-
-        manager.my_cfg.counter_fc1 = 0;
+        
+        
+        
 
         finished = new("finished");
 

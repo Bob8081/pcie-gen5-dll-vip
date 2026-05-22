@@ -36,7 +36,7 @@ class pcie_dll_rx_mon extends uvm_monitor;
 
       //TODO : callbacks to be called to simulate errors
       @(vif.cb_mon_rx);
-      if (vif.rst_n) begin
+      if (vif.rst_n && vif.pl_lnk_up) begin
         // A DLLP is present when:
         //   - exactly the 6 DLLP bytes are valid on pl_valid (upper bytes = 0)
         //   - dlpstart < dlpend framing flags indicate a DLLP frame

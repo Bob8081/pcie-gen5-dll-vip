@@ -14,5 +14,5 @@ class pcie_dll_my_cfg extends uvm_object;
     function void view_state();
         `uvm_info("MY_CFG", $sformatf("My role is %s, current state is %s, counter_fc1 is %0d, counter_fc2 is %0d", role.name(), dlsm_state.name(), counter_fc1, counter_fc2), UVM_LOW)
     endfunction
-
+    //TODO : add reset function
 endclass

@@ -36,7 +36,7 @@ class pcie_dll_tx_mon extends uvm_monitor;
 
       //TODO : check for reset with assertions not monitor
       @(vif.cb_mon_tx);
-      if (vif.rst_n) begin
+      if (vif.rst_n && vif.pl_lnk_up) begin
         // A DLLP is present when:
         //   - lp_irdy is asserted (DLL ready)
         //   - pl_trdy is asserted (PHY accepted)

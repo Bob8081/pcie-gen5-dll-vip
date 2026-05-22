@@ -2,8 +2,12 @@ class pcie_dll_test_base extends uvm_test;
 
   pcie_dll_env_cfg cfg_rc;
   pcie_dll_env_cfg cfg_ep;
+  pcie_dll_link_cfg lnk_cfg;
   pcie_dll_env     env_rc;
   pcie_dll_env     env_ep;
+
+  pcie_dll_if_seq if_seq;
+  pcie_dll_if_agent if_agent;
 
   uvm_event target_reached_rc;
   uvm_event target_reached_ep;
@@ -29,6 +33,7 @@ class pcie_dll_test_base extends uvm_test;
     // Create two separate configs to allow asymmetric link properties (e.g. credits)
     cfg_rc = pcie_dll_env_cfg::type_id::create("cfg_rc");
     cfg_ep = pcie_dll_env_cfg::type_id::create("cfg_ep");
+    lnk_cfg = pcie_dll_link_cfg::type_id::create("lnk_cfg");
     cfg_rc.set_defaults();
     cfg_ep.set_defaults();
 
@@ -67,7 +72,8 @@ class pcie_dll_test_base extends uvm_test;
     // Publish role-specific cfgs to the respective environments
     pcie_dll_env_cfg::set_cfg(this, "env_rc*", cfg_rc);
     pcie_dll_env_cfg::set_cfg(this, "env_ep*", cfg_ep);
-
+    uvm_config_db#(pcie_dll_link_cfg)::set(this, "*", "lnk_cfg", lnk_cfg);
+    
     // Set role per-instance
     uvm_config_db#(pcie_dll_role_e)::set(this, "env_rc*", "role", ROLE_RC);
     uvm_config_db#(pcie_dll_role_e)::set(this, "env_ep*", "role", ROLE_EP);
@@ -78,6 +84,7 @@ class pcie_dll_test_base extends uvm_test;
 
     env_rc = pcie_dll_env::type_id::create("env_rc", this);
     env_ep = pcie_dll_env::type_id::create("env_ep", this);
+    if_agent = pcie_dll_if_agent::type_id::create("if_agent", this);
 
     `uvm_info("CFG", $sformatf("Applied RC cfg: %s", cfg_rc.summary()), UVM_LOW)
     `uvm_info("CFG", $sformatf("Applied EP cfg: %s", cfg_ep.summary()), UVM_LOW)
@@ -93,17 +100,24 @@ class pcie_dll_test_base extends uvm_test;
     
     
     `uvm_info("TEST", "Waiting for State Manager to reach ACTIVE...", UVM_LOW)
-    fork
-      begin
-        target_reached_rc.wait_trigger();
-        `uvm_info("Target_reached","the RC reached active state!!!!!! ",UVM_LOW)
-      end
-      begin 
-        target_reached_ep.wait_trigger(); 
-        `uvm_info("Target_reached","the EP reached active state!!!!!!",UVM_LOW)
-      end
-    join
     
+    repeat (2)
+    begin
+      fork
+        begin
+          target_reached_rc.wait_trigger();
+          `uvm_info("Target_reached","the RC reached active state!!!!!! ",UVM_LOW)
+        end
+        begin 
+          target_reached_ep.wait_trigger(); 
+          `uvm_info("Target_reached","the EP reached active state!!!!!!",UVM_LOW)
+        end
+      join
+
+      if_seq = pcie_dll_if_seq::type_id::create("if_seq");
+      if_seq.start(if_agent.if_sqr);
+
+    end
     // #100ns;
     
     

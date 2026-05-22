@@ -81,5 +81,5 @@ class pcie_dll_partner_cfg extends uvm_object;
                                                 partner_credits[i].absolute_hdr_limit, partner_credits[i].absolute_data_limit), UVM_LOW)
         end
     endfunction 
-
+    //TODO : add reset function
 endclass : pcie_dll_partner_cfg
