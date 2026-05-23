@@ -1,8 +1,8 @@
-
 class pcie_dll_tx_mon extends uvm_monitor;
 
   uvm_analysis_port #(pcie_dll_base_seq_item) mon_tx_ap;
   uvm_analysis_imp #(pcie_dlcmsm_state_e, pcie_dll_tx_mon) mon_state_export; 
+
   
   pcie_dll_role_e  role;
   pcie_dll_env_cfg cfg;
@@ -25,7 +25,6 @@ class pcie_dll_tx_mon extends uvm_monitor;
     super.build_phase(phase);
     mon_tx_ap = new("mon_tx_ap", this);
     mon_state_export = new("mon_state_export", this);
-
     if (!pcie_dll_env_cfg::get_cfg(this, "", cfg)) begin
       `uvm_fatal("NOCFG", "pcie_dll_tx_mon: no cfg found in config_db")
     end
@@ -45,7 +44,7 @@ class pcie_dll_tx_mon extends uvm_monitor;
 
       //TODO : check for reset with assertions not monitor
       @(vif.cb_mon_tx);
-      if (vif.rst_n) begin
+      if (vif.rst_n && vif.pl_lnk_up) begin
         // A DLLP is present when:
         //   - lp_irdy is asserted (DLL ready)
         //   - pl_trdy is asserted (PHY accepted)
@@ -62,8 +61,7 @@ class pcie_dll_tx_mon extends uvm_monitor;
           dllp_item.unpack(vif.cb_mon_tx.lp_data[47:0]);
           dllp_item.current_state = state;
           mon_tx_ap.write(dllp_item);
-          `uvm_info("MON", $sformatf("Observed TX DLLP: %h  |  Type: %s", dllp_item.dllp, dllp_item.dllp_type.name()), UVM_LOW)
-
+          `uvm_info("MON", $sformatf("Observed TX DLLP: %h", dllp_item.dllp), UVM_LOW)
         end
 
         else if ((!(vif.cb_mon_tx.lp_tlpstart >= vif.cb_mon_tx.lp_tlpend))             &

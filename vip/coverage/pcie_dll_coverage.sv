@@ -43,6 +43,7 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
                                    (DL_INIT_FC2 => DL_ACTIVE      );
 
       bins main_states        [] = {DL_FEATURE_EXCH, DL_INIT_FC1, DL_INIT_FC2}; // to be used in crosses 
+      bins start_finish_states[] = {DL_INACTIVE, DL_ACTIVE}; // to trace start and end of sequences    
     }
 
     cp_dllp_type: coverpoint dllp_type {
@@ -111,14 +112,10 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
                                  (DLLP_INITFC2_NP  => DLLP_INITFC2_NP),
                                  (DLLP_INITFC2_CPL => DLLP_INITFC2_CPL);
 
-      bins initfc2_witin_initfc1 = (DLLP_INITFC1_P  => DLLP_INITFC2_CPL),
-                                   (DLLP_INITFC1_P  => DLLP_INITFC2_NP),
-                                   (DLLP_INITFC1_P  => DLLP_INITFC2_P),
+      bins initfc2_witin_initfc1 = (DLLP_INITFC1_P  => DLLP_INITFC2_P),
                                    (DLLP_INITFC1_NP  => DLLP_INITFC2_P);
-      bins initfc1_witin_initfc2 = (DLLP_INITFC2_P  => DLLP_INITFC1_NP),
-                                   (DLLP_INITFC2_P  => DLLP_INITFC1_P),
-                                   (DLLP_INITFC2_P  => DLLP_INITFC1_CPL),
-                                   (DLLP_INITFC2_NP  => DLLP_INITFC1_P);
+      bins initfc1_witin_initfc2 = ({DLLP_INITFC2_P, DLLP_INITFC2_NP, DLLP_INITFC2_CPL} => {DLLP_INITFC1_P,DLLP_INITFC1_NP,DLLP_INITFC1_CPL});
+                                  
     }
 
 

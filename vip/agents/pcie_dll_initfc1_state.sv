@@ -7,8 +7,7 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
 
     pcie_dll_init1_seq init1_seq;
 
-    //for monitoring the recieved sequence of DLLPS
-    int counter;
+
     pcie_dll_dllp_seq_item dllp_item_rx;
     
 
@@ -19,9 +18,10 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
     endfunction 
 
     task start_state(pcie_dll_state_mgr manager);
-       // `uvm_info("STATE", "Entered DL_INIT_FC1 state", UVM_LOW)
-
-        counter = 0;
+        `uvm_info("STATE", "Entered DL_INIT_FC1 state", UVM_LOW)
+        
+        
+        
 
         finished = new("finished");
 
@@ -36,9 +36,9 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
             forever 
             begin 
 
-                if (counter == 3) 
+                if (manager.my_cfg.counter_fc1 == 3) 
                 begin
-                    //TODO :add event for setting the initfc1 flag and make it break the loop not the counter check (done)
+                    //TODO :add event for setting the initfc1 flag and make it break the loop not the manager.my_cfg.counter_fc1 check (done)
                     //TODO : add check for initfc2 recieve and make it trigger the flag only  (done)
                     break;
                 end
@@ -62,9 +62,9 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                         if (rx_p)
                         begin 
                             //comparsion with the recieved not_scaled values with the actual not_scaled stored values
-                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_POSTED].hdr_limit)) //TODO : add checks for the data_limit and hdr_scale and data_scale fields too (maybe use a temp. fc_struct to loop-check it)
+                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_P].hdr_limit)) //TODO : add checks for the data_limit and hdr_scale and data_scale fields too (maybe use a temp. fc_struct to loop-check it)
                             begin
-                                `uvm_error("CREDITS_ERR",$sformatf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_POSTED].hdr_limit))     
+                                `uvm_error("CREDITS_ERR",$sformatf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_P].hdr_limit))     
                             end
                         end
                         else 
@@ -74,14 +74,14 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                             rx_p = 1;
                         end 
 
-                        if(counter==0) 
+                        if(manager.my_cfg.counter_fc1==0) 
                         begin
-                            counter++;
-                            //`uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP POSTED, count: %0d", counter), UVM_LOW)
+                            manager.my_cfg.counter_fc1++;
+                            `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP POSTED, count: %0d", manager.my_cfg.counter_fc1), UVM_LOW)
                         end // end of IN_ORDER posted recieved
                         else 
                         begin  
-                            counter = 1 ;
+                            manager.my_cfg.counter_fc1 = 1 ;
                             `uvm_error("INITFC1_ERR",$sformatf("recieved OUT_OF_ORDER packet of type : %s",dllp_item_rx.dllp_type))
                         end 
                     end//end of posted case
@@ -90,9 +90,9 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                     begin
                         if (rx_np)
                         begin
-                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_NON_POSTED].hdr_limit))
+                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_NP].hdr_limit))
                             begin
-                                `uvm_error("CREDITS_ERR",$sformatf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_NON_POSTED].hdr_limit))     
+                                `uvm_error("CREDITS_ERR",$sformatf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_NP].hdr_limit))     
                             end
                         end
                         else 
@@ -102,14 +102,14 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                             rx_np = 1;
                         end
                         
-                        if (counter == 1)
+                        if (manager.my_cfg.counter_fc1 == 1)
                         begin
-                            counter++;
-                         //   `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP NON_POSTED, count: %0d", counter), UVM_LOW)
+                            manager.my_cfg.counter_fc1++;
+                            `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP NON_POSTED, count: %0d", manager.my_cfg.counter_fc1), UVM_LOW)
                         end
                         else 
                         begin
-                            counter =0;
+                            manager.my_cfg.counter_fc1 =0;
                             `uvm_error("INITFC1_ERR",$sformatf("recieved OUT_OF_ORDER packet of type : %s",dllp_item_rx.dllp_type))
                         end 
                     end   //end of non posted case
@@ -130,20 +130,20 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                             rx_cpl = 1;
                         end 
                         
-                        if(counter==2) 
+                        if(manager.my_cfg.counter_fc1==2) 
                         begin
-                            counter++;
-                         //   `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 DLLP POSTED, count: %0d", counter), UVM_LOW)
+                            manager.my_cfg.counter_fc1++;
+                            `uvm_info("INITFC1_STATE", $sformatf("Received expected FC1 Completion, count: %0d", manager.my_cfg.counter_fc1), UVM_LOW)
                         end
                         else 
                         begin  
-                            counter =0;
+                            manager.my_cfg.counter_fc1 =0;
                             `uvm_error("INITFC1_ERR",$sformatf("recieved OUT_OF_ORDER packet of type : %s",dllp_item_rx.dllp_type))
                         end
                     end // end of compeletion state
                     else // else for any non initfc1 packet types recieved in initfc1 state
                     begin
-                        counter =0; // i think we keep the counter without reset as we drop the packet only 
+                        manager.my_cfg.counter_fc1 =0;
                         `uvm_error("INITFC1_ERR",$sformatf("recieved WRONG STATE DLLP of type : %s in INITFC1_STATE",dllp_item_rx.dllp_type))
                     end
                 end // big else

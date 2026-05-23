@@ -1,7 +1,7 @@
-
 class pcie_dll_rx_mon extends uvm_monitor;
 
   uvm_analysis_port #(pcie_dll_base_seq_item) mon_rx_ap;
+  uvm_analysis_port #(pcie_dlcmsm_state_e) mon_rx_state_ap;
   
   pcie_dll_role_e  role;
   pcie_dll_env_cfg cfg;
@@ -12,10 +12,6 @@ class pcie_dll_rx_mon extends uvm_monitor;
   pcie_dll_tlp_seq_item  tlp_item;
   pcie_dll_dllp_seq_item dllp_item; 
 
-  pcie_dlcmsm_state_e rx_state;
-
-  uvm_analysis_port #(pcie_dlcmsm_state_e) mon_rx_state_ap;
-
   `uvm_component_utils(pcie_dll_rx_mon)
 
   function new(string name = "pcie_dll_rx_mon", uvm_component parent = null);
@@ -24,9 +20,7 @@ class pcie_dll_rx_mon extends uvm_monitor;
 
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
-
     mon_rx_ap = new("mon_rx_ap", this);
-    mon_rx_state_ap = new("mon_rx_state_ap", this);
     if (!pcie_dll_env_cfg::get_cfg(this, "", cfg)) begin
       `uvm_fatal("NOCFG", "pcie_dll_rx_mon: no cfg found in config_db")
     end
@@ -42,7 +36,7 @@ class pcie_dll_rx_mon extends uvm_monitor;
 
       //TODO : callbacks to be called to simulate errors
       @(vif.cb_mon_rx);
-      if (vif.rst_n) begin
+      if (vif.rst_n && vif.pl_lnk_up) begin
         // A DLLP is present when:
         //   - exactly the 6 DLLP bytes are valid on pl_valid (upper bytes = 0)
         //   - dlpstart < dlpend framing flags indicate a DLLP frame
@@ -53,9 +47,9 @@ class pcie_dll_rx_mon extends uvm_monitor;
           dllp_item = pcie_dll_dllp_seq_item::type_id::create("dllp_item");
           // DLLP is always packed into the lowest 48 bits of pl_data
           dllp_item.unpack(vif.cb_mon_rx.pl_data[47:0]);
-          dllp_item.current_state = pcie_dll_pkg::partner_state_expector::get_rx_current_state(dllp_item.dllp_type, this.get_full_name());;
+          dllp_item.current_state = pcie_dll_pkg::partner_state_expector::get_rx_current_state(dllp_item.dllp_type, this.get_full_name());
           mon_rx_ap.write(dllp_item);
-          `uvm_info("MON", $sformatf("Observed RX DLLP: %h  |  Type: %s", dllp_item.dllp, dllp_item.dllp_type.name()), UVM_LOW)
+          `uvm_info("MON", $sformatf("Observed RX DLLP: %h", dllp_item.dllp), UVM_LOW)
         end
         else if ((!(vif.cb_mon_rx.pl_tlpstart >= vif.cb_mon_rx.pl_tlpend)) &
              (vif.cb_mon_rx.pl_valid == 16'b1111_1111_1111_1111)) 
@@ -69,6 +63,5 @@ class pcie_dll_rx_mon extends uvm_monitor;
       end
     end
   endtask 
-
 
 endclass : pcie_dll_rx_mon

@@ -45,14 +45,16 @@ class pcie_dll_init1_seq extends pcie_dll_base_seq;
       if (!init1_transaction.randomize() with { 
             current_state == DL_INIT_FC1;
             
-            if (!(cfg.enable_errors)) { // error free
+            if (!(corrupted_initfc)) { // error free
               dllp_type == DLLP_INITFC1_P;
             }
             else { // error injection enabled
               dllp_type dist { 
-              DLLP_INITFC1_P   := 60, 
-              //DLLP_INITFC1_NP  := 40, 
-              DLLP_INITFC1_CPL := 40 
+              DLLP_INITFC1_P   := 20, 
+              DLLP_INITFC1_NP  := 40, 
+              DLLP_INITFC1_CPL := 40,
+              
+              DLLP_INITFC2_P   := 10
             }; 
           }
            } 
@@ -63,7 +65,7 @@ class pcie_dll_init1_seq extends pcie_dll_base_seq;
       finish_item(init1_transaction);
 
 
-      // ---- Phase 2: NP-Heavy Traffic (1% P, 98% NP, 1% CPL) ----
+      // ---- Phase 2: NP-Heavy Traffic ----
       init1_transaction = pcie_dll_dllp_seq_item::type_id::create("init1_transaction");
 
       start_item(init1_transaction);
@@ -71,14 +73,16 @@ class pcie_dll_init1_seq extends pcie_dll_base_seq;
       if (!init1_transaction.randomize() with { 
             current_state == DL_INIT_FC1;
             
-            if (!(cfg.enable_errors)) { // error free
+            if (!(corrupted_initfc)) { // error free
               dllp_type == DLLP_INITFC1_NP;
             }
             else  {// error injection enabled
             dllp_type dist { 
               DLLP_INITFC1_P   := 40, 
-              //DLLP_INITFC1_NP  := 60, 
-              DLLP_INITFC1_CPL := 40 
+              DLLP_INITFC1_NP  := 20, 
+              DLLP_INITFC1_CPL := 40,
+              
+              DLLP_INITFC2_P   := 10
             };
           }
           }) begin
@@ -95,14 +99,15 @@ class pcie_dll_init1_seq extends pcie_dll_base_seq;
       if (!init1_transaction.randomize() with { 
             current_state == DL_INIT_FC1;
             
-            if (!(cfg.enable_errors)) { // error free
+            if (!(corrupted_initfc)) { // error free
               dllp_type == DLLP_INITFC1_CPL;
             }
             else {// error injection enabled
             dllp_type dist { 
               DLLP_INITFC1_P   := 40, 
-              DLLP_INITFC1_NP  := 40 
-              //DLLP_INITFC1_CPL := 60 
+              DLLP_INITFC1_NP  := 40, 
+              DLLP_INITFC1_CPL := 20
+              
             };
           }
           }) begin

@@ -9,7 +9,7 @@ class error_expector;
 
     `uvm_info("determine_error_status", $sformatf("----------------- the whole DLLP: %h ----------------", dllp_item.dllp), UVM_LOW)
     `uvm_info("determine_error_status", $sformatf("------------ DLLP type: %s & state: %s ---------------", dllp_item.dllp_type.name(), state.name()), UVM_LOW)
-    `uvm_info("determine_error_status", $sformatf("---------------- verify CRC result: %b & CRC: %h -------------------", dllp_item.verify_crc(), dllp_item.crc), UVM_LOW)
+    `uvm_info("determine_error_status", $sformatf("---------------- verify CRC result: %b & correct CRC: %h -------------------", dllp_item.verify_crc(), pcie_dll_pkg::crc16_generator::calculate_dllp_crc(dllp_item.pack_data())), UVM_LOW)
     `uvm_info("determine_error_status", $sformatf("-------------------------- VC: %b -------------------------------", dllp_item.dllp_type[2:0]), UVM_LOW)
     //`uvm_info("determine_error_status", $sformatf("---------------------- hdr_fc: %h & data_fc: %h -------------------", dllp_item.dllp_payload[21:14], dllp_item.dllp_payload[11:0]), UVM_LOW)
     

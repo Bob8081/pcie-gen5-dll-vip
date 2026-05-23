@@ -14,6 +14,7 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
 
   // 
   bit                      enable_errors; 
+  bit                      corrupted_initfc; // Whether to inject errors in InitFC DLLPs (only applicable if enable_errors is set)
 
   // ---- Core DLLP Fields ----
   rand pcie_dllp_type_e     dllp_type;      // INITFC1_P, FEATURE_REQ
@@ -134,7 +135,8 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
       `uvm_fatal("SEQ", "Failed to get pcie_dll_env_cfg from config_db")
     end
 
-    enable_errors = cfg.enable_errors;
+    enable_errors    = cfg.enable_errors;
+    corrupted_initfc = cfg.corrupted_initfc;
 
     super.pre_randomize();
   endfunction
@@ -156,13 +158,14 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
     // Assemble the 48-bit wire word
     dllp = pack();
 
-    `uvm_info("SEQ_ITEM", $sformatf("--- current_state: %s ---", current_state.name()), UVM_LOW)
+
+    `uvm_info("SEQ_ITEM", $sformatf("corrupted_initfc= %0b and enable_errors= %0b", corrupted_initfc, enable_errors), UVM_LOW);
 
   endfunction
 
   // Returns the 4 pre-CRC bytes in wire order (byte 0 at [7:0]).
   function bit [31:0] pack_data();
-    return {dllp_payload[7:0], dllp_payload[15:8], dllp_payload[23:16], dllp_type[7:0]};
+    return {dllp_payload[23:16], dllp_payload[15:8], dllp_payload[7:0], dllp_type[7:0]};
   endfunction
 
 

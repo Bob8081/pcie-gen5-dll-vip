@@ -90,7 +90,7 @@ class pcie_dll_agent extends uvm_component;
     state_mgr.state_ap.connect(tx_mon.mon_state_export);
     tx_mon.mon_tx_ap.connect(this.agent_tx_ap);
     rx_mon.mon_rx_ap.connect(this.agent_rx_ap);
-    rx_mon.mon_rx_state_ap.connect(this.agent_rx_state_ap); 
+   // rx_mon.mon_rx_state_ap.connect(this.agent_rx_state_ap); 
   endfunction
 
 endclass : pcie_dll_agent
