@@ -35,12 +35,6 @@ class pcie_dll_scoreboard extends yvm_subscriber #(pcie_dll_base_seq_item);
     prev_state = curr_state;
     curr_state = new_state;
 
-    if (prev_state != curr_state) begin
-      count= 0;
-    else
-      count= count;
-    end
-
     // 2. Perform state transition checks
     // TODO:  Need a way to pass pl_lnk_up and initfc flags to checks 
     

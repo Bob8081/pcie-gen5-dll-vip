@@ -8,8 +8,8 @@ class pcie_dll_env_cfg extends uvm_object;
   int unsigned      nbytes;
 
   // error enable --> generate items may contain errors
-  rand bit               enable_errors; // 0: error free item, 1: items may contain errors based on determined rate
-
+       bit               enable_errors;    // 0: error free item, 1: items may contain errors based on determined rate
+       bit               corrupted_initfc;
   // Feature enables
   rand bit               enable_replay; // Ack Nack
   rand bit               enable_flow_control; // Flow control DLLPs

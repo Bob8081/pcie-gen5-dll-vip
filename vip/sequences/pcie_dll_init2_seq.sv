@@ -45,14 +45,18 @@ class pcie_dll_init2_seq extends pcie_dll_base_seq;
       if (!init2_transaction.randomize() with { 
             current_state == DL_INIT_FC2;
 
-            if (!(cfg.enable_errors)) { // error free
+            if (!(corrupted_initfc)) { // error free
               dllp_type == DLLP_INITFC2_P;
             }
             else { // error injection enabled
             dllp_type dist { 
-              //DLLP_INITFC2_P   := 60, 
+              DLLP_INITFC2_P   := 20, 
               DLLP_INITFC2_NP  := 40, 
-              DLLP_INITFC2_CPL := 40 
+              DLLP_INITFC2_CPL := 40,
+
+              DLLP_INITFC1_P   := 4, 
+              DLLP_INITFC1_NP  := 4, 
+              DLLP_INITFC1_CPL := 4
             }; 
           }
           }) begin
@@ -62,7 +66,7 @@ class pcie_dll_init2_seq extends pcie_dll_base_seq;
       finish_item(init2_transaction);
 
 
-      // ---- Phase 2: NP-Heavy Traffic (1% P, 98% NP, 1% CPL) ----
+      // ---- Phase 2: NP-Heavy Traffic ----
       init2_transaction = pcie_dll_dllp_seq_item::type_id::create("init2_transaction");
 
       start_item(init2_transaction);
@@ -70,14 +74,18 @@ class pcie_dll_init2_seq extends pcie_dll_base_seq;
       if (!init2_transaction.randomize() with { 
             current_state == DL_INIT_FC2; 
             
-            if (!(cfg.enable_errors)) { // error free
+            if (!(corrupted_initfc)) { // error free
               dllp_type == DLLP_INITFC2_NP;
             }
             else { // error injection enabled
               dllp_type dist { 
                 DLLP_INITFC2_P   := 40, 
-                //DLLP_INITFC2_NP  := 60, 
-                DLLP_INITFC2_CPL := 40 
+                DLLP_INITFC2_NP  := 20, 
+                DLLP_INITFC2_CPL := 40,
+
+                DLLP_INITFC1_P   := 4, 
+                DLLP_INITFC1_NP  := 4, 
+                DLLP_INITFC1_CPL := 4
               };
             }
           }) begin
@@ -86,7 +94,7 @@ class pcie_dll_init2_seq extends pcie_dll_base_seq;
 
       finish_item(init2_transaction);
 
-      // ---- Phase 3: CPL-Heavy Traffic (2% P, 2% NP, 96% CPL) ----
+      // ---- Phase 3: CPL-Heavy Traffic ----
       init2_transaction = pcie_dll_dllp_seq_item::type_id::create("init2_transaction");
 
       start_item(init2_transaction);
@@ -94,14 +102,18 @@ class pcie_dll_init2_seq extends pcie_dll_base_seq;
       if (!init2_transaction.randomize() with { 
             current_state == DL_INIT_FC2; 
             
-            if (!(cfg.enable_errors)) { // error free
+            if (!(corrupted_initfc)) { // error free
               dllp_type == DLLP_INITFC2_CPL;
             }
             else { // error injection enabled
               dllp_type dist { 
                 DLLP_INITFC2_P   := 40, 
-                DLLP_INITFC2_NP  := 40 
-                //DLLP_INITFC2_CPL := 60 
+                DLLP_INITFC2_NP  := 40, 
+                DLLP_INITFC2_CPL := 20,
+
+                DLLP_INITFC1_P   := 4, 
+                DLLP_INITFC1_NP  := 4, 
+                DLLP_INITFC1_CPL := 4
               };
             }
           }) begin

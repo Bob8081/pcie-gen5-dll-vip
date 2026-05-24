@@ -2,13 +2,14 @@ class error_expector;
 
     
 // -------------- Helper Function: to determine error status -------------
-  static function pcie_dllp_error_e determine_error_status(pcie_dll_dllp_seq_item dllp_item, pcie_dlcmsm_state_e state);
+  static function pcie_dllp_error_e determine_error_status(pcie_dll_dllp_seq_item dllp_item);
 
-      bit [31:0] full_data = {dllp_item.dllp_type, dllp_item.dllp_payload};
+      bit [31:0]          full_data = {dllp_item.dllp_type, dllp_item.dllp_payload};
+      pcie_dlcmsm_state_e state     = dllp_item.current_state;
 
     `uvm_info("determine_error_status", $sformatf("----------------- the whole DLLP: %h ----------------", dllp_item.dllp), UVM_LOW)
     `uvm_info("determine_error_status", $sformatf("------------ DLLP type: %s & state: %s ---------------", dllp_item.dllp_type.name(), state.name()), UVM_LOW)
-    `uvm_info("determine_error_status", $sformatf("---------------- verify CRC result: %b & CRC: %h -------------------", dllp_item.verify_crc(), dllp_item.crc), UVM_LOW)
+    `uvm_info("determine_error_status", $sformatf("---------------- verify CRC result: %b & correct CRC: %h -------------------", dllp_item.verify_crc(), pcie_dll_pkg::crc16_generator::calculate_dllp_crc(dllp_item.pack_data())), UVM_LOW)
     `uvm_info("determine_error_status", $sformatf("-------------------------- VC: %b -------------------------------", dllp_item.dllp_type[2:0]), UVM_LOW)
     //`uvm_info("determine_error_status", $sformatf("---------------------- hdr_fc: %h & data_fc: %h -------------------", dllp_item.dllp_payload[21:14], dllp_item.dllp_payload[11:0]), UVM_LOW)
     
@@ -19,11 +20,11 @@ class error_expector;
     end
 
     // invalid DLLP 
-    else if (state == DL_FEATURE_EXCH && dllp_item.dllp_type == DLLP_ACK) begin
+    else if (state == DL_FEATURE_EXCH && dllp_item.dllp_type != DLLP_FEATURE_REQ) begin
       `uvm_info("determine_error_status", $sformatf("------------ Invalid DLLP type %s ------------", dllp_item.dllp_type.name()), UVM_LOW)
       return INVALID_DLLP;
     end
-    else if ((state == DL_INIT_FC1 || state == DL_INIT_FC2) && (dllp_item.dllp_type == DLLP_ACK)) begin
+    else if ((state == DL_INIT_FC1 || state == DL_INIT_FC2) && !(dllp_item.dllp_type[7:3] inside {DLLP_INITFC1_P_VC, DLLP_INITFC1_NP_VC, DLLP_INITFC1_CPL_VC, DLLP_INITFC2_P_VC, DLLP_INITFC2_NP_VC, DLLP_INITFC2_CPL_VC})) begin
       `uvm_info("determine_error_status", $sformatf("------------ Invalid DLLP type %s ------------", dllp_item.dllp_type.name()), UVM_LOW)
       return INVALID_DLLP;
     end

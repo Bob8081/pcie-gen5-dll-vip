@@ -49,6 +49,15 @@ package pcie_dll_pkg;
     DLLP_PWR_MGMT      = 8'h24   // 0010 0100
   } pcie_dllp_type_e;
 
+  typedef enum bit [4:0] {
+    DLLP_INITFC1_P_VC     = 5'b0100_0,  // any virtual channel (VC) for InitFC
+    DLLP_INITFC1_NP_VC    = 5'b0101_0,  // any virtual channel (VC) for InitFC
+    DLLP_INITFC1_CPL_VC   = 5'b0110_0,  // any virtual channel (VC) for InitFC
+    DLLP_INITFC2_P_VC     = 5'b1100_0,  // any virtual channel (VC) for InitFC
+    DLLP_INITFC2_NP_VC    = 5'b1101_0,  // any virtual channel (VC) for InitFC
+    DLLP_INITFC2_CPL_VC   = 5'b1110_0   // any virtual channel (VC) for InitFC
+  } pcie_dllp_type_mask_e; // only used in helper classes to avoid invalid VC
+
   typedef enum bit [2:0] {
     DL_INACTIVE        = 3'b000,  // link not yet up; no DLLP traffic permitted
     DL_FEATURE_EXCH    = 3'b001,  // DL Feature Exchange handshake
@@ -66,12 +75,11 @@ package pcie_dll_pkg;
     INVALID_VC      = 3'b011,
     INVALID_CREDITS = 3'b100
   } pcie_dllp_error_e;
-
-
-  //enum just for credits (only three types)
+  
+  //enum for credits
   typedef enum {
-    FC_POSTED = 0,
-    FC_NON_POSTED = 1,
+    FC_P = 0,
+    FC_NP = 1,
     FC_CPL = 2
   } pcie_fc_type_e;
 
@@ -92,25 +100,30 @@ package pcie_dll_pkg;
 
   } pcie_fc_credits_values_s;
 
+  
 
   // Included class files
 
   `include "env/pcie_dll_env_cfg.sv"
-  `include "env/pcie_dll_dynamic_cfg.sv"
+  `include "env/pcie_dll_partner_cfg.sv"
+  `include "env/pcie_dll_my_cfg.sv"
+  `include "env/pcie_dll_link_cfg.sv"
   `include "helpers/crc16_generator.sv"
+  `include "helpers/partner_state_expector.sv"
 
   `include "transactions/pcie_dll_base_seq_item.sv"
   `include "transactions/pcie_dll_dllp_seq_item.sv"
   `include "transactions/pcie_dll_tlp_seq_item.sv"
+  `include "transactions/pcie_dll_if_seq_item.sv"
   `include "sequences/pcie_dll_base_seq.sv"
   `include "sequences/pcie_dll_feature_seq.sv"
   `include "sequences/pcie_dll_init1_seq.sv"
   `include "sequences/pcie_dll_init2_seq.sv"
   `include "sequences/pcie_dll_tlp_seq.sv"
   `include "sequences/send_single_packet.sv"
+  `include "sequences/pcie_dll_if_seq.sv"
 
   `include "helpers/error_expector.sv"
-
 
   `include "agents/pcie_dll_tx_drv_cb_base.sv"
   `include "agents/pcie_dll_tx_drv_cb_macro.svh"
@@ -120,9 +133,12 @@ package pcie_dll_pkg;
   //`include "agents/pcie_dll_tx_drv_cb_dl_feature_exch.sv"
   `include "agents/pcie_dll_tx_drv.sv"
 
+  `include "agents/interface_agent/pcie_dll_if_drv.sv"
   `include "agents/pcie_dll_tx_mon.sv"
   `include "agents/pcie_dll_rx_mon.sv"
+  `include "agents/interface_agent/pcie_dll_if_mon.sv"
   `include "agents/pcie_dll_seqr.sv"
+  `include "agents/interface_agent/pcie_dll_if_sqr.sv"
 
   `include "agents/pcie_dll_base_state.sv"
 
@@ -136,15 +152,20 @@ package pcie_dll_pkg;
 
 
 
-  //`include "scoreboards/common_checks.sv"
+ // `include "scoreboards/common_checks.sv"
   //`include "scoreboards/pcie_dll_scoreboard.sv"
   `include "agents/pcie_dll_agent.sv"
+  `include "agents/interface_agent/pcie_dll_if_agent.sv"
   `include "coverage/pcie_dll_coverage.sv"
   `include "env/pcie_dll_env.sv"
 
   
 
+  `include "tests/test_base_zero_credits.sv"
+  `include "tests/test_base_corrupted_initfc.sv"
   `include "tests/test_base_error_injected.sv"
-  `include "tests/test_dlcmsm_fc_init.sv"
+  `include "tests/test_base_with_feature.sv"
+  `include "tests/test_base_without_feature.sv"
+  //`include "tests/test_dlcmsm_fc_init.sv"
 
 endpackage : pcie_dll_pkg

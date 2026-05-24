@@ -54,6 +54,7 @@ interface pcie_lpif_if #(
         output lp_tlpend;
         output lp_dlpstart;
         output lp_dlpend;
+        output pl_lnk_up;
     endclocking
 
     // TX Monitor: samples what the driver is sending on lp_* and checks pl_trdy handshake
@@ -67,6 +68,7 @@ interface pcie_lpif_if #(
         input lp_dlpstart;
         input lp_dlpend;
         input pl_trdy;
+        input pl_lnk_up; //TODO : add more signals to monitor for better checking and coverage
     endclocking
 
     // RX Monitor: samples what the PHY is sending on pl_* signals

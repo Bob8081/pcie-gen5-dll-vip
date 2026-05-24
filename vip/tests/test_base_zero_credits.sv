@@ -1,4 +1,4 @@
-class test_base_error_injected extends uvm_test;
+class test_base_zero_credits extends uvm_test;
 
   pcie_dll_env_cfg cfg_rc;
   pcie_dll_env_cfg cfg_ep;
@@ -30,9 +30,9 @@ class test_base_error_injected extends uvm_test;
   //pcie_dll_tx_drv_cb_dl_feature_exch pcie_dll_tx_drv_cb_dl_feature_exch_env_rc;
   //pcie_dll_tx_drv_cb_dl_feature_exch pcie_dll_tx_drv_cb_dl_feature_exch_env_ep;
 
-  `uvm_component_utils(test_base_error_injected)
+  `uvm_component_utils(test_base_zero_credits)
 
-  function new(string name = "test_base_error_injected", uvm_component parent = null);
+  function new(string name = "test_base_zero_credits", uvm_component parent = null);
     super.new(name, parent);
     target_reached_rc  = new("target_reached_rc");
     target_reached_ep  = new("target_reached_ep");
@@ -71,14 +71,14 @@ class test_base_error_injected extends uvm_test;
       `uvm_info("CFG", $sformatf("Loaded speed_mode=%0d from config_db", tb_speed_mode), UVM_LOW)
     end
 
-    // Differentiate the initial flow control credits
-    cfg_rc.init_fc_hdr_p   = 8'h20;  cfg_rc.init_fc_data_p   = 12'h100;
-    cfg_rc.init_fc_hdr_np  = 8'h20;  cfg_rc.init_fc_data_np  = 12'h100;
-    cfg_rc.init_fc_hdr_cpl = 8'h20;  cfg_rc.init_fc_data_cpl = 12'h100;
+    // Differentiate the initial flow control with zero credits
+    cfg_rc.init_fc_hdr_p   = 8'h00;  cfg_rc.init_fc_data_p   = 12'h000;
+    cfg_rc.init_fc_hdr_np  = 8'h00;  cfg_rc.init_fc_data_np  = 12'h000;
+    cfg_rc.init_fc_hdr_cpl = 8'h00;  cfg_rc.init_fc_data_cpl = 12'h000;
 
-    cfg_ep.init_fc_hdr_p   = 8'h40;  cfg_ep.init_fc_data_p   = 12'h200;
-    cfg_ep.init_fc_hdr_np  = 8'h40;  cfg_ep.init_fc_data_np  = 12'h200;
-    cfg_ep.init_fc_hdr_cpl = 8'h40;  cfg_ep.init_fc_data_cpl = 12'h200;
+    cfg_ep.init_fc_hdr_p   = 8'h00;  cfg_ep.init_fc_data_p   = 12'h000;
+    cfg_ep.init_fc_hdr_np  = 8'h00;  cfg_ep.init_fc_data_np  = 12'h000;
+    cfg_ep.init_fc_hdr_cpl = 8'h00;  cfg_ep.init_fc_data_cpl = 12'h000;
     
     // Set the number of transactions to generate for each role (can be overridden from config_db)
     cfg_rc.req_count = 1000;
@@ -163,18 +163,16 @@ class test_base_error_injected extends uvm_test;
     
     `uvm_info("TEST", "Waiting for State Manager to reach ACTIVE...", UVM_LOW)
     
-    repeat (2)
+    repeat (4)
     begin
-      `uvm_info("TEST", "Starting error injection test for both RC and EP", UVM_LOW)
+      `uvm_info("TEST", "Starting correct test with zero credits for both RC and EP", UVM_LOW)
       fork
       begin
-        cfg_rc.enable_errors = 1'b1; // Enable error generation for RC
         target_reached_rc.wait_trigger();
         `uvm_info("Target_reached","the RC reached active state!!!!!! ",UVM_LOW)
         #2ns;
       end
       begin 
-        cfg_ep.enable_errors = 1'b1; // Enable error generation for EP
         target_reached_ep.wait_trigger(); 
         `uvm_info("Target_reached","the EP reached active state!!!!!!",UVM_LOW)
         #2ns;
@@ -183,7 +181,7 @@ class test_base_error_injected extends uvm_test;
 
       if_seq = pcie_dll_if_seq::type_id::create("if_seq");
       if_seq.start(if_agent.if_sqr);
-
+      
       #2ns;
 
     end
@@ -194,4 +192,4 @@ class test_base_error_injected extends uvm_test;
 
   endtask
 
-endclass : test_base_error_injected
+endclass : test_base_zero_credits

@@ -92,14 +92,15 @@ class pcie_dll_tx_drv extends uvm_driver #(pcie_dll_base_seq_item);
                 
                 end
 
+                #1;
                 // //reset interface signals
-                // vif.cb_drv.lp_irdy     <= 1'b0;
-                // vif.cb_drv.lp_valid    <= '0;
-                // vif.cb_drv.lp_dlpstart <= '0;
-                // vif.cb_drv.lp_dlpend   <= '0;
-                // vif.cb_drv.lp_tlpstart <= '0;
-                // vif.cb_drv.lp_tlpend   <= '0;
-                // vif.cb_drv.lp_data     <= '0;
+                vif.cb_drv.lp_irdy     <= 1'b0;
+                vif.cb_drv.lp_valid    <= '0;
+                vif.cb_drv.lp_dlpstart <= '0;
+                vif.cb_drv.lp_dlpend   <= '0;
+                vif.cb_drv.lp_tlpstart <= '0;
+                vif.cb_drv.lp_tlpend   <= '0;
+                vif.cb_drv.lp_data     <= '0;
 
                 //`uvm_do_callbacks(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_base, post_transmit(req))
                 seq_item_port.item_done();

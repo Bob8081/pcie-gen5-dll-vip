@@ -1,4 +1,4 @@
-class test_base_error_injected extends uvm_test;
+class test_base_corrupted_initfc extends uvm_test;
 
   pcie_dll_env_cfg cfg_rc;
   pcie_dll_env_cfg cfg_ep;
@@ -30,9 +30,9 @@ class test_base_error_injected extends uvm_test;
   //pcie_dll_tx_drv_cb_dl_feature_exch pcie_dll_tx_drv_cb_dl_feature_exch_env_rc;
   //pcie_dll_tx_drv_cb_dl_feature_exch pcie_dll_tx_drv_cb_dl_feature_exch_env_ep;
 
-  `uvm_component_utils(test_base_error_injected)
+  `uvm_component_utils(test_base_corrupted_initfc)
 
-  function new(string name = "test_base_error_injected", uvm_component parent = null);
+  function new(string name = "test_base_corrupted_initfc", uvm_component parent = null);
     super.new(name, parent);
     target_reached_rc  = new("target_reached_rc");
     target_reached_ep  = new("target_reached_ep");
@@ -163,18 +163,18 @@ class test_base_error_injected extends uvm_test;
     
     `uvm_info("TEST", "Waiting for State Manager to reach ACTIVE...", UVM_LOW)
     
-    repeat (2)
+    repeat (6)
     begin
-      `uvm_info("TEST", "Starting error injection test for both RC and EP", UVM_LOW)
+      `uvm_info("TEST", "Starting corrupted initfc test for both RC and EP", UVM_LOW)
       fork
       begin
-        cfg_rc.enable_errors = 1'b1; // Enable error generation for RC
+        cfg_rc.corrupted_initfc = 1'b1; // Enable corrupted initfc for RC
         target_reached_rc.wait_trigger();
         `uvm_info("Target_reached","the RC reached active state!!!!!! ",UVM_LOW)
         #2ns;
       end
       begin 
-        cfg_ep.enable_errors = 1'b1; // Enable error generation for EP
+        cfg_ep.corrupted_initfc = 1'b1; // Enable corrupted initfc for EP
         target_reached_ep.wait_trigger(); 
         `uvm_info("Target_reached","the EP reached active state!!!!!!",UVM_LOW)
         #2ns;
@@ -194,4 +194,4 @@ class test_base_error_injected extends uvm_test;
 
   endtask
 
-endclass : test_base_error_injected
+endclass : test_base_corrupted_initfc
