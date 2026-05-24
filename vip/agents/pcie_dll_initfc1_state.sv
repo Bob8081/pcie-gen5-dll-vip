@@ -52,11 +52,12 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
 
                     manager.dllp_fifo.get(dllp_item_rx);
 
-                    if ((dllp_item_rx.dllp_type == DLLP_INITFC2_P && rx_p && rx_np && rx_cpl)) 
+                    if ((rx_p && rx_np && rx_cpl))
+                    //if ((dllp_item_rx.dllp_type == DLLP_INITFC2_P) || (rx_p && rx_np && rx_cpl)) 
                     begin
                         break;
                     end
-                    else if (dllp_item_rx.dllp_type == DLLP_INITFC1_P)
+                    else if ( (dllp_item_rx.dllp_type == DLLP_INITFC1_P) || (dllp_item_rx.dllp_type == DLLP_INITFC2_P))
                     begin
 
                         if (rx_p)
@@ -86,7 +87,7 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                         end 
                     end//end of posted case
 
-                    else if (dllp_item_rx.dllp_type == DLLP_INITFC1_NP)
+                    else if ((dllp_item_rx.dllp_type == DLLP_INITFC1_NP) || (dllp_item_rx.dllp_type == DLLP_INITFC2_NP))
                     begin
                         if (rx_np)
                         begin
@@ -114,7 +115,7 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                         end 
                     end   //end of non posted case
 
-                    else if (dllp_item_rx.dllp_type == DLLP_INITFC1_CPL)
+                    else if ((dllp_item_rx.dllp_type == DLLP_INITFC1_CPL) || (dllp_item_rx.dllp_type == DLLP_INITFC2_CPL))
                     begin
                         if (rx_cpl)
                         begin

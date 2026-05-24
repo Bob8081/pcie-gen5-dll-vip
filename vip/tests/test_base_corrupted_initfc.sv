@@ -163,7 +163,7 @@ class test_base_corrupted_initfc extends uvm_test;
     
     `uvm_info("TEST", "Waiting for State Manager to reach ACTIVE...", UVM_LOW)
     
-    repeat (4)
+    repeat (6)
     begin
       `uvm_info("TEST", "Starting corrupted initfc test for both RC and EP", UVM_LOW)
       fork

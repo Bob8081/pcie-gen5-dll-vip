@@ -54,7 +54,7 @@ class pcie_dll_init1_seq extends pcie_dll_base_seq;
               DLLP_INITFC1_NP  := 40, 
               DLLP_INITFC1_CPL := 40,
               
-              DLLP_INITFC2_P   := 10
+              DLLP_INITFC2_P   := 20
             }; 
           }
            } 
@@ -82,7 +82,7 @@ class pcie_dll_init1_seq extends pcie_dll_base_seq;
               DLLP_INITFC1_NP  := 20, 
               DLLP_INITFC1_CPL := 40,
               
-              DLLP_INITFC2_P   := 10
+              DLLP_INITFC2_P   := 20
             };
           }
           }) begin

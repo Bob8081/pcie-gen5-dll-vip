@@ -81,8 +81,8 @@ class test_base_zero_credits extends uvm_test;
     cfg_ep.init_fc_hdr_cpl = 8'h00;  cfg_ep.init_fc_data_cpl = 12'h000;
     
     // Set the number of transactions to generate for each role (can be overridden from config_db)
-    cfg_rc.req_count = 500;
-    cfg_ep.req_count = 500;
+    cfg_rc.req_count = 1000;
+    cfg_ep.req_count = 1000;
 
     //for feature exchange test 
     cfg_rc.scaled_fc_supported = 1'b1;

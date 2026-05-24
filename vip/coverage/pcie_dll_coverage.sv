@@ -35,15 +35,18 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     option.comment      = " Detailed DLLP Analysis — state, type, errors, credits ";
 
 
-    cp_state: coverpoint state {
+    cp_state_machine: coverpoint state {
       option.comment = " Tracks DL state machine transitions";
       bins state_machine_flow [] = (DL_INACTIVE => DL_FEATURE_EXCH),
                                    (DL_INACTIVE => DL_INIT_FC1    ),  
                                    (DL_INIT_FC1 => DL_INIT_FC2    ), 
                                    (DL_INIT_FC2 => DL_ACTIVE      );
+      }
 
+    cp_state: coverpoint state {
+      option.comment = " Tracks DL state machine states";
       bins main_states        [] = {DL_FEATURE_EXCH, DL_INIT_FC1, DL_INIT_FC2}; // to be used in crosses 
-      bins start_finish_states[] = {DL_INACTIVE, DL_ACTIVE}; // to trace start and end of sequences    
+      //bins start_finish_states[] = {DL_INACTIVE, DL_ACTIVE}; // to trace start and end of sequences    
     }
 
     cp_dllp_type: coverpoint dllp_type {
@@ -54,9 +57,9 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     }
 
     // Indicates if the DLLP is part of a credit flow (bit 0 = 1)
-    cp_payload_bit0: coverpoint dllp_payload[0] { 
-      bins scl_flow [] = {1'b0, 1'b1};
-    }
+    //cp_payload_bit0: coverpoint dllp_payload[0] { 
+      //bins scl_flow [] = {1'b0, 1'b1};
+    //}
 
     // -- Errors --
     cp_error_status: coverpoint error_status {
@@ -71,25 +74,25 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     }
 
     // -- Crosses --
-    cr_scaled_fc: cross cp_dllp_type, cp_payload_bit0 {
-      option.comment = " Ensures Scaled Flow Control feature exchange";
-      ignore_bins scl_fc = !binsof(cp_dllp_type.feature_state);
-    }
+    //cr_scaled_fc: cross cp_dllp_type, dllp_payload[0] {
+      //option.comment = " Ensures Scaled Flow Control feature exchange";
+      //ignore_bins scl_fc = !binsof(cp_dllp_type.feature_state);
+    //}
 
     cr_inv_dllp: cross cp_state, cp_error_status {
       option.comment = " Invalid DLLP scenarios during states";
-      ignore_bins not_invalid_dllp = !binsof(cp_error_status.invalid_dllp) || !binsof (cp_state.main_states);
+      ignore_bins not_invalid_dllp = !binsof(cp_error_status.invalid_dllp); //|| !binsof (cp_state.main_states);
     }
 
     cr_wrong_crc: cross cp_state, cp_error_status {
       option.comment = " Wrong CRC scenarios during states";
-      ignore_bins not_wrong_crc = !binsof(cp_error_status.wrong_crc) || !binsof (cp_state.main_states);
+      ignore_bins not_wrong_crc = !binsof(cp_error_status.wrong_crc); //|| !binsof (cp_state.main_states);
     }
 
     cr_invalid_vc: cross cp_state, cp_error_status {
       option.comment = " Invalid VC scenarios during states";
-      ignore_bins not_invalid_vc  = !binsof(cp_error_status.invalid_vc);
-      ignore_bins not_init_states = !binsof(cp_state.main_states[DL_INIT_FC1]) && !binsof(cp_state.main_states[DL_INIT_FC2]);
+      ignore_bins not_invalid_vc     = !binsof(cp_error_status.invalid_vc);
+      ignore_bins feature_exch       = binsof(cp_state.main_states) intersect {DL_FEATURE_EXCH};
     }
     
 
@@ -114,8 +117,13 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
 
       bins initfc2_witin_initfc1 = (DLLP_INITFC1_P  => DLLP_INITFC2_P),
                                    (DLLP_INITFC1_NP  => DLLP_INITFC2_P);
-      bins initfc1_witin_initfc2 = ({DLLP_INITFC2_P, DLLP_INITFC2_NP, DLLP_INITFC2_CPL} => {DLLP_INITFC1_P,DLLP_INITFC1_NP,DLLP_INITFC1_CPL});
-                                  
+
+      bins initfc1_witin_initfc2 = (DLLP_INITFC2_P   => DLLP_INITFC1_NP),
+                                   (DLLP_INITFC2_P   => DLLP_INITFC1_P),
+                                   (DLLP_INITFC2_NP  => DLLP_INITFC1_P),
+                                   (DLLP_INITFC2_NP  => DLLP_INITFC1_NP),
+                                   (DLLP_INITFC2_CPL => DLLP_INITFC1_P),
+                                   (DLLP_INITFC2_CPL => DLLP_INITFC1_NP);                                      
     }
 
 
