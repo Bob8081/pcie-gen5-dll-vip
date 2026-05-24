@@ -4,6 +4,10 @@ class pcie_dll_if_seq extends uvm_sequence #(pcie_dll_if_seq_item);
 
     `uvm_object_utils(pcie_dll_if_seq)
 
+    function new (string name = "pcie_dll_if_seq");
+        super.new(name); 
+    endfunction
+
     task body();
         seq_item = pcie_dll_if_seq_item::type_id::create("seq_item");
         
