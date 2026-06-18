@@ -201,4 +201,27 @@ class pcie_dll_common_checks extends uvm_object;
     return valid_order;
   endfunction
 
+
+  /**
+   * check_feature_reserved_zero
+   * @brief Verify that bits [22:1] of the received Feature Supported field are
+   *        all zero. Only bit 0 (Scaled Flow Control) is a defined feature bit;
+   *        all other bits are reserved and must be transmitted as zero by the
+   *        partner (PCIe Base Spec Rev 5.0).
+   * @param feature_support The 23-bit feature_support field from the received
+   *        DLLP_FEATURE_REQ, as decoded by pcie_dll_dllp_seq_item::unpack().
+   * @return 1 if bits [22:1] are all zero (check passes), 0 otherwise (ERROR)
+   * @severity ERROR - Reserved bits must be zero; a non-zero value indicates
+   *           a malformed or non-compliant Feature DLLP from the partner.
+   */
+  function bit check_feature_reserved_zero(
+    bit [22:0] feature_support
+  );
+    // Mask out bit 0; the remaining bits [22:1] must all be zero.
+    if (feature_support[22:1] != 22'b0) begin
+      return 0;
+    end
+    return 1;
+  endfunction
+
 endclass : pcie_dll_common_checks

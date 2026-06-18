@@ -76,6 +76,22 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
       return;
     end
 
+    // Check: Reserved Fields Zero 
+    // Bits [22:1] of the Feature Supported field must be zero.
+    if (dllp_item.dllp_type == DLLP_FEATURE_REQ) begin
+      if (!checks.check_feature_reserved_zero(dllp_item.feature_support)) begin
+        fatal_msg = $sformatf(
+          "SPEC VIOLATION: Received DLLP_FEATURE_REQ with non-zero reserved bits. feature_support = 23'h%06h — bits [22:1] must be zero (only bit 0 = Scaled FC is valid).",
+          dllp_item.feature_support);
+        `uvm_error("SCOREBOARD", fatal_msg)
+      end else begin
+        `uvm_info("SCOREBOARD",
+          $sformatf("PASS: DLLP_FEATURE_REQ reserved bits [22:1] are zero. feature_support = 23'h%06h.",
+            dllp_item.feature_support), UVM_LOW)
+      end
+    end
+
+    // Check InitFC1 Order
     if (rx_initfc1_order_step < 3 &&
         (dllp_item.dllp_type == DLLP_INITFC1_P ||
           dllp_item.dllp_type == DLLP_INITFC1_NP ||
@@ -95,6 +111,7 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
       end
     end
 
+    // Check InitFC2 Order
     if (rx_initfc2_order_step < 3 &&
         (dllp_item.dllp_type == DLLP_INITFC2_P ||
           dllp_item.dllp_type == DLLP_INITFC2_NP ||

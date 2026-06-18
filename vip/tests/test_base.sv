@@ -28,8 +28,8 @@ class pcie_dll_test_base extends uvm_test;
 
     super.build_phase(phase);
 
-     
-     
+
+
     // Create two separate configs to allow asymmetric link properties (e.g. credits)
     cfg_rc = pcie_dll_env_cfg::type_id::create("cfg_rc");
     cfg_ep = pcie_dll_env_cfg::type_id::create("cfg_ep");
@@ -37,7 +37,7 @@ class pcie_dll_test_base extends uvm_test;
     cfg_rc.set_defaults();
     cfg_ep.set_defaults();
 
-  
+
 
     // Read testbench-level parameters from config_db and apply to both.
     if (uvm_config_db#(int)::get(this, "", "tb_nbytes", tb_nbytes)) begin
@@ -62,9 +62,9 @@ class pcie_dll_test_base extends uvm_test;
     cfg_ep.init_fc_hdr[FC_NP]  = 8'h40;  cfg_ep.init_fc_data[FC_NP]  = 12'h200;
     cfg_ep.init_fc_hdr[FC_CPL] = 8'h40;  cfg_ep.init_fc_data[FC_CPL] = 12'h200;
 
-    //for feature exchange test 
-    // cfg_rc.scaled_fc_supported = 1'b1;
-    // cfg_ep.scaled_fc_supported = 1'b1;
+    //for feature exchange test
+    cfg_rc.scaled_fc_supported = 1'b1;
+    cfg_ep.scaled_fc_supported = 1'b1;
 
     if (!cfg_rc.validate(validation_error_msg)) `uvm_fatal("CFG_RC_INV", validation_error_msg)
     if (!cfg_ep.validate(validation_error_msg)) `uvm_fatal("CFG_EP_INV", validation_error_msg)
@@ -73,13 +73,13 @@ class pcie_dll_test_base extends uvm_test;
     pcie_dll_env_cfg::set_cfg(this, "env_rc*", cfg_rc);
     pcie_dll_env_cfg::set_cfg(this, "env_ep*", cfg_ep);
     uvm_config_db#(pcie_dll_link_cfg)::set(this, "*", "lnk_cfg", lnk_cfg);
-    
+
     // Set role per-instance
     uvm_config_db#(pcie_dll_role_e)::set(this, "env_rc*", "role", ROLE_RC);
     uvm_config_db#(pcie_dll_role_e)::set(this, "env_ep*", "role", ROLE_EP);
 
     //events
-    uvm_config_db#(uvm_event)::set(this, "env_rc*", "event", target_reached_rc); 
+    uvm_config_db#(uvm_event)::set(this, "env_rc*", "event", target_reached_rc);
     uvm_config_db#(uvm_event)::set(this, "env_ep*", "event", target_reached_ep);
 
     env_rc = pcie_dll_env::type_id::create("env_rc", this);
@@ -89,18 +89,18 @@ class pcie_dll_test_base extends uvm_test;
     `uvm_info("CFG", $sformatf("Applied RC cfg: %s", cfg_rc.summary()), UVM_LOW)
     `uvm_info("CFG", $sformatf("Applied EP cfg: %s", cfg_ep.summary()), UVM_LOW)
 
-   
+
   endfunction
-  
+
   task run_phase(uvm_phase phase);
     super.run_phase(phase);
-    
+
 
     phase.raise_objection(this, "Waiting for Link Up");
-    
-    
+
+
     `uvm_info("TEST", "Waiting for State Manager to reach ACTIVE...", UVM_LOW)
-    
+
     repeat (2)
     begin
       fork
@@ -108,8 +108,8 @@ class pcie_dll_test_base extends uvm_test;
           target_reached_rc.wait_trigger();
           `uvm_info("Target_reached","the RC reached active state!!!!!! ",UVM_LOW)
         end
-        begin 
-          target_reached_ep.wait_trigger(); 
+        begin
+          target_reached_ep.wait_trigger();
           `uvm_info("Target_reached","the EP reached active state!!!!!!",UVM_LOW)
         end
       join
@@ -119,8 +119,8 @@ class pcie_dll_test_base extends uvm_test;
 
     end
     // #100ns;
-    
-    
+
+
     phase.drop_objection(this, "Link is Up. Test Complete.");
 
   endtask
