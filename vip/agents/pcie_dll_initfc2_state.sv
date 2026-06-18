@@ -17,6 +17,7 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
 
     task start_state(pcie_dll_state_mgr manager);
         `uvm_info("INITFC2_STATE", "Entered DL_INIT_FC2 state", UVM_LOW)
+        manager.my_cfg.fi2_set = 0;
        
 
         finished=new("finished");
@@ -48,13 +49,14 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
 
                 if (dllp_item_rx.dllp_type == DLLP_INITFC2_P)
                 begin
+                    manager.my_cfg.fi2_set = 1;
 
                     if(manager.my_cfg.counter_fc2 == 0) 
                     begin
                     
-                        if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_P].hdr_limit))
+                        if (!(dllp_item_rx.hdr_FC == manager.partner_cfg.partner_credits[FC_P].hdr_limit))
                         begin
-                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_P].hdr_limit))     
+                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.partner_cfg.partner_credits[FC_P].hdr_limit))     
                         end
 
                         manager.my_cfg.counter_fc2++;
@@ -68,12 +70,13 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
 
                 else if (dllp_item_rx.dllp_type == DLLP_INITFC2_NP)
                 begin
+                    manager.my_cfg.fi2_set = 1;
                     if (manager.my_cfg.counter_fc2 == 1)
                     begin
                       
-                        if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_NP].hdr_limit))
+                        if (!(dllp_item_rx.hdr_FC == manager.partner_cfg.partner_credits[FC_NP].hdr_limit))
                         begin
-                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_NP].hdr_limit))     
+                            `uvm_error("CREDITS_ERR_INITFC2",$sforamtf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.partner_cfg.partner_credits[FC_NP].hdr_limit))     
                         end
                        
                         manager.my_cfg.counter_fc2++;
@@ -88,13 +91,14 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
 
                 else if (dllp_item_rx.dllp_type == DLLP_INITFC2_CPL)
                 begin
+                    manager.my_cfg.fi2_set = 1;
                     
                     if(manager.my_cfg.counter_fc2 == 2) 
                     begin
                         
-                        if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_CPL].hdr_limit))
+                        if (!(dllp_item_rx.hdr_FC == manager.partner_cfg.partner_credits[FC_CPL].hdr_limit))
                         begin
-                            `uvm_error("CREDITS_ERR_INITFC2",$sformatf("recieved wrong CPL HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_CPL].hdr_limit))     
+                            `uvm_error("CREDITS_ERR_INITFC2",$sformatf("recieved wrong CPL HDR CREDITS, real value = %d",manager.partner_cfg.partner_credits[FC_CPL].hdr_limit))     
                         end
                         
                         manager.my_cfg.counter_fc2++;
@@ -120,6 +124,7 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
         end//end of thread 2
         begin //thread 3 : upon tlp recieving move to active state directly and skip initfc2 protocol
             manager.tlp_fifo.get(tlp_item_rx);
+            manager.my_cfg.fi2_set = 1;
             next_state = DL_ACTIVE;
             `uvm_info("INITFC2_STATE", "Received TLP during INITFC2, transitioning to ACTIVE state.", UVM_LOW)
             finished.trigger();

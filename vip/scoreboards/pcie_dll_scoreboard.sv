@@ -1,19 +1,34 @@
-// Declare a specific imp suffix for the state port
+// Declare specific imp suffixes for scoreboard analysis ports
+`uvm_analysis_imp_decl(_tx)
+`uvm_analysis_imp_decl(_rx)
 `uvm_analysis_imp_decl(_state)
 
 class pcie_dll_scoreboard extends uvm_scoreboard;
-  
+
   pcie_dll_role_e role;
 
   // Track states
   pcie_dlcmsm_state_e prev_state;
   pcie_dlcmsm_state_e curr_state;
+  bit state_seeded;
 
-  // Analysis implementation for state transitions
-  uvm_analysis_imp_state #(pcie_dlcmsm_state_e, pcie_dll_scoreboard) state_export;
+  // Track RX DLLP ordering
+  int unsigned rx_initfc1_order_step; // P->0, NP->1, Cpl->2
+  int unsigned rx_initfc2_order_step; // P->0, NP->1, Cpl->2
+
+  // Analysis implementation ports
+  uvm_analysis_imp_tx    #(pcie_dll_base_seq_item, pcie_dll_scoreboard) tx_export;
+  uvm_analysis_imp_rx    #(pcie_dll_base_seq_item, pcie_dll_scoreboard) rx_export;
+  uvm_analysis_imp_state #(pcie_dlcmsm_state_e,    pcie_dll_scoreboard) state_export;
 
   // Handle to common checks
   pcie_dll_common_checks checks;
+
+  // Configuration handles
+  pcie_dll_env_cfg cfg;
+  pcie_dll_link_cfg lnk_cfg;
+  pcie_dll_partner_cfg partner_cfg;
+  pcie_dll_my_cfg my_cfg;
 
   `uvm_component_utils(pcie_dll_scoreboard)
 
@@ -21,24 +36,138 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     super.new(name, parent);
     curr_state = DL_INACTIVE;
     prev_state = DL_INACTIVE;
+    state_seeded = 0;
+    rx_initfc1_order_step = 0;
+    rx_initfc2_order_step = 0;
+    tx_export    = new("tx_export",    this);
+    rx_export    = new("rx_export",    this);
     state_export = new("state_export", this);
   endfunction
 
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
     checks = pcie_dll_common_checks::type_id::create("checks");
+    if(!uvm_config_db#(pcie_dll_link_cfg)::get(this, "", "lnk_cfg", lnk_cfg)) begin
+      `uvm_fatal("NOCFG", $sformatf("no link cfg found in the config_db for %s scoreboard", role.name()))
+    end
+    if(!uvm_config_db#(pcie_dll_my_cfg)::get(this, "", "my_cfg", my_cfg)) begin
+      `uvm_fatal("NOCFG", $sformatf("no my_cfg found in the config_db for %s scoreboard", role.name()))
+    end
+    if(!uvm_config_db#(pcie_dll_partner_cfg)::get(this, "", "partner_cfg", partner_cfg)) begin
+      `uvm_fatal("NOCFG", $sformatf("no partner_cfg found in the config_db for %s scoreboard", role.name()))
+    end
+    if(!uvm_config_db#(pcie_dll_env_cfg)::get(this, "", "cfg", cfg)) begin
+      `uvm_fatal("NOCFG", $sformatf("no env_cfg found in the config_db for %s scoreboard", role.name()))
+    end
   endfunction
-  
+
+  // Called when the Tx monitor publishes a driven DLLP
+  virtual function void write_tx(pcie_dll_base_seq_item item);
+    // TODO: cross-validate Tx-driven DLLPs against expected protocol state
+  endfunction
+
+  // Called when the Rx monitor publishes a received DLLP
+  virtual function void write_rx(pcie_dll_base_seq_item item);
+    pcie_dll_dllp_seq_item dllp_item;
+    int unsigned next_order_step;
+    string fatal_msg;
+
+    if (!$cast(dllp_item, item)) begin
+      return;
+    end
+
+    if (rx_initfc1_order_step < 3 &&
+        (dllp_item.dllp_type == DLLP_INITFC1_P ||
+          dllp_item.dllp_type == DLLP_INITFC1_NP ||
+          dllp_item.dllp_type == DLLP_INITFC1_CPL)) begin
+
+      if (!checks.check_fc_strict_order(dllp_item.dllp_type,
+            rx_initfc1_order_step,
+            DLLP_INITFC1_P,
+            DLLP_INITFC1_NP,
+            DLLP_INITFC1_CPL,
+            next_order_step)) begin
+        fatal_msg = $sformatf("ERROR: InitFC1 DLLPs out of order. Expected step %0d, observed %s.",
+          rx_initfc1_order_step, dllp_item.dllp_type.name());
+        `uvm_error("SCOREBOARD", fatal_msg)
+      end else begin
+        rx_initfc1_order_step = next_order_step;
+      end
+    end
+
+    if (rx_initfc2_order_step < 3 &&
+        (dllp_item.dllp_type == DLLP_INITFC2_P ||
+          dllp_item.dllp_type == DLLP_INITFC2_NP ||
+          dllp_item.dllp_type == DLLP_INITFC2_CPL)) begin
+
+      if (!checks.check_fc_strict_order(dllp_item.dllp_type,
+            rx_initfc2_order_step,
+            DLLP_INITFC2_P,
+            DLLP_INITFC2_NP,
+            DLLP_INITFC2_CPL,
+            next_order_step)) begin
+        fatal_msg = $sformatf("ERROR: InitFC2 DLLPs out of order. Expected step %0d, observed %s.",
+          rx_initfc2_order_step, dllp_item.dllp_type.name());
+        `uvm_error("SCOREBOARD", fatal_msg)
+      end else begin
+        rx_initfc2_order_step = next_order_step;
+      end
+    end
+  endfunction
+
   // This function is called automatically when the state_mgr writes to the port
   virtual function void write_state(pcie_dlcmsm_state_e new_state);
+    string fatal_msg;
+
+    if (!state_seeded) begin
+      prev_state = new_state;
+      curr_state = new_state;
+      state_seeded = 1;
+      if (new_state == DL_INACTIVE) begin
+        rx_initfc1_order_step = 0;
+        rx_initfc2_order_step = 0;
+      end
+      return;
+    end
+
     // 1. Shift the history
     prev_state = curr_state;
     curr_state = new_state;
 
+    if (curr_state == DL_INACTIVE) begin
+      rx_initfc1_order_step = 0;
+      rx_initfc2_order_step = 0;
+    end
+
     // 2. Perform state transition checks
-    // TODO:  Need to pass pl_lnk_up and initfc flags to checks 
-    
-    // checks.check_init_trigger(prev_state, curr_state, pl_lnk_up);
+    if (!checks.check_init_trigger(prev_state, curr_state, lnk_cfg.pl_up)) begin
+      fatal_msg = $sformatf("FATAL: State transition DL_INACTIVE -> %s occurred while pl_lnk_up=%0b. Link must be UP before entering DL_Init state.",
+        curr_state.name(), lnk_cfg.pl_up);
+      `uvm_fatal("SCOREBOARD",
+        fatal_msg)
+    end else if (!checks.check_state_stability(prev_state, curr_state, lnk_cfg.pl_up)) begin
+      fatal_msg = $sformatf("FATAL: State regression %s -> %s is not allowed while pl_lnk_up=%0b. Once in DL_Active, state must remain stable.",
+        prev_state.name(), curr_state.name(), lnk_cfg.pl_up);
+      `uvm_fatal("SCOREBOARD",
+        fatal_msg)
+    end else if (!checks.check_active_gate_fi1(prev_state, curr_state, my_cfg.fi1_set)) begin
+      fatal_msg = "FATAL: DL_INIT_FC1 -> DL_INIT_FC2 occurred before FI1 was set. FI1 must be asserted only after all InitFC1 credits are recorded for P, NP, and Cpl.";
+      `uvm_fatal("SCOREBOARD",
+        fatal_msg)
+    end else if (!checks.check_active_gate_fi2(prev_state, curr_state, my_cfg.fi2_set)) begin
+      fatal_msg = "FATAL: DL_Init -> DL_Active occurred before FI2 was set. FI2 must be asserted by an InitFC2 DLLP or TLP on VC0 first.";
+      `uvm_fatal("SCOREBOARD",
+        fatal_msg)
+    end else if (!checks.check_valid_transition(prev_state, curr_state)) begin
+      fatal_msg = $sformatf("FATAL: Illegal DLCMSM transition %s -> %s. Allowed paths are: DL_Inactive -> DL_Feature -> DL_Init -> DL_Active or DL_Inactive -> DL_Init -> DL_Active.",
+        prev_state.name(), curr_state.name());
+      `uvm_fatal("SCOREBOARD",
+        fatal_msg)
+    end else begin
+      `uvm_info("SCOREBOARD",
+        $sformatf("PASS: Valid state transition %s -> %s with pl_lnk_up=%0b.",
+          prev_state.name(), curr_state.name(), lnk_cfg.pl_up), UVM_LOW)
+    end
   endfunction
-  
+
 endclass : pcie_dll_scoreboard

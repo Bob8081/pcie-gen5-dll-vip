@@ -38,8 +38,7 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
 
                 if (manager.my_cfg.counter_fc1 == 3) 
                 begin
-                    //TODO :add event for setting the initfc1 flag and make it break the loop not the manager.my_cfg.counter_fc1 check (done)
-                    //TODO : add check for initfc2 recieve and make it trigger the flag only  (done)
+                    manager.my_cfg.fi1_set = 1;
                     break;
                 end
 
@@ -62,14 +61,14 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                         if (rx_p)
                         begin 
                             //comparsion with the recieved not_scaled values with the actual not_scaled stored values
-                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_P].hdr_limit)) //TODO : add checks for the data_limit and hdr_scale and data_scale fields too (maybe use a temp. fc_struct to loop-check it)
+                            if (!(dllp_item_rx.hdr_FC == manager.partner_cfg.partner_credits[FC_P].hdr_limit)) //TODO : add checks for the data_limit and hdr_scale and data_scale fields too (maybe use a temp. fc_struct to loop-check it)
                             begin
-                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_P].hdr_limit))     
+                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.partner_cfg.partner_credits[FC_P].hdr_limit))     
                             end
                         end
                         else 
                         begin   
-                            manager.dyn_cfg.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC,
+                            manager.partner_cfg.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC,
                                                                     dllp_item_rx.hdr_scale, dllp_item_rx.data_scale);
                             rx_p = 1;
                         end 
@@ -90,14 +89,14 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                     begin
                         if (rx_np)
                         begin
-                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_NP].hdr_limit))
+                            if (!(dllp_item_rx.hdr_FC == manager.partner_cfg.partner_credits[FC_NP].hdr_limit))
                             begin
-                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_NP].hdr_limit))     
+                                `uvm_error("CREDITS_ERR",$sforamtf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.partner_cfg.partner_credits[FC_NP].hdr_limit))     
                             end
                         end
                         else 
                         begin
-                           manager.dyn_cfg.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC,
+                           manager.partner_cfg.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC,
                                                                     dllp_item_rx.hdr_scale, dllp_item_rx.data_scale);
                             rx_np = 1;
                         end
@@ -118,14 +117,14 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                     begin
                         if (rx_cpl)
                         begin
-                            if (!(dllp_item_rx.hdr_FC == manager.dyn_cfg.partner_credits[FC_CPL].hdr_limit))
+                            if (!(dllp_item_rx.hdr_FC == manager.partner_cfg.partner_credits[FC_CPL].hdr_limit))
                             begin
-                                `uvm_error("CREDITS_ERR",$sformatf("recieved wrong CPL HDR CREDITS, real value = %d",manager.dyn_cfg.partner_credits[FC_CPL].hdr_limit))     
+                                `uvm_error("CREDITS_ERR",$sformatf("recieved wrong CPL HDR CREDITS, real value = %d",manager.partner_cfg.partner_credits[FC_CPL].hdr_limit))     
                             end
                         end
                         else 
                         begin
-                            manager.dyn_cfg.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC,
+                            manager.partner_cfg.set_credits_value(dllp_item_rx.dllp_type,dllp_item_rx.hdr_FC,dllp_item_rx.data_FC,
                                                                     dllp_item_rx.hdr_scale, dllp_item_rx.data_scale);
                             rx_cpl = 1;
                         end 

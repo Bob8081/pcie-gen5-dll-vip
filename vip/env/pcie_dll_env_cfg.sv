@@ -15,17 +15,13 @@ class pcie_dll_env_cfg extends uvm_object;
   // Data Link Feature Settings
   rand bit               scaled_fc_supported;
 
-  // Initial Flow Control Credits
-  rand bit [1:0]         init_fc_hdr_scale[pcie_fc_type_e];
-  rand bit [7:0]         init_fc_hdr[pcie_fc_type_e];
-  rand bit [1:0]         init_fc_data_scale[pcie_fc_type_e];
-  rand bit [11:0]        init_fc_data[pcie_fc_type_e];
+  // Initial Flow Control Credits (Associative arrays indexed by pcie_fc_type_e)
+  rand bit [1:0]         init_fc_hdr_scale[pcie_fc_type_e]; // 2-bit scale factor for header credits (0=1x, 1=2x, 2=4x, 3=8x)
+  rand bit [7:0]         init_fc_hdr[pcie_fc_type_e]; // Initial header credits
+  rand bit [1:0]         init_fc_data_scale[pcie_fc_type_e]; // 2-bit scale factor for data credits
+  rand bit [11:0]        init_fc_data[pcie_fc_type_e]; // Initial data credits (scaled by init_fc_data_scale)
 
   // Timing and behavior knobs
-  rand int unsigned      ack_max_latency;
-  rand int unsigned      replay_timer_cycles;
-  rand int unsigned      in_flight_replay_depth;
-  rand int unsigned      num_tlp_per_sequence;
   rand int unsigned      dllp_latency;
 
 
@@ -37,10 +33,6 @@ class pcie_dll_env_cfg extends uvm_object;
   // Common constraints for randomized cfg objects.
   constraint legal_ranges_c {
     nbytes inside {4, 8, 16, 32, 64};
-    ack_max_latency inside {[1:1024]};
-    replay_timer_cycles inside {[4:65535]};
-    in_flight_replay_depth inside {[1:4096]};
-    num_tlp_per_sequence inside {[1:1000000]};
     dllp_latency inside {[0:1024]};
   }
 
@@ -100,10 +92,6 @@ class pcie_dll_env_cfg extends uvm_object;
     init_fc_data_scale[FC_CPL] = 2'b00;
     init_fc_data[FC_CPL]       = 12'h100;
 
-    ack_max_latency       = 16;
-    replay_timer_cycles   = 256;
-    in_flight_replay_depth = 64;
-    num_tlp_per_sequence  = 32;
     dllp_latency          = 4;
 
     enable_coverage       = 1'b1;
@@ -116,26 +104,6 @@ class pcie_dll_env_cfg extends uvm_object;
 
     if (!(nbytes inside {4, 8, 16, 32, 64})) begin
       validation_error_msg = "nbytes must be one of {4,8,16,32,64}";
-      return 0;
-    end
-
-    if (!(ack_max_latency inside {[1:1024]})) begin
-      validation_error_msg = "ack_max_latency must be in [1..1024]";
-      return 0;
-    end
-
-    if (!(replay_timer_cycles inside {[4:65535]})) begin
-      validation_error_msg = "replay_timer_cycles must be in [4..65535]";
-      return 0;
-    end
-
-    if (!(in_flight_replay_depth inside {[1:4096]})) begin
-      validation_error_msg = "in_flight_replay_depth must be in [1..4096]";
-      return 0;
-    end
-
-    if (!(num_tlp_per_sequence inside {[1:1000000]})) begin
-      validation_error_msg = "num_tlp_per_sequence must be in [1..1000000]";
       return 0;
     end
 
@@ -183,11 +151,10 @@ class pcie_dll_env_cfg extends uvm_object;
 
   function string summary();
     return $sformatf(
-      "link=%0d speed=Gen%0d nbytes=%0d replay=%0b fc=%0b lcrc=%0b sfc=%0b ack_max=%0d replay_tmr=%0d depth=%0d",
+      "link=%0d speed=Gen%0d nbytes=%0d replay=%0b fc=%0b lcrc=%0b sfc=%0b",
       link_width, speed_mode, nbytes,
       enable_replay, enable_flow_control, enable_lcrc_checking,
-      scaled_fc_supported,
-      ack_max_latency, replay_timer_cycles, in_flight_replay_depth
+      scaled_fc_supported
     );
   endfunction
 

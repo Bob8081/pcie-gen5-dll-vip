@@ -1,7 +1,9 @@
 CLAUDE.md
 GEMINI.md
-.github/instructions/pcie-dll-vip-systemverilog.instructions.md
+.github/
 .dvt/
+.gemini/
+.claude/    
 docs/UVM_TESTBENCH_ARCHITECTURE_PLAN.md
 dvt_build.log
 docs_local/
