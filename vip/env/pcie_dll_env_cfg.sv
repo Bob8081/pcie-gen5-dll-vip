@@ -22,7 +22,10 @@ class pcie_dll_env_cfg extends uvm_object;
   rand bit [11:0]        init_fc_data[pcie_fc_type_e]; // Initial data credits (scaled by init_fc_data_scale)
 
   // Timing and behavior knobs
-  rand int unsigned      dllp_latency;
+
+  // Number of lclk cycles representing the 34 µs Init TX / Feature RX interval
+  // (PCIe Base Spec Rev 5.0). At 1 GHz, 34 µs = 34_000 cycles.
+  int unsigned           init_tx_interval_cycles;
 
 
   // Reporting and coverage controls
@@ -33,7 +36,6 @@ class pcie_dll_env_cfg extends uvm_object;
   // Common constraints for randomized cfg objects.
   constraint legal_ranges_c {
     nbytes inside {4, 8, 16, 32, 64};
-    dllp_latency inside {[0:1024]};
   }
 
   constraint link_width_geometry_c {
@@ -53,6 +55,7 @@ class pcie_dll_env_cfg extends uvm_object;
     `uvm_field_int(enable_pwr_mgmt, UVM_DEFAULT)
     `uvm_field_int(enable_lcrc_checking, UVM_DEFAULT)
     `uvm_field_int(scaled_fc_supported, UVM_DEFAULT)
+    `uvm_field_int(init_tx_interval_cycles, UVM_DEFAULT)
     // `uvm_field_aa_int_enumkey(init_fc_hdr_scale, pcie_fc_type_e, UVM_DEFAULT)
     // `uvm_field_aa_int_enumkey(init_fc_hdr, pcie_fc_type_e, UVM_DEFAULT)
     // `uvm_field_aa_int_enumkey(init_fc_data_scale, pcie_fc_type_e, UVM_DEFAULT)
@@ -92,7 +95,7 @@ class pcie_dll_env_cfg extends uvm_object;
     init_fc_data_scale[FC_CPL] = 2'b00;
     init_fc_data[FC_CPL]       = 12'h100;
 
-    dllp_latency          = 4;
+    init_tx_interval_cycles = 34_000; // 34 µs @ 1 GHz lclk
 
     enable_coverage       = 1'b1;
     verbose_scoreboard    = 1'b0;
@@ -107,10 +110,6 @@ class pcie_dll_env_cfg extends uvm_object;
       return 0;
     end
 
-    if (!(dllp_latency inside {[0:1024]})) begin
-      validation_error_msg = "dllp_latency must be in [0..1024]";
-      return 0;
-    end
 
     if (link_width == PCIE_LINK_X16 && nbytes != 64) begin
       validation_error_msg = "link_width PCIE_LINK_X16 requires nbytes=64";
