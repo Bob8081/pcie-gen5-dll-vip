@@ -71,7 +71,7 @@ class pcie_dll_fc_watchdog extends uvm_component;
 
     `uvm_info("WDOG_BUILD",
       $sformatf("[%s] FC watchdog built. Interval = %0d cycles (%0d ns)",
-        role.name(), cfg.init_tx_interval_cycles, cfg.init_tx_interval_cycles),
+        role.name(), cfg.init_rx_interval_cycles, cfg.init_rx_interval_cycles),
       UVM_MEDIUM)
   endfunction
 
@@ -99,7 +99,7 @@ class pcie_dll_fc_watchdog extends uvm_component;
       wait (curr_state == DL_FEATURE_EXCH);
       `uvm_info("WDOG_FEAT",
         $sformatf("[%s] Watchdog ARMED for DL_FEATURE_EXCH. Interval = %0d cycles",
-          role.name(), cfg.init_tx_interval_cycles),
+          role.name(), cfg.init_rx_interval_cycles),
         UVM_MEDIUM)
 
       // run timer loop while in DL_FEATURE_EXCH
@@ -107,13 +107,13 @@ class pcie_dll_fc_watchdog extends uvm_component;
         fork
           begin : feat_timer_thread
             // Count the full interval; fire ERROR if no feature DLLP arrived
-            repeat (cfg.init_tx_interval_cycles) @(posedge vif.lclk);
+            repeat (cfg.init_rx_interval_cycles) @(posedge vif.lclk);
             if (curr_state == DL_FEATURE_EXCH) begin
               `uvm_error("WDOG_FEAT_TIMEOUT",
                 $sformatf(
                   "[%s] SPEC VIOLATION: DLLP_FEATURE_REQ not received within %0d cycles (%0d µs) while in DL_FEATURE_EXCH.",
-                  role.name(), cfg.init_tx_interval_cycles,
-                  cfg.init_tx_interval_cycles / 1000))
+                  role.name(), cfg.init_rx_interval_cycles,
+                  cfg.init_rx_interval_cycles / 1000))
             end
           end : feat_timer_thread
 
@@ -156,7 +156,7 @@ class pcie_dll_fc_watchdog extends uvm_component;
       wait (curr_state == DL_INIT_FC1);
       `uvm_info("WDOG_FC1",
         $sformatf("[%s] Watchdog ARMED for DL_INIT_FC1. Interval = %0d cycles",
-          role.name(), cfg.init_tx_interval_cycles),
+          role.name(), cfg.init_rx_interval_cycles),
         UVM_MEDIUM)
 
       wdog_active = 1;
@@ -166,13 +166,13 @@ class pcie_dll_fc_watchdog extends uvm_component;
         fork
           begin : timer_thread
             // Count up to the interval; if we reach it -> ERROR
-            repeat (cfg.init_tx_interval_cycles) @(posedge vif.lclk);
+            repeat (cfg.init_rx_interval_cycles) @(posedge vif.lclk);
             if (curr_state == DL_INIT_FC1) begin
               `uvm_error("WDOG_FC1_TIMEOUT",
                 $sformatf(
                   "[%s] SPEC VIOLATION: InitFC1 set (P+NP+Cpl) not started within %0d cycles (%0d µs). ",
-                  role.name(), cfg.init_tx_interval_cycles,
-                  cfg.init_tx_interval_cycles / 1000))
+                  role.name(), cfg.init_rx_interval_cycles,
+                  cfg.init_rx_interval_cycles / 1000))
             end
           end : timer_thread
 
@@ -217,20 +217,20 @@ class pcie_dll_fc_watchdog extends uvm_component;
       wait (curr_state == DL_INIT_FC2);
       `uvm_info("WDOG_FC2",
         $sformatf("[%s] Watchdog ARMED for DL_INIT_FC2. Interval = %0d cycles",
-          role.name(), cfg.init_tx_interval_cycles),
+          role.name(), cfg.init_rx_interval_cycles),
         UVM_MEDIUM)
 
       // run timer loop while in DL_INIT_FC2
       while (curr_state == DL_INIT_FC2) begin
         fork
           begin : timer_thread
-            repeat (cfg.init_tx_interval_cycles) @(posedge vif.lclk);
+            repeat (cfg.init_rx_interval_cycles) @(posedge vif.lclk);
             if (curr_state == DL_INIT_FC2) begin
               `uvm_error("WDOG_FC2_TIMEOUT",
                 $sformatf(
                   "[%s] SPEC VIOLATION: InitFC2 set (P+NP+Cpl) not started within %0d cycles (%0d µs). ",
-                  role.name(), cfg.init_tx_interval_cycles,
-                  cfg.init_tx_interval_cycles / 1000))
+                  role.name(), cfg.init_rx_interval_cycles,
+                  cfg.init_rx_interval_cycles / 1000))
             end
           end : timer_thread
 
