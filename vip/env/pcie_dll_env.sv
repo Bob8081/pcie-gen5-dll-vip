@@ -47,6 +47,8 @@ class pcie_dll_env extends uvm_env;
     // Watchdog connections
     agent.state_ap.connect(fc_watchdog.state_export);
     agent.rx_mon.mon_rx_ap.connect(fc_watchdog.rx_export);
+    agent.state_mgr.st_mgr_counter_ap.connect(scoreboard.counter_export);
+
   endfunction
 
 endclass : pcie_dll_env

@@ -5,6 +5,7 @@ class pcie_dll_state_mgr extends uvm_component;
     pcie_dll_role_e role;
 
     uvm_analysis_imp #(pcie_dll_base_seq_item, pcie_dll_state_mgr) dllp_export; //connected to the monitor on the agent level
+    uvm_analysis_port #(pcie_state_mgr_counters_s) st_mgr_counter_ap;
 
     pcie_dll_seqr dllp_sequencer; //to be a handle to the sequencer of the agent to be able to send from the state manager if needed, and to be able to pass it to the states if needed
 
@@ -34,6 +35,7 @@ class pcie_dll_state_mgr extends uvm_component;
         dllp_export = new("dllp_export", this);
         target_reached = new("target_reached");
         state_ap = new("state_ap", this);
+        st_mgr_counter_ap = new("st_mgr_counter_ap", this);
     endfunction
 
     function void write (pcie_dll_base_seq_item item);

@@ -115,6 +115,11 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
                     manager.my_cfg.counter_fc2 = 0;
                     `uvm_error("INITFC2_ERR",$sformatf("recieved WRONG STATE DLLP of type : %s in INITFC2_STATE",dllp_item_rx.dllp_type))
                 end
+
+                manager.counters.counter_fc2 = manager.my_cfg.counter_fc2;
+                manager.counters.counter_fc1 = 0;
+                manager.st_mgr_counter_ap.write(manager.counters);
+
             end // big else
             end //forever loop
 
