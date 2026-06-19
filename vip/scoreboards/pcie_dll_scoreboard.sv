@@ -2,24 +2,46 @@
 `uvm_analysis_imp_decl(_tx)
 `uvm_analysis_imp_decl(_rx)
 `uvm_analysis_imp_decl(_state)
+`uvm_analysis_imp_decl(_counter)
 
 class pcie_dll_scoreboard extends uvm_scoreboard;
 
   pcie_dll_role_e role;
 
-  // Track states
+  // Track states for note: "we don't need this because item alreadt has the updated state " 
   pcie_dlcmsm_state_e prev_state;
   pcie_dlcmsm_state_e curr_state;
   bit state_seeded;
+
+  // Track transmitted DLLP
+  pcie_dll_dllp_seq_item  tx_dllp_item;
+  pcie_dlcmsm_state_e     tx_prev_state;
+  pcie_dlcmsm_state_e     tx_curr_state;
+  pcie_dllp_type_e        tx_prev_dllp_type;
+  pcie_dllp_type_e        tx_curr_dllp_type;
+
+  // Track received DLLP
+  pcie_dll_dllp_seq_item  rx_dllp_item;
+  pcie_dlcmsm_state_e     rx_prev_state;
+  pcie_dlcmsm_state_e     rx_curr_state;
+  pcie_dllp_type_e        rx_prev_dllp_type;
+  pcie_dllp_type_e        rx_curr_dllp_type;
+
+  // Track state manager counters
+  pcie_state_mgr_counters_s prev_counters;
+  pcie_state_mgr_counters_s curr_counters;
+
 
   // Track RX DLLP ordering
   int unsigned rx_initfc1_order_step; // P->0, NP->1, Cpl->2
   int unsigned rx_initfc2_order_step; // P->0, NP->1, Cpl->2
 
   // Analysis implementation ports
-  uvm_analysis_imp_tx    #(pcie_dll_base_seq_item, pcie_dll_scoreboard) tx_export;
-  uvm_analysis_imp_rx    #(pcie_dll_base_seq_item, pcie_dll_scoreboard) rx_export;
-  uvm_analysis_imp_state #(pcie_dlcmsm_state_e,    pcie_dll_scoreboard) state_export;
+  uvm_analysis_imp_tx        #(pcie_dll_base_seq_item, pcie_dll_scoreboard) tx_export;
+  uvm_analysis_imp_rx        #(pcie_dll_base_seq_item, pcie_dll_scoreboard) rx_export;
+  uvm_analysis_imp_state     #(pcie_dlcmsm_state_e,    pcie_dll_scoreboard) state_export;
+  uvm_analysis_imp_counter #(pcie_state_mgr_counters_s, pcie_dll_scoreboard) counter_export; // counter item
+
 
   // Handle to common checks
   pcie_dll_common_checks checks;
@@ -36,12 +58,17 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     super.new(name, parent);
     curr_state = DL_INACTIVE;
     prev_state = DL_INACTIVE;
-    state_seeded = 0;
+    tx_prev_state = DL_INACTIVE;
+    tx_curr_state = DL_INACTIVE;
+    rx_prev_state = DL_INACTIVE;
+    rx_curr_state = DL_INACTIVE;
+    state_seeded  = 0;
     rx_initfc1_order_step = 0;
     rx_initfc2_order_step = 0;
-    tx_export    = new("tx_export",    this);
-    rx_export    = new("rx_export",    this);
-    state_export = new("state_export", this);
+    tx_export      = new("tx_export",    this);
+    rx_export      = new("rx_export",    this);
+    state_export   = new("state_export", this);
+    counter_export = new("counter_export", this);
   endfunction
 
   function void build_phase(uvm_phase phase);
@@ -64,6 +91,26 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
   // Called when the Tx monitor publishes a driven DLLP
   virtual function void write_tx(pcie_dll_base_seq_item item);
     // TODO: cross-validate Tx-driven DLLPs against expected protocol state
+    pcie_dll_dllp_seq_item dllp_item;
+
+    if (!$cast(dllp_item, item)) begin
+      return;
+    end
+    else if (rx_curr_state != DL_ACTIVE) begin  // TLP received while link is not active
+         `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
+    end
+
+    tx_dllp_item      = dllp_item;
+    tx_prev_state     = tx_curr_state;
+    tx_curr_state     = dllp_item.current_state;
+    tx_prev_dllp_type = tx_curr_dllp_type;
+    tx_curr_dllp_type = dllp_item.dllp_type;
+
+    checks.tx_updated = 1'b1; // Set the flag to indicate a new Tx item has been processed
+    // calling some common checks
+    checks.check_symmetric_active (tx_prev_state, tx_curr_state, 
+                                   rx_prev_state, rx_curr_state);
+
   endfunction
 
   // Called when the Rx monitor publishes a received DLLP
@@ -75,6 +122,15 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     if (!$cast(dllp_item, item)) begin
       return;
     end
+    else if (rx_curr_state != DL_ACTIVE) begin  // TLP received while link is not active
+         `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
+    end
+
+    rx_dllp_item      = dllp_item;
+    rx_prev_state     = rx_curr_state;
+    rx_curr_state     = dllp_item.current_state;
+    rx_prev_dllp_type = rx_curr_dllp_type;
+    rx_curr_dllp_type = dllp_item.dllp_type;
 
     // Check: Reserved Fields Zero 
     // Bits [22:1] of the Feature Supported field must be zero.
@@ -130,6 +186,39 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
         rx_initfc2_order_step = next_order_step;
       end
     end
+
+    checks.rx_updated = 1'b1; // Set the flag to indicate a new Rx item has been processed
+    // calling some common checks
+    checks.traffic_isolation_check (dllp_item);
+
+    checks.check_symmetric_active  (tx_prev_state, tx_curr_state, 
+                                    rx_prev_state, rx_curr_state);
+
+    checks.drop_packets            (rx_curr_dllp_type, rx_prev_dllp_type,
+                                    curr_counters    , prev_counters,
+                                    rx_curr_state    , rx_prev_state ,
+                                    rx_dllp_item );
+
+    checks.Credit_Capture          (dllp_item, partner_cfg);
+
+endfunction
+
+
+  // Called when the state manager publishes a new state
+  virtual function void write_counter (pcie_state_mgr_counters_s counters);
+        prev_counters.counter_fc1  = curr_counters.counter_fc1;
+        prev_counters.counter_fc2  = curr_counters.counter_fc2;
+        curr_counters.counter_fc2  = counters.counter_fc2;
+        curr_counters.counter_fc1  = counters.counter_fc1;
+
+        checks.counter_update = 1'b1; // Set the flag to indicate a new counter item has been processed
+        // calling some common checks
+        checks.drop_packets (rx_curr_dllp_type, rx_prev_dllp_type,
+                             curr_counters    , prev_counters,
+                             rx_curr_state    , rx_prev_state,
+                             rx_dllp_item );
+
+
   endfunction
 
   // This function is called automatically when the state_mgr writes to the port
