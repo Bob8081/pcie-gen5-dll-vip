@@ -5,11 +5,16 @@
 
 class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
 
-  // TODO: update constraints to meet 100% coverage 
+  // TODO: update constraints to meet 100% coverage
+  pcie_dll_env_cfg   cfg; 
 
   // ---- Control Signals ----
   // Drives the randomization of dllp_type based on the current Link state
   rand pcie_dlcmsm_state_e  current_state;  
+
+  // 
+  bit                      enable_errors; // Whether to inject errors in the generated DLLPs using callbacks in driver
+  bit                      corrupted_initfc; // Whether to inject errors in InitFC DLLPs (only applicable if enable_errors is set)
 
   // ---- Core DLLP Fields ----
   rand pcie_dllp_type_e     dllp_type;      // INITFC1_P, FEATURE_REQ
@@ -94,11 +99,47 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
     } 
   }
 
+  // Credit values must be as advertised in the config
+  constraint initfc1_credit{
+    if (dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC2_P}) {
+      hdr_scale  == cfg.init_fc_hdr_scale[FC_P];
+      hdr_FC     == cfg.init_fc_hdr[FC_P];
+      data_scale == cfg.init_fc_data_scale[FC_P];
+      data_FC    == cfg.init_fc_data[FC_P];
+    } 
+
+    else if (dllp_type inside {DLLP_INITFC1_NP, DLLP_INITFC2_NP}) {
+      hdr_scale  == cfg.init_fc_hdr_scale[FC_NP];
+      hdr_FC     == cfg.init_fc_hdr[FC_NP];
+      data_scale == cfg.init_fc_data_scale[FC_NP];
+      data_FC    == cfg.init_fc_data[FC_NP];
+    }
+
+    else if (dllp_type inside {DLLP_INITFC1_CPL, DLLP_INITFC2_CPL}) {
+      hdr_scale  == cfg.init_fc_hdr_scale[FC_CPL];
+      hdr_FC     == cfg.init_fc_hdr[FC_CPL];
+      data_scale == cfg.init_fc_data_scale[FC_CPL];
+      data_FC    == cfg.init_fc_data[FC_CPL];
+  } 
+}
+
   constraint scl_flow_control {
     feature_support inside {0, 1};
   }
 
   // ---- Methods ----
+  // pre_randomize 
+  function void pre_randomize();
+    // Get config from uvm_config_db using sequencer context
+    if (!uvm_config_db#(pcie_dll_env_cfg)::get(m_sequencer, "", "cfg", cfg)) begin
+      `uvm_fatal("SEQ", "Failed to get pcie_dll_env_cfg from config_db")
+    end
+
+    enable_errors    = cfg.enable_errors;
+    corrupted_initfc = cfg.corrupted_initfc;
+
+    super.pre_randomize();
+  endfunction
 
   // post_randomize() — Assembles payload, calculates CRC, and concatenates final 48-bit DLLP
   function void post_randomize();
@@ -117,11 +158,14 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
     // Assemble the 48-bit wire word
     dllp = pack();
 
+
+    `uvm_info("SEQ_ITEM", $sformatf("corrupted_initfc= %0b and enable_errors= %0b", corrupted_initfc, enable_errors), UVM_LOW);
+
   endfunction
 
   // Returns the 4 pre-CRC bytes in wire order (byte 0 at [7:0]).
   function bit [31:0] pack_data();
-    return {dllp_payload[7:0], dllp_payload[15:8], dllp_payload[23:16], dllp_type[7:0]};
+    return {dllp_payload[23:16], dllp_payload[15:8], dllp_payload[7:0], dllp_type[7:0]};
   endfunction
 
 
@@ -151,7 +195,7 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
 
   // Verifies the unpacked CRC against the computed CRC for the unpacked payload.
   // Can be used by monitors or scoreboards to check data integrity.
-  function bit verify_crc();
+  function bit verify_crc(); // return one if crc is error free
     return (crc == pcie_dll_pkg::crc16_generator::calculate_dllp_crc(pack_data()));
   endfunction
 

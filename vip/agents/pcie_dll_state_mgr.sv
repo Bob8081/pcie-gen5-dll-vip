@@ -11,6 +11,7 @@ class pcie_dll_state_mgr extends uvm_component;
 
     pcie_dll_dllp_seq_item dllp_item;
     pcie_dll_tlp_seq_item tlp_item;
+    pcie_state_mgr_counters_s counters;
 
 
     uvm_tlm_fifo#(pcie_dll_dllp_seq_item) dllp_fifo;

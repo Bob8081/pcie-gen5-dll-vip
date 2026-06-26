@@ -1,12 +1,14 @@
 class pcie_dll_env extends uvm_env;
 
-  pcie_dll_env_cfg cfg;
-  pcie_dll_partner_cfg partner_cfg;
-  pcie_dll_my_cfg my_cfg;
-  pcie_dll_role_e  role;
-  pcie_dll_agent   agent;
-  pcie_dll_scoreboard scoreboard;
-  pcie_dll_fc_watchdog fc_watchdog;
+  pcie_dll_env_cfg      cfg;
+  pcie_dll_partner_cfg  partner_cfg;
+  pcie_dll_my_cfg       my_cfg;
+  pcie_dll_role_e       role;
+  pcie_dll_agent        agent;
+  //pcie_dll_scoreboard   scoreboard;
+  //pcie_dll_fc_watchdog  fc_watchdog;
+  pcie_dll_coverage     cov_tx;
+  pcie_dll_coverage     cov_rx;
 
 
   `uvm_component_utils(pcie_dll_env)
@@ -23,9 +25,9 @@ class pcie_dll_env extends uvm_env;
       `uvm_fatal("NOCFG", "pcie_dll_env: no role found in config_db")
 
     agent = pcie_dll_agent::type_id::create("agent", this);
-    scoreboard = pcie_dll_scoreboard::type_id::create("scoreboard", this);
-    fc_watchdog = pcie_dll_fc_watchdog::type_id::create("fc_watchdog", this);
-    fc_watchdog.role = role;
+    //scoreboard = pcie_dll_scoreboard::type_id::create("scoreboard", this);
+    //fc_watchdog = pcie_dll_fc_watchdog::type_id::create("fc_watchdog", this);
+    //fc_watchdog.role = role;
 
     //setting the partner_cfg object for storing link partner data and other time changing values
     partner_cfg = pcie_dll_partner_cfg::type_id::create("partner_cfg");
@@ -33,21 +35,27 @@ class pcie_dll_env extends uvm_env;
 
     my_cfg = pcie_dll_my_cfg::type_id::create("my_cfg");
     uvm_config_db#(pcie_dll_my_cfg)::set(this, "*", "my_cfg", my_cfg);
-    //TODO:add the coverage collector here in the next stage
-
+    
+    // create coverage collector 
+    cov_tx = pcie_dll_coverage::type_id::create("cov_tx", this);
+    cov_rx = pcie_dll_coverage::type_id::create("cov_rx", this);
   endfunction
 
   function void connect_phase(uvm_phase phase);
     super.connect_phase(phase);
 
+    // coverage connection
+    agent.agent_tx_ap.connect(cov_tx.analysis_export);
+    agent.agent_rx_ap.connect(cov_rx.analysis_export);
+
     // Scoreboard connections
-    agent.state_ap.connect(scoreboard.state_export);
-    agent.rx_mon.mon_rx_ap.connect(scoreboard.rx_export);
-    agent.tx_mon.mon_tx_ap.connect(scoreboard.tx_export);
+    //agent.state_ap.connect(scoreboard.state_export);
+    //agent.rx_mon.mon_rx_ap.connect(scoreboard.rx_export);
+    //agent.tx_mon.mon_tx_ap.connect(scoreboard.tx_export);
     // Watchdog connections
-    agent.state_ap.connect(fc_watchdog.state_export);
-    agent.rx_mon.mon_rx_ap.connect(fc_watchdog.rx_export);
-    agent.state_mgr.st_mgr_counter_ap.connect(scoreboard.counter_export);
+    //agent.state_ap.connect(fc_watchdog.state_export);
+    //agent.rx_mon.mon_rx_ap.connect(fc_watchdog.rx_export);
+    //agent.state_mgr.st_mgr_counter_ap.connect(scoreboard.counter_export);
 
   endfunction
 
