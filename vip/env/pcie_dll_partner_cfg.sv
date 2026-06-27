@@ -20,17 +20,18 @@ class pcie_dll_partner_cfg extends uvm_object;
 
     endfunction
     
+    //function to be used by states to save recieved credits
     function void set_credits_value(pcie_dllp_type_e t, int unsigned hdr_fc, int unsigned data_fc,int unsigned hdr_scale,int unsigned data_scale);
 
         pcie_fc_type_e target_type;
-
-        if (t == DLLP_INITFC1_P) begin
+        //here we process both the iniitfc1 and initfc2 packets as long as we are in intfc1 state as the specs states
+        if (t == DLLP_INITFC1_P || t == DLLP_INITFC2_P) begin
                 target_type = FC_P;
         end
-        else if (t == DLLP_INITFC1_NP) begin
+        else if (t == DLLP_INITFC1_NP || t == DLLP_INITFC2_NP) begin
               target_type = FC_NP;
         end
-        else if (t == DLLP_INITFC1_CPL) begin
+        else if (t == DLLP_INITFC1_CPL || t == DLLP_INITFC2_CPL) begin
             target_type = FC_CPL;
         end
         else
@@ -52,7 +53,7 @@ class pcie_dll_partner_cfg extends uvm_object;
         
     endfunction
 
-
+    //to caluclate the credits after including the scalde flow control values
     function void calculate_absolute_credits(int unsigned scaled_hdr_fc, int unsigned scaled_data_fc, int unsigned hdr_scale, int unsigned data_scale,
                                                                 output int unsigned not_scaled_hdr_fc, output int unsigned not_scaled_data_fc);
         not_scaled_hdr_fc = 0;
@@ -72,7 +73,7 @@ class pcie_dll_partner_cfg extends uvm_object;
     
     endfunction
 
-
+    //debug print function
     function void view_credits();
         foreach(partner_credits[i])
         begin
@@ -81,5 +82,20 @@ class pcie_dll_partner_cfg extends uvm_object;
                                                 partner_credits[i].absolute_hdr_limit, partner_credits[i].absolute_data_limit), UVM_LOW)
         end
     endfunction 
-    //TODO : add reset function
+
+    //reset function
+    function void reset();
+        foreach(partner_credits[i])
+        begin
+            partner_credits[i].hdr_limit = 0;
+            partner_credits[i].data_limit = 0;
+            partner_credits[i].hdr_scale = 0;
+            partner_credits[i].data_scale = 0;
+            partner_credits[i].absolute_hdr_limit = 0;
+            partner_credits[i].absolute_data_limit = 0;
+            partner_feature_valid = 0;
+            partner_feature_support = 0;
+        end
+    endfunction : reset
+
 endclass : pcie_dll_partner_cfg
