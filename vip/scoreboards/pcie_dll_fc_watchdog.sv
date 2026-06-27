@@ -23,6 +23,10 @@ class pcie_dll_fc_watchdog extends uvm_component;
   event fc2_set_started;       // triggered by InitFC2_P while in DL_INIT_FC2
   event feature_dllp_received; // triggered by DLLP_FEATURE_REQ while in DL_FEATURE_EXCH
 
+  // events to hit timeout scenarios in coverage class
+  uvm_event timeout_event_fc1;
+  uvm_event timeout_event_fc2;
+
 
   // Interface : needed for clock access
 
@@ -50,6 +54,10 @@ class pcie_dll_fc_watchdog extends uvm_component;
 
 
   function void build_phase(uvm_phase phase);
+
+    string event_name_fc1 ;
+    string event_name_fc2 ;
+
     super.build_phase(phase);
 
     rx_export    = new("rx_export",    this);
@@ -73,6 +81,13 @@ class pcie_dll_fc_watchdog extends uvm_component;
       $sformatf("[%s] FC watchdog built. Interval = %0d cycles (%0d ns)",
         role.name(), cfg.init_rx_interval_cycles, cfg.init_rx_interval_cycles),
       UVM_MEDIUM)
+
+  // events to hit timeout scenarios in coverage class
+  event_name_fc1 = $sformatf("timeout_event_fc1_%s", role.name());
+  event_name_fc2 = $sformatf("timeout_event_fc2_%s", role.name());
+
+  timeout_event_fc1 = uvm_event_pool::get_global(event_name_fc1);
+  timeout_event_fc2 = uvm_event_pool::get_global(event_name_fc2);
   endfunction
 
 
@@ -168,6 +183,10 @@ class pcie_dll_fc_watchdog extends uvm_component;
             // Count up to the interval; if we reach it -> ERROR
             repeat (cfg.init_rx_interval_cycles) @(posedge vif.lclk);
             if (curr_state == DL_INIT_FC1) begin
+              // trigger the coverage event for this timeout scenario
+              timeout_event_fc1.trigger();
+
+              // Spec violation: InitFC1_P not received within the interval
               `uvm_error("WDOG_FC1_TIMEOUT",
                 $sformatf(
                   "[%s] SPEC VIOLATION: InitFC1 set (P+NP+Cpl) not started within %0d cycles (%0d µs). ",
@@ -226,6 +245,10 @@ class pcie_dll_fc_watchdog extends uvm_component;
           begin : timer_thread
             repeat (cfg.init_rx_interval_cycles) @(posedge vif.lclk);
             if (curr_state == DL_INIT_FC2) begin
+              // trigger the coverage event for this timeout scenario
+              timeout_event_fc2.trigger();
+
+              // Spec violation: InitFC2_P not received within the interval
               `uvm_error("WDOG_FC2_TIMEOUT",
                 $sformatf(
                   "[%s] SPEC VIOLATION: InitFC2 set (P+NP+Cpl) not started within %0d cycles (%0d µs). ",

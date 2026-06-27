@@ -12,9 +12,10 @@ class pcie_dll_env_cfg extends uvm_object;
   rand bit               enable_pwr_mgmt; // Power management DLLPs
   rand bit               enable_lcrc_checking; // Whether to check LCRC in received TLPs
 
-  // error enable --> generate items may contain errors
+  // control type of generated traffic behavior
        bit               enable_errors;    // 0: error free item, 1: items may contain errors based on determined rate
        bit               corrupted_initfc; // 0: normal behavior for INITFC state, 1: corrupted INITFC state (normal, reopeated and disorder packets)
+       bit               delayed_packets;  // 0: normal behavior, 1: delayed packets (INITFC and FEATURE packets are delayed by a random number of cycles)
 
   // number of items iterations in sequences
   rand int unsigned      req_count;
@@ -70,6 +71,7 @@ class pcie_dll_env_cfg extends uvm_object;
     `uvm_field_int(init_rx_interval_cycles, UVM_DEFAULT)
     `uvm_field_int(enable_errors, UVM_DEFAULT)
     `uvm_field_int(corrupted_initfc, UVM_DEFAULT)
+    `uvm_field_int(delayed_packets, UVM_DEFAULT)
     `uvm_field_int(req_count, UVM_DEFAULT)  
     // `uvm_field_aa_int_enumkey(init_fc_hdr_scale, pcie_fc_type_e, UVM_DEFAULT)
     // `uvm_field_aa_int_enumkey(init_fc_hdr, pcie_fc_type_e, UVM_DEFAULT)
