@@ -24,6 +24,19 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
   pcie_dll_my_cfg       my_cfg;
 
 
+  // ---- role of side ----
+   pcie_dll_role_e role;
+
+   pcie_dll_fc_watchdog_status_e watchdog_status;
+
+  // events to hit 34 microsecond timeout scenarios in coverage class
+  uvm_event timeout_event_fc1;
+  uvm_event timeout_event_fc2;
+
+  // path type signal for controlling
+  string path_type;
+
+
   // ---- Covergroups ----
 
   // ---- 1. DLLP Coverage Group ----
@@ -150,7 +163,23 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
 
   endgroup
 
-   //  ---- 2. TLP Coverage Group ----
+  // ---- 2. watchdog Coverage Group ----
+  // note: this coverage group is only instantiated for the RX path
+  covergroup cg_watchdog (string path_label);
+
+    option.per_instance = 1;
+    option.name         = path_label;
+    option.weight       = 10;  // high weight the same as DLLP coverage
+    option.comment      = " Tracks timeout scenarios for InitFC1 and InitFC2 received packets ";
+
+    cp_watchdog_status: coverpoint watchdog_status {
+      bins timeout_fc1 = {timeout_fc1};
+      bins timeout_fc2 = {timeout_fc2};
+    }
+
+  endgroup
+
+   //  ---- 3. TLP Coverage Group ----
   covergroup cg_tlp_transitions (string path_label);
 
     option.per_instance = 1;
@@ -169,20 +198,74 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     super.new(name, parent);
     //state_export = new("state_export", this);
 
+    // create coverage groups
     if (uvm_is_match("*tx*", name)) begin
-      cg_dllp_transitions = new("Tx_path_dllp");
-      cg_tlp_transitions  = new("Tx_path_tlp");
+      cg_dllp_transitions = new({get_full_name(), "_dllp"});
+      cg_tlp_transitions  = new({get_full_name(), "_tlp"});
+
+      path_type = "Tx_path";
     end
     else begin
-      cg_dllp_transitions = new("Rx_path_dllp");
-      cg_tlp_transitions  = new("Rx_path_tlp");
+      cg_dllp_transitions = new({get_full_name(), "_dllp"});
+      cg_tlp_transitions  = new({get_full_name(), "_tlp"});
+      cg_watchdog         = new({get_full_name(), "_watchdog"});
+
+      path_type = "Rx_path";
     end
+
+  endfunction
+
+  function void build_phase(uvm_phase phase);
+
+    string event_name_fc1 ;
+    string event_name_fc2 ;
+
+    super.build_phase(phase);
+
+    // get role from config_db
+    if (!uvm_config_db#(pcie_dll_role_e)::get(this, "", "role", role))
+      `uvm_fatal("NOCFG", "pcie_dll_env: no role found in config_db")
+
+      // events to hit 34 microsecond timeout scenarios for received packets in coverage class
+      event_name_fc1 = $sformatf("timeout_event_fc1_%s", role.name());
+      event_name_fc2 = $sformatf("timeout_event_fc2_%s", role.name());
+
+      timeout_event_fc1 = uvm_event_pool::get_global(event_name_fc1);
+      timeout_event_fc2 = uvm_event_pool::get_global(event_name_fc2);
+
   endfunction
 
   virtual task run_phase(uvm_phase phase);
     super.run_phase(phase);
       state = DL_INACTIVE;
       cg_dllp_transitions.sample();
+
+
+      // check timeout scenarios
+      if (path_type == "Rx_path") begin
+      fork
+
+        begin
+          forever begin
+            timeout_event_fc1.wait_trigger();
+            watchdog_status = timeout_fc1;
+            cg_watchdog.sample();
+            watchdog_status = no_timeout;
+          end
+        end
+
+        begin
+          forever begin
+            timeout_event_fc2.wait_trigger();
+            watchdog_status = timeout_fc2;
+            cg_watchdog.sample();
+            watchdog_status = no_timeout;
+          end
+        end
+        
+      join_none
+    end
+
   endtask
 
 

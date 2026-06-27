@@ -75,10 +75,17 @@ package pcie_dll_pkg;
     INVALID_CREDITS = 3'b100
   } pcie_dllp_error_e;
 
+  typedef enum bit [1:0] {
+    no_timeout = 2'b00,
+    timeout_fc1 = 2'b01,
+    timeout_fc2 = 2'b10
+  } pcie_dll_fc_watchdog_status_e;
+
   typedef struct {
     int unsigned counter_fc1;
     int unsigned counter_fc2;
  } pcie_state_mgr_counters_s;
+
   
   //enum for credits
   typedef enum {
@@ -157,7 +164,7 @@ package pcie_dll_pkg;
 
 
   //`include "scoreboards/common_checks.sv"
-  //`include "scoreboards/pcie_dll_fc_watchdog.sv"
+  `include "scoreboards/pcie_dll_fc_watchdog.sv"
   //`include "scoreboards/pcie_dll_scoreboard.sv"
   `include "agents/pcie_dll_agent.sv"
   `include "agents/interface_agent/pcie_dll_if_agent.sv"
