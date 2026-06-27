@@ -47,12 +47,14 @@ class pcie_dll_tx_drv extends uvm_driver #(pcie_dll_base_seq_item);
             @(vif.cb_drv); // synchronize to clocking block edge
             if (vif.rst_n) begin
                 seq_item_port.get_next_item(req);
-                
-                
-                
+                           
                 
 
                 if ($cast(dllp_txn, req)) begin
+                    // delay DLLP transaction if it desired depending on cfg
+                    if (dllp_txn.delayed_packets)
+                        repeat (dllp_txn.delay) @(vif.cb_drv);
+
                     // callback pre_transmit
                     //`uvm_do_callbacks(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_base, pre_transmit(req))
                     `pcie_do_callbacks_one_hot(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_base, pre_transmit(req))

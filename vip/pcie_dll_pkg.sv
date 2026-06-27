@@ -176,6 +176,7 @@ package pcie_dll_pkg;
   `include "tests/test_base_zero_credits.sv"
   `include "tests/test_base_corrupted_initfc.sv"
   `include "tests/test_base_error_injected.sv"
+  `include "tests/test_base_delayed_packets.sv"
   `include "tests/test_base_with_feature.sv"
   `include "tests/test_base_without_feature.sv"
   `include "tests/test_dlcmsm_fc_init.sv"
