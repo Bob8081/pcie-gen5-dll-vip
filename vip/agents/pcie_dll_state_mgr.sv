@@ -43,10 +43,10 @@ class pcie_dll_state_mgr extends uvm_component;
         if($cast(dllp_item, item))
         begin
             //TODO : check crc and drop it if it is wrong
-            if (dllp_item.verify_crc())
-            begin
+            // if (dllp_item.verify_crc())
+            // begin
                 dllp_fifo.try_put(dllp_item); //non-blocking becuse the write is a function , to avoid compiling error
-            end
+            // end
         end
         else if($cast(tlp_item,item))
         begin

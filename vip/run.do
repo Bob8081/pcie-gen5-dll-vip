@@ -5,10 +5,10 @@ set NoQuitOnFinish 1
 onbreak {resume}
 
 # 2. Run tests
-#vsim -coverage -voptargs="+acc" +UVM_TESTNAME=test_base_without_feature   work.tb_top -do "run -all; coverage save test1.ucdb; quit -sim"
-#vsim -coverage -voptargs="+acc" +UVM_TESTNAME=test_base_with_feature      work.tb_top -do "run -all; coverage save test2.ucdb; quit -sim"
-#vsim -coverage -voptargs="+acc" +UVM_TESTNAME=test_base_zero_credits      work.tb_top -do "run -all; coverage save test3.ucdb; quit -sim"
-#vsim -coverage -voptargs="+acc" +UVM_TESTNAME=test_base_corrupted_initfc  work.tb_top -do "run -all; coverage save test4.ucdb; quit -sim"
+vsim -coverage -voptargs="+acc" +UVM_TESTNAME=test_base_without_feature   work.tb_top -do "run -all; coverage save test1.ucdb; quit -sim"
+vsim -coverage -voptargs="+acc" +UVM_TESTNAME=test_base_with_feature      work.tb_top -do "run -all; coverage save test2.ucdb; quit -sim"
+vsim -coverage -voptargs="+acc" +UVM_TESTNAME=test_base_zero_credits      work.tb_top -do "run -all; coverage save test3.ucdb; quit -sim"
+vsim -coverage -voptargs="+acc" +UVM_TESTNAME=test_base_corrupted_initfc  work.tb_top -do "run -all; coverage save test4.ucdb; quit -sim"
 vsim -coverage -voptargs="+acc" +UVM_TESTNAME=test_base_error_injected    work.tb_top -do "run -all; coverage save test5.ucdb; quit -sim"
 
 # 3. Merge
