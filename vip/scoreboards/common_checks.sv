@@ -1,7 +1,8 @@
 class pcie_dll_common_checks extends uvm_object;
   //TODO : add checks for timing violation in initfc packets in recieving and transmitting
   //TODO : predict and check for current state
-
+  //TODO : add checks for the feature state correct transition
+  
   `uvm_object_utils(pcie_dll_common_checks)
 
   // control signals
@@ -85,6 +86,7 @@ class pcie_dll_common_checks extends uvm_object;
     pcie_dlcmsm_state_e curr_state,
     bit pl_lnk_up
   );
+  //TODO : to be revisited 
     bit regresses_from_active;
 
     regresses_from_active = (prev_state == DL_ACTIVE) && pl_lnk_up &&
@@ -328,11 +330,13 @@ class pcie_dll_common_checks extends uvm_object;
                       ||(current_dllp_type inside {DLLP_INITFC2_P   } && prev_dllp_type inside {DLLP_INITFC2_NP  })
                       ||(current_dllp_type inside {DLLP_INITFC2_NP  } && prev_dllp_type inside {DLLP_INITFC2_CPL }) ) begin
                         is_valid = (current_st_count == 0);
+                        //TODO : revisit the drop_packets function
             end 
 
             // INITFC1 within INITFC2 --> reset
             else if (   (current_dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC1_NP, DLLP_INITFC1_CPL} && prev_dllp_type inside {DLLP_INITFC2_P, DLLP_INITFC2_NP, DLLP_INITFC2_CPL}) ) begin
-                        is_valid = (current_st_count == prev_st_count);
+                        is_valid = (current_st_count == prev_st_count); 
+                        //TODO : revisit the drop_packets function
             end
 
             else begin // normal behavior

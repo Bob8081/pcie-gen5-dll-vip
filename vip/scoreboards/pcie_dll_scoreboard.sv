@@ -107,7 +107,7 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     // calling some common checks
     checks.check_symmetric_active (tx_prev_state, tx_curr_state, 
                                    rx_prev_state, rx_curr_state);
-
+    //TODO : add the same checks as the write_rx ones .. no?
   endfunction
 
   // Called when the Rx monitor publishes a received DLLP

@@ -49,8 +49,8 @@ class pcie_dll_DL_FEATURE_EXCH extends pcie_dll_base_state;
                     manager.partner_cfg.partner_feature_support = dllp_item_rx.feature_support;
                     manager.partner_cfg.partner_feature_valid = 1;
                     feature_seq.seq_feature_ack = 1;
-                    `uvm_info("FEATURE_STATE", $sformatf("Recieived FEATURE DLLP from partner, feature support = %b, feature_ack=%b", 
-                                                        dllp_item_rx.feature_support, dllp_item_rx.feature_ack), UVM_LOW)
+                    `uvm_info("FEATURE_STATE", $sformatf("%s : Recieived FEATURE DLLP from partner, feature support = %b, feature_ack=%b", 
+                                                        manager.role,dllp_item_rx.feature_support, dllp_item_rx.feature_ack), UVM_LOW)
                 end
                 else if (dllp_item_rx.dllp_type == DLLP_INITFC1_P)
                 begin

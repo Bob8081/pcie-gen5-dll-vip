@@ -47,7 +47,7 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                 else 
                 begin 
                     //TODO : throw errors when the protocol is violated 
-                    //TODO : add checks for the timing using the timing check in the sequences 
+                    //TODO : add checks for the timing using the timing check in the sequences (done)
                     //TODO : add check for values of credits recieved is matched in each packet 
 
 
@@ -56,6 +56,8 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
                     if ((rx_p && rx_np && rx_cpl))
                     //if ((dllp_item_rx.dllp_type == DLLP_INITFC2_P) || (rx_p && rx_np && rx_cpl)) 
                     begin
+                        manager.my_cfg.fi1_set = 1;
+                        `uvm_info("INITFC1_STATE", "All three DLLP types recieved, setting fi1_set flag to 1", UVM_LOW)
                         break;
                     end
                     else if ( (dllp_item_rx.dllp_type == DLLP_INITFC1_P) || (dllp_item_rx.dllp_type == DLLP_INITFC2_P))

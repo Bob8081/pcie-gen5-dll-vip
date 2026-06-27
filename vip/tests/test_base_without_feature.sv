@@ -72,6 +72,7 @@ class test_base_without_feature extends uvm_test;
     end
 
     // Differentiate the initial flow control credits
+
     cfg_rc.init_fc_hdr[FC_P]   = 8'h20;  cfg_rc.init_fc_data[FC_P]   = 12'h100;
     cfg_rc.init_fc_hdr[FC_NP]  = 8'h20;  cfg_rc.init_fc_data[FC_NP]  = 12'h100;
     cfg_rc.init_fc_hdr[FC_CPL] = 8'h20;  cfg_rc.init_fc_data[FC_CPL] = 12'h100;
@@ -84,9 +85,6 @@ class test_base_without_feature extends uvm_test;
     cfg_rc.req_count = 500;
     cfg_ep.req_count = 500;
 
-    //for feature exchange test 
-    //cfg_rc.scaled_fc_supported = 1'b1;
-    //cfg_ep.scaled_fc_supported = 1'b1;
 
     if (!cfg_rc.validate(validation_error_msg)) `uvm_fatal("CFG_RC_INV", validation_error_msg)
     if (!cfg_ep.validate(validation_error_msg)) `uvm_fatal("CFG_EP_INV", validation_error_msg)

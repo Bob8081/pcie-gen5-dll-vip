@@ -34,7 +34,7 @@ class pcie_dll_partner_cfg extends uvm_object;
             target_type = FC_CPL;
         end
         else
-        begin
+        begin //TODO : no no no make the initfc1 state process the intfc2 packets noramlly
             `uvm_error("CRD_ERR",$sformatf("can't save credits from a %s packet type",t.name()))
             return;
         end

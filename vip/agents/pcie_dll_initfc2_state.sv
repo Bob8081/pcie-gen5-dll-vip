@@ -34,7 +34,8 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
         begin 
 
             if (manager.my_cfg.counter_fc2 == 3) begin
-                `uvm_info("INITFC2_STATE", "Counter_fc 2 = 3 .", UVM_LOW)
+                manager.my_cfg.fi2_set = 1;
+                `uvm_info("INITFC2_STATE", "Counter_fc 2 = 3, setting fi2_set flag to 1", UVM_LOW)
                 break;
             end
 
@@ -125,7 +126,8 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
         begin //thread 3 : upon tlp recieving move to active state directly and skip initfc2 protocol
             manager.tlp_fifo.get(tlp_item_rx);
             next_state = DL_ACTIVE;
-            `uvm_info("INITFC2_STATE", "Received TLP during INITFC2, transitioning to ACTIVE state.", UVM_LOW)
+            manager.my_cfg.fi2_set = 1;
+            `uvm_info("INITFC2_STATE", "Received TLP during INITFC2, transitioning to ACTIVE state and setting fi2_set flag to 1.", UVM_LOW)
             finished.trigger();
         end
        //TODO : add forth fork to  check for the pl_linkup signal and set next state to DL_INACTIVE whenever the link is down
@@ -143,8 +145,10 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
         disable fork; //kill the threads too so you do clean transition
    
        
+       
         manager.change_state(next_state); 
         
     endtask
 
 endclass : pcie_dll_DL_INIT_FC2
+//TODO : fix initfc2 logic right now it waits to perfect triplets or tlp

@@ -72,6 +72,7 @@ class test_base_with_feature extends uvm_test;
     end
 
     // Differentiate the initial flow control credits
+    //TODO : take into consideration the scaled flow control calculations
     cfg_rc.init_fc_hdr[FC_P]   = 8'h20;  cfg_rc.init_fc_data[FC_P]   = 12'h100;
     cfg_rc.init_fc_hdr[FC_NP]  = 8'h20;  cfg_rc.init_fc_data[FC_NP]  = 12'h100;
     cfg_rc.init_fc_hdr[FC_CPL] = 8'h20;  cfg_rc.init_fc_data[FC_CPL] = 12'h100;

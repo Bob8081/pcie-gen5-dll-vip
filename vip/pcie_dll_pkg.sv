@@ -156,9 +156,9 @@ package pcie_dll_pkg;
 
 
 
-  //`include "scoreboards/common_checks.sv"
+  `include "scoreboards/common_checks.sv"
   //`include "scoreboards/pcie_dll_fc_watchdog.sv"
-  //`include "scoreboards/pcie_dll_scoreboard.sv"
+  `include "scoreboards/pcie_dll_scoreboard.sv"
   `include "agents/pcie_dll_agent.sv"
   `include "agents/interface_agent/pcie_dll_if_agent.sv"
   `include "coverage/pcie_dll_coverage.sv"
