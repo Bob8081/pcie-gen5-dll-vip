@@ -318,27 +318,27 @@ class pcie_dll_common_checks extends uvm_object;
     // to make sure that the state manager drops packets with ubnormal behavior
     // note: we check the behavior of state manager with the received packets
     // note: can be updated depends on the state manager implementation
-    // function void drop_packets (pcie_dllp_type_e    current_dllp_type, pcie_dllp_type_e  prev_dllp_type,
-    //                             pcie_state_mgr_counters_s curr_counters,pcie_state_mgr_counters_s prev_counters, 
-    //                             pcie_dlcmsm_state_e current_state, pcie_dlcmsm_state_e prev_state,
-    //                             pcie_dll_dllp_seq_item rx_dllp_item);
+    function void drop_packets (pcie_dllp_type_e    current_dllp_type, pcie_dllp_type_e  prev_dllp_type,
+                                pcie_state_mgr_counters_s curr_counters,pcie_state_mgr_counters_s prev_counters, 
+                                pcie_dlcmsm_state_e current_state, pcie_dlcmsm_state_e prev_state,
+                                pcie_dll_dllp_seq_item rx_dllp_item);
 
         
-    //     bit           is_valid = 0; // A single flag to evaluate the entire logic
-    //     int unsigned  current_st_count;
-    //     int unsigned  prev_st_count;
+        bit           is_valid = 0; // A single flag to evaluate the entire logic
+        int unsigned  current_st_count;
+        int unsigned  prev_st_count;
 
-    // if (rx_updated && counter_update) begin
-    //     if (current_state inside {DL_INIT_FC1, DL_INIT_FC2}) begin
+    if (rx_updated && counter_update) begin
+        if (current_state inside {DL_INIT_FC1, DL_INIT_FC2}) begin
 
-    //         if (current_state == DL_INIT_FC1) begin
-    //           current_st_count = curr_counters.counter_fc1;
-    //           prev_st_count    = prev_counters.counter_fc1;
-    //         end
-    //         else begin
-    //           current_st_count = curr_counters.counter_fc2;
-    //           prev_st_count    = prev_counters.counter_fc2;
-    //         end
+            if (current_state == DL_INIT_FC1) begin
+              current_st_count = curr_counters.counter_fc1;
+              prev_st_count    = prev_counters.counter_fc1;
+            end
+            else begin
+              current_st_count = curr_counters.counter_fc2;
+              prev_st_count    = prev_counters.counter_fc2;
+            end
           
           
             // Error packet --> keep counter the same
@@ -368,26 +368,26 @@ class pcie_dll_common_checks extends uvm_object;
                         //TODO : revisit the drop_packets function
             end
 
-    //         else begin // normal behavior
-    //                 is_valid = (current_st_count == prev_st_count+1);
-    //             end 
-    //     end
+            else begin // normal behavior
+                    is_valid = (current_st_count == prev_st_count+1);
+                end 
+        end
         
-    //     else begin // If the state is not INIT_FC no need to check state manager counter behavior
-    //         is_valid = 1; 
-    //     end
+        else begin // If the state is not INIT_FC no need to check state manager counter behavior
+            is_valid = 1; 
+        end
 
 
-    //     if (is_valid) begin
-    //         `uvm_info("SCOREBOARD: PKT_DROP", "Valid: Correct drop/increment behavior", UVM_LOW)
-    //     end 
-    //     else begin
-    //         `uvm_error("SCOREBOARD: PKT_DROP", "Violation: abnormal behavior in state manager packet drop/increment logic!")
-    //     end
+        if (is_valid) begin
+            `uvm_info("SCOREBOARD: PKT_DROP", "Valid: Correct drop/increment behavior", UVM_LOW)
+        end 
+        else begin
+            `uvm_error("SCOREBOARD: PKT_DROP", "Violation: abnormal behavior in state manager packet drop/increment logic!")
+        end
 
-    // end
+    end
 
-    // endfunction : drop_packets
+    endfunction : drop_packets
 
 
     // to check that both RC and EP reach active state symmetrically

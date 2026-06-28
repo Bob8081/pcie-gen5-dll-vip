@@ -5,7 +5,7 @@ class pcie_dll_env extends uvm_env;
   pcie_dll_my_cfg       my_cfg;
   pcie_dll_role_e       role;
   pcie_dll_agent        agent;
-  //pcie_dll_scoreboard   scoreboard;
+  pcie_dll_scoreboard   scoreboard;
   pcie_dll_fc_watchdog  fc_watchdog;
   pcie_dll_coverage     cov_tx;
   pcie_dll_coverage     cov_rx;
@@ -25,7 +25,7 @@ class pcie_dll_env extends uvm_env;
       `uvm_fatal("NOCFG", "pcie_dll_env: no role found in config_db")
 
     agent = pcie_dll_agent::type_id::create("agent", this);
-    //scoreboard = pcie_dll_scoreboard::type_id::create("scoreboard", this);
+    scoreboard = pcie_dll_scoreboard::type_id::create("scoreboard", this);
     fc_watchdog = pcie_dll_fc_watchdog::type_id::create("fc_watchdog", this);
     fc_watchdog.role = role;
 
@@ -49,15 +49,15 @@ class pcie_dll_env extends uvm_env;
     agent.agent_rx_ap.connect(cov_rx.analysis_export);
 
     // Scoreboard connections
-    //agent.state_ap.connect(scoreboard.state_export);
-    //agent.rx_mon.mon_rx_ap.connect(scoreboard.rx_export);
-    //agent.tx_mon.mon_tx_ap.connect(scoreboard.tx_export);
+    agent.state_ap.connect(scoreboard.state_export);
+    agent.rx_mon.mon_rx_ap.connect(scoreboard.rx_export);
+    agent.tx_mon.mon_tx_ap.connect(scoreboard.tx_export);
 
     // Watchdog connections
     agent.state_ap.connect(fc_watchdog.state_export);
     agent.rx_mon.mon_rx_ap.connect(fc_watchdog.rx_export);
     
-    //agent.state_mgr.st_mgr_counter_ap.connect(scoreboard.counter_export);
+    agent.state_mgr.st_mgr_counter_ap.connect(scoreboard.counter_export);
 
   endfunction
 

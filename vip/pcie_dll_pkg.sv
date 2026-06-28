@@ -84,9 +84,9 @@ package pcie_dll_pkg;
   typedef struct {
     int unsigned counter_fc1;
     int unsigned counter_fc2;
- } pcie_state_mgr_counters_s;
+  } pcie_state_mgr_counters_s;
 
-  
+
   //enum for credits
   typedef enum {
     FC_P = 0,
@@ -94,7 +94,7 @@ package pcie_dll_pkg;
     FC_CPL = 2
   } pcie_fc_type_e;
 
-  //credits struct 
+  //credits struct
   typedef struct {
     pcie_fc_type_e fc_type;
 
@@ -111,7 +111,7 @@ package pcie_dll_pkg;
 
   } pcie_fc_credits_values_s;
 
-  
+
 
   // Included class files
 
@@ -141,7 +141,6 @@ package pcie_dll_pkg;
   `include "agents/pcie_dll_tx_drv_cb_crc.sv"
   `include "agents/pcie_dll_tx_drv_cb_invalid_dllp.sv"
   `include "agents/pcie_dll_tx_drv_cb_vc.sv"
-  //`include "agents/pcie_dll_tx_drv_cb_dl_feature_exch.sv"
   `include "agents/pcie_dll_tx_drv.sv"
 
   `include "agents/interface_agent/pcie_dll_if_drv.sv"
@@ -163,14 +162,14 @@ package pcie_dll_pkg;
 
 
 
-  //`include "scoreboards/common_checks.sv"
+  `include "scoreboards/common_checks.sv"
   `include "scoreboards/pcie_dll_fc_watchdog.sv"
-  //`include "scoreboards/pcie_dll_scoreboard.sv"
+  `include "scoreboards/pcie_dll_scoreboard.sv"
   `include "agents/pcie_dll_agent.sv"
   `include "agents/interface_agent/pcie_dll_if_agent.sv"
   `include "coverage/pcie_dll_coverage.sv"
   `include "env/pcie_dll_env.sv"
-  
+
 
   `include "tests/test_base.sv"
   `include "tests/test_base_zero_credits.sv"
@@ -179,6 +178,5 @@ package pcie_dll_pkg;
   `include "tests/test_base_delayed_packets.sv"
   `include "tests/test_base_with_feature.sv"
   `include "tests/test_base_without_feature.sv"
-  `include "tests/test_dlcmsm_fc_init.sv"
 
 endpackage : pcie_dll_pkg

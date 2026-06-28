@@ -95,8 +95,7 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
 
   // Called when the Tx monitor publishes a driven DLLP
   virtual function void write_tx(pcie_dll_base_seq_item item);
-    // TODO: cross-validate Tx-driven DLLPs against expected protocol state
-    // pcie_dll_dllp_seq_item dllp_item;
+    pcie_dll_dllp_seq_item dllp_item;
 
     if (!$cast(dllp_item, item) && (dllp_item.current_state != DL_ACTIVE)) begin
       `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
