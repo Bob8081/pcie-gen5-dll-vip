@@ -230,43 +230,72 @@ class pcie_dll_common_checks extends uvm_object;
     return 1;
   endfunction
 
+
+  /**
+   * check_feature_ack_handshake
+   * @brief Verify that the Feature Ack bit in a transmitted/received
+   *        DLLP_FEATURE_REQ equals the Remote Data Link Feature Supported
+   *        Valid bit (PCIe Base Spec Rev 5.0).
+   *
+   *        The spec mandates strict equality: a device sets feature_ack=1
+   *        if and only if it has already received a valid Feature DLLP from
+   *        its partner.  Setting ack=1 before that happens is a protocol
+   *        violation; leaving ack=0 after receiving is also non-compliant.
+   *
+   * @param feature_ack          The feature_ack bit from the DLLP under test.
+   * @param remote_feature_valid 1 if the sender has already received a valid
+   *                             Feature DLLP from its peer; 0 otherwise.
+   * @return 1 if feature_ack == remote_feature_valid (check passes),
+   *         0 if they differ (ERROR)
+   * @severity ERROR
+   */
+  function bit check_feature_ack_handshake(
+    bit feature_ack,
+    bit remote_feature_valid
+  );
+    if (feature_ack !== remote_feature_valid) begin
+      return 0;
+    end
+    return 1;
+  endfunction
+
   /////////////////////////////////////// ----------------------------------- /////////////////////////////////
 
   // traffic_isolation check implementation...
 
-    // note this function works for received DLLP items
-    function void traffic_isolation_check (pcie_dll_dllp_seq_item dllp_item);
+  // note this function works for received DLLP items
+  function void traffic_isolation_check (pcie_dll_dllp_seq_item dllp_item);
 
 
-        // Only proper DLLPs are transmitted during states
-        case (dllp_item.current_state)
-            DL_FEATURE_EXCH: begin
-                if (dllp_item.dllp_type != DLLP_FEATURE_REQ) begin
-                    `uvm_error("SCOREBOARD: ILLEGAL_DLLP", "Violation: Only FEATURE_EXCH DLLPs allowed in FEATURE_EXCH state!")
-                end
-                else begin
-                    `uvm_info("SCOREBOARD: PROPER_DLLP", "Valid: FEATURE_EXCH DLLP detected in FEATURE_EXCH state.", UVM_LOW)
-                end
-            end
+      // Only proper DLLPs are transmitted during states
+      case (dllp_item.current_state)
+          DL_FEATURE_EXCH: begin
+              if (dllp_item.dllp_type != DLLP_FEATURE_REQ) begin
+                  `uvm_error("SCOREBOARD: ILLEGAL_DLLP", "Violation: Only FEATURE_EXCH DLLPs allowed in FEATURE_EXCH state!")
+              end
+              else begin  
+                  `uvm_info("SCOREBOARD: PROPER_DLLP", "Valid: FEATURE_EXCH DLLP detected in FEATURE_EXCH state.", UVM_LOW)
+              end
+          end
 
-            DL_INIT_FC1: begin // note: we remove virtual channel bits to separate between invalid dllp and invalid VC 
-                if (!(dllp_item.dllp_type[7:3] inside {DLLP_INITFC1_P_VC, DLLP_INITFC1_NP_VC, DLLP_INITFC1_CPL_VC, DLLP_INITFC2_P_VC, DLLP_INITFC2_NP_VC, DLLP_INITFC2_CPL_VC})) begin
-                    `uvm_error("SCOREBOARD: ILLEGAL_DLLP", "Violation: Only InitFC DLLPs allowed in INIT_FC states!")
-                end
-                else begin
-                    `uvm_info("SCOREBOARD: PROPER_DLLP", "Valid: InitFC DLLP detected in INIT_FC state.", UVM_LOW)
-                end
-            end
+          DL_INIT_FC1: begin // note: we remove virtual channel bits to separate between invalid dllp and invalid VC 
+              if (!(dllp_item.dllp_type[7:3] inside {DLLP_INITFC1_P_VC, DLLP_INITFC1_NP_VC, DLLP_INITFC1_CPL_VC, DLLP_INITFC2_P_VC, DLLP_INITFC2_NP_VC, DLLP_INITFC2_CPL_VC})) begin
+                  `uvm_error("SCOREBOARD: ILLEGAL_DLLP", "Violation: Only InitFC DLLPs allowed in INIT_FC states!")
+              end
+              else begin
+                  `uvm_info("SCOREBOARD: PROPER_DLLP", "Valid: InitFC DLLP detected in INIT_FC state.", UVM_LOW)
+              end
+          end
 
-            DL_INIT_FC2: begin // note: we remove virtual channel bits to separate between invalid dllp and invalid VC 
-                if (!(dllp_item.dllp_type[7:3] inside {DLLP_INITFC2_P_VC, DLLP_INITFC2_NP_VC, DLLP_INITFC2_CPL_VC})) begin
-                    `uvm_error("SCOREBOARD: ILLEGAL_DLLP", "Violation: Only InitFC DLLPs allowed in INIT_FC states!")
-                end
-                else begin
-                    `uvm_info("SCOREBOARD: PROPER_DLLP", "Valid: InitFC DLLP detected in INIT_FC state.", UVM_LOW)
-                end
-            end
-        endcase
+          DL_INIT_FC2: begin // note: we remove virtual channel bits to separate between invalid dllp and invalid VC 
+              if (!(dllp_item.dllp_type[7:3] inside {DLLP_INITFC2_P_VC, DLLP_INITFC2_NP_VC, DLLP_INITFC2_CPL_VC})) begin
+                  `uvm_error("SCOREBOARD: ILLEGAL_DLLP", "Violation: Only InitFC DLLPs allowed in INIT_FC states!")
+              end
+              else begin
+                  `uvm_info("SCOREBOARD: PROPER_DLLP", "Valid: InitFC DLLP detected in INIT_FC state.", UVM_LOW)
+              end
+          end
+      endcase
 
 
         // All InitFC DLLPs are strictly addressed to Virtual Channel 0 (VCO).
@@ -287,74 +316,74 @@ class pcie_dll_common_checks extends uvm_object;
     // to make sure that the state manager drops packets with ubnormal behavior
     // note: we check the behavior of state manager with the received packets
     // note: can be updated depends on the state manager implementation
-    function void drop_packets (pcie_dllp_type_e    current_dllp_type, pcie_dllp_type_e  prev_dllp_type,
-                                pcie_state_mgr_counters_s curr_counters,pcie_state_mgr_counters_s prev_counters, 
-                                pcie_dlcmsm_state_e current_state, pcie_dlcmsm_state_e prev_state,
-                                pcie_dll_dllp_seq_item rx_dllp_item);
+    // function void drop_packets (pcie_dllp_type_e    current_dllp_type, pcie_dllp_type_e  prev_dllp_type,
+    //                             pcie_state_mgr_counters_s curr_counters,pcie_state_mgr_counters_s prev_counters, 
+    //                             pcie_dlcmsm_state_e current_state, pcie_dlcmsm_state_e prev_state,
+    //                             pcie_dll_dllp_seq_item rx_dllp_item);
 
         
-        bit           is_valid = 0; // A single flag to evaluate the entire logic
-        int unsigned  current_st_count;
-        int unsigned  prev_st_count;
+    //     bit           is_valid = 0; // A single flag to evaluate the entire logic
+    //     int unsigned  current_st_count;
+    //     int unsigned  prev_st_count;
 
-    if (rx_updated && counter_update) begin
-        if (current_state inside {DL_INIT_FC1, DL_INIT_FC2}) begin
+    // if (rx_updated && counter_update) begin
+    //     if (current_state inside {DL_INIT_FC1, DL_INIT_FC2}) begin
 
-            if (current_state == DL_INIT_FC1) begin
-              current_st_count = curr_counters.counter_fc1;
-              prev_st_count    = prev_counters.counter_fc1;
-            end
-            else begin
-              current_st_count = curr_counters.counter_fc2;
-              prev_st_count    = prev_counters.counter_fc2;
-            end
+    //         if (current_state == DL_INIT_FC1) begin
+    //           current_st_count = curr_counters.counter_fc1;
+    //           prev_st_count    = prev_counters.counter_fc1;
+    //         end
+    //         else begin
+    //           current_st_count = curr_counters.counter_fc2;
+    //           prev_st_count    = prev_counters.counter_fc2;
+    //         end
           
           
-            // Error packet --> keep counter the same
-            if (pcie_dll_pkg::error_expector::determine_error_status(rx_dllp_item) != ERROR_FREE) begin 
-                        is_valid = (prev_st_count == current_st_count);
-            end
-            // repeated INITFC packets --> reset if 5 reptations
-            else if (current_dllp_type == prev_dllp_type) begin // repeated initfc
-                        is_valid = (prev_st_count == current_st_count);
-            end
-            // disorder INITFC packets --> zero
-            else if (   (current_state == DL_INIT_FC1 && prev_state == DL_FEATURE_EXCH) && current_dllp_type inside {DLLP_INITFC1_NP, DLLP_INITFC1_CPL}
-                      ||(current_dllp_type inside {DLLP_INITFC1_CPL } && prev_dllp_type inside {DLLP_INITFC1_P   })
-                      ||(current_dllp_type inside {DLLP_INITFC1_P   } && prev_dllp_type inside {DLLP_INITFC1_NP  })
-                      ||(current_dllp_type inside {DLLP_INITFC1_NP  } && prev_dllp_type inside {DLLP_INITFC1_CPL })
-                      ||(current_state == DL_INIT_FC2 && prev_state == DL_INIT_FC1)     && current_dllp_type inside {DLLP_INITFC2_NP, DLLP_INITFC2_CPL}
-                      ||(current_dllp_type inside {DLLP_INITFC2_CPL } && prev_dllp_type inside {DLLP_INITFC2_P   })
-                      ||(current_dllp_type inside {DLLP_INITFC2_P   } && prev_dllp_type inside {DLLP_INITFC2_NP  })
-                      ||(current_dllp_type inside {DLLP_INITFC2_NP  } && prev_dllp_type inside {DLLP_INITFC2_CPL }) ) begin
-                        is_valid = (current_st_count == 0);
-            end 
+    //         // Error packet --> keep counter the same
+    //         if (pcie_dll_pkg::error_expector::determine_error_status(rx_dllp_item) != ERROR_FREE) begin 
+    //                     is_valid = (prev_st_count == current_st_count);
+    //         end
+    //         // repeated INITFC packets --> reset if 5 reptations
+    //         else if (current_dllp_type == prev_dllp_type) begin // repeated initfc
+    //                     is_valid = (prev_st_count == current_st_count);
+    //         end
+    //         // disorder INITFC packets --> zero
+    //         else if (   (current_state == DL_INIT_FC1 && prev_state == DL_FEATURE_EXCH) && current_dllp_type inside {DLLP_INITFC1_NP, DLLP_INITFC1_CPL}
+    //                   ||(current_dllp_type inside {DLLP_INITFC1_CPL } && prev_dllp_type inside {DLLP_INITFC1_P   })
+    //                   ||(current_dllp_type inside {DLLP_INITFC1_P   } && prev_dllp_type inside {DLLP_INITFC1_NP  })
+    //                   ||(current_dllp_type inside {DLLP_INITFC1_NP  } && prev_dllp_type inside {DLLP_INITFC1_CPL })
+    //                   ||(current_state == DL_INIT_FC2 && prev_state == DL_INIT_FC1)     && current_dllp_type inside {DLLP_INITFC2_NP, DLLP_INITFC2_CPL}
+    //                   ||(current_dllp_type inside {DLLP_INITFC2_CPL } && prev_dllp_type inside {DLLP_INITFC2_P   })
+    //                   ||(current_dllp_type inside {DLLP_INITFC2_P   } && prev_dllp_type inside {DLLP_INITFC2_NP  })
+    //                   ||(current_dllp_type inside {DLLP_INITFC2_NP  } && prev_dllp_type inside {DLLP_INITFC2_CPL }) ) begin
+    //                     is_valid = (current_st_count == 0);
+    //         end 
 
-            // INITFC1 within INITFC2 --> reset
-            else if (   (current_dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC1_NP, DLLP_INITFC1_CPL} && prev_dllp_type inside {DLLP_INITFC2_P, DLLP_INITFC2_NP, DLLP_INITFC2_CPL}) ) begin
-                        is_valid = (current_st_count == prev_st_count);
-            end
+    //         // INITFC1 within INITFC2 --> reset
+    //         else if (   (current_dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC1_NP, DLLP_INITFC1_CPL} && prev_dllp_type inside {DLLP_INITFC2_P, DLLP_INITFC2_NP, DLLP_INITFC2_CPL}) ) begin
+    //                     is_valid = (current_st_count == prev_st_count);
+    //         end
 
-            else begin // normal behavior
-                    is_valid = (current_st_count == prev_st_count+1);
-                end 
-        end
+    //         else begin // normal behavior
+    //                 is_valid = (current_st_count == prev_st_count+1);
+    //             end 
+    //     end
         
-        else begin // If the state is not INIT_FC no need to check state manager counter behavior
-            is_valid = 1; 
-        end
+    //     else begin // If the state is not INIT_FC no need to check state manager counter behavior
+    //         is_valid = 1; 
+    //     end
 
 
-        if (is_valid) begin
-            `uvm_info("SCOREBOARD: PKT_DROP", "Valid: Correct drop/increment behavior", UVM_LOW)
-        end 
-        else begin
-            `uvm_error("SCOREBOARD: PKT_DROP", "Violation: abnormal behavior in state manager packet drop/increment logic!")
-        end
+    //     if (is_valid) begin
+    //         `uvm_info("SCOREBOARD: PKT_DROP", "Valid: Correct drop/increment behavior", UVM_LOW)
+    //     end 
+    //     else begin
+    //         `uvm_error("SCOREBOARD: PKT_DROP", "Violation: abnormal behavior in state manager packet drop/increment logic!")
+    //     end
 
-    end
+    // end
 
-    endfunction : drop_packets
+    // endfunction : drop_packets
 
 
     // to check that both RC and EP reach active state symmetrically

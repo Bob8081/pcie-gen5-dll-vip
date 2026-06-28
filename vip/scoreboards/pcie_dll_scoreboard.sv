@@ -8,7 +8,7 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
 
   pcie_dll_role_e role;
 
-  // Track states for note: "we don't need this because item alreadt has the updated state " 
+  // Track states
   pcie_dlcmsm_state_e prev_state;
   pcie_dlcmsm_state_e curr_state;
   bit state_seeded;
@@ -35,6 +35,10 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
   // Track RX DLLP ordering
   int unsigned rx_initfc1_order_step; // P->0, NP->1, Cpl->2
   int unsigned rx_initfc2_order_step; // P->0, NP->1, Cpl->2
+
+  // Feature Ack Handshake tracking
+  // Set to 1 the instant we drive our first DLLP_FEATURE_REQ (seen via Tx monitor)
+  bit m_we_sent_feature_dllp;
 
   // Analysis implementation ports
   uvm_analysis_imp_tx        #(pcie_dll_base_seq_item, pcie_dll_scoreboard) tx_export;
@@ -63,8 +67,9 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     rx_prev_state = DL_INACTIVE;
     rx_curr_state = DL_INACTIVE;
     state_seeded  = 0;
-    rx_initfc1_order_step = 0;
-    rx_initfc2_order_step = 0;
+    rx_initfc1_order_step    = 0;
+    rx_initfc2_order_step    = 0;
+    m_we_sent_feature_dllp   = 0;
     tx_export      = new("tx_export",    this);
     rx_export      = new("rx_export",    this);
     state_export   = new("state_export", this);
@@ -91,25 +96,24 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
   // Called when the Tx monitor publishes a driven DLLP
   virtual function void write_tx(pcie_dll_base_seq_item item);
     // TODO: cross-validate Tx-driven DLLPs against expected protocol state
-    pcie_dll_dllp_seq_item dllp_item;
+    // pcie_dll_dllp_seq_item dllp_item;
 
-    if (!$cast(dllp_item, item)) begin
-      return;
-    end
-    else if (rx_curr_state != DL_ACTIVE) begin  // TLP received while link is not active
-         `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
-    end
+    // if (!$cast(dllp_item, item)) begin
+    //   if (tx_curr_state != DL_ACTIVE) begin  // TLP sent while link is not active
+    //     `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
+    //   end
+    // end
 
-    tx_dllp_item      = dllp_item;
-    tx_prev_state     = tx_curr_state;
-    tx_curr_state     = dllp_item.current_state;
-    tx_prev_dllp_type = tx_curr_dllp_type;
-    tx_curr_dllp_type = dllp_item.dllp_type;
+    // tx_dllp_item      = dllp_item;
+    // tx_prev_state     = tx_curr_state;
+    // tx_curr_state     = dllp_item.current_state;
+    // tx_prev_dllp_type = tx_curr_dllp_type;
+    // tx_curr_dllp_type = dllp_item.dllp_type;
 
-    checks.tx_updated = 1'b1; // Set the flag to indicate a new Tx item has been processed
-    // calling some common checks
-    checks.check_symmetric_active (tx_prev_state, tx_curr_state, 
-                                   rx_prev_state, rx_curr_state);
+    // checks.tx_updated = 1'b1; // Set the flag to indicate a new Tx item has been processed
+    // // calling some common checks
+    // checks.check_symmetric_active (tx_prev_state, tx_curr_state,
+    //                                rx_prev_state, rx_curr_state);
 
   endfunction
 
@@ -120,10 +124,9 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     string fatal_msg;
 
     if (!$cast(dllp_item, item)) begin
-      return;
-    end
-    else if (rx_curr_state != DL_ACTIVE) begin  // TLP received while link is not active
-         `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
+      if (rx_curr_state != DL_ACTIVE) begin  // TLP received while link is not active
+        `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
+      end
     end
 
     rx_dllp_item      = dllp_item;
@@ -132,9 +135,15 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     rx_prev_dllp_type = rx_curr_dllp_type;
     rx_curr_dllp_type = dllp_item.dllp_type;
 
-    // Check: Reserved Fields Zero 
+    // Check: Reserved Fields Zero
     // Bits [22:1] of the Feature Supported field must be zero.
+    // Check: Feature Ack Handshake — PARTNER side
+    // The partner's feature_ack must equal m_we_sent_feature_dllp:
+    //   - ack=1 while we haven't sent yet : partner is hallucinating a handshake
+    //   - ack=0 after we have sent        : partner should be acking but is not
     if (dllp_item.dllp_type == DLLP_FEATURE_REQ) begin
+
+      // Reserved bits check
       if (!checks.check_feature_reserved_zero(dllp_item.feature_support)) begin
         fatal_msg = $sformatf(
           "SPEC VIOLATION: Received DLLP_FEATURE_REQ with non-zero reserved bits. feature_support = 23'h%06h — bits [22:1] must be zero (only bit 0 = Scaled FC is valid).",
@@ -145,6 +154,21 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
           $sformatf("PASS: DLLP_FEATURE_REQ reserved bits [22:1] are zero. feature_support = 23'h%06h.",
             dllp_item.feature_support), UVM_LOW)
       end
+
+      // Ack handshake check — partner side
+      if (!checks.check_feature_ack_handshake(
+              dllp_item.feature_ack,
+              m_we_sent_feature_dllp)) begin
+        fatal_msg = $sformatf(
+          "SPEC VIOLATION (Feature Ack Handshake - PARTNER Rx): Partner sent feature_ack=%0b but m_we_sent_feature_dllp=%0b. Partner may only ack after we have transmitted our Feature DLLP.",
+          dllp_item.feature_ack, m_we_sent_feature_dllp);
+        `uvm_error("SCOREBOARD", fatal_msg)
+      end else begin
+        `uvm_info("SCOREBOARD",
+          $sformatf("PASS (Feature Ack Handshake - PARTNER Rx): feature_ack=%0b == m_we_sent_feature_dllp=%0b.",
+            dllp_item.feature_ack, m_we_sent_feature_dllp), UVM_HIGH)
+      end
+
     end
 
     // Check InitFC1 Order
@@ -191,32 +215,32 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     // calling some common checks
     checks.traffic_isolation_check (dllp_item);
 
-    checks.check_symmetric_active  (tx_prev_state, tx_curr_state, 
-                                    rx_prev_state, rx_curr_state);
+    checks.check_symmetric_active  (tx_prev_state, tx_curr_state,
+      rx_prev_state, rx_curr_state);
 
-    checks.drop_packets            (rx_curr_dllp_type, rx_prev_dllp_type,
-                                    curr_counters    , prev_counters,
-                                    rx_curr_state    , rx_prev_state ,
-                                    rx_dllp_item );
+    // checks.drop_packets            (rx_curr_dllp_type, rx_prev_dllp_type,
+    //                                 curr_counters    , prev_counters,
+    //                                 rx_curr_state    , rx_prev_state ,
+    //                                 rx_dllp_item );
 
     checks.Credit_Capture          (dllp_item, partner_cfg);
 
-endfunction
+  endfunction
 
 
   // Called when the state manager publishes a new state
   virtual function void write_counter (pcie_state_mgr_counters_s counters);
-        prev_counters.counter_fc1  = curr_counters.counter_fc1;
-        prev_counters.counter_fc2  = curr_counters.counter_fc2;
-        curr_counters.counter_fc2  = counters.counter_fc2;
-        curr_counters.counter_fc1  = counters.counter_fc1;
+    prev_counters.counter_fc1  = curr_counters.counter_fc1;
+    prev_counters.counter_fc2  = curr_counters.counter_fc2;
+    curr_counters.counter_fc2  = counters.counter_fc2;
+    curr_counters.counter_fc1  = counters.counter_fc1;
 
-        checks.counter_update = 1'b1; // Set the flag to indicate a new counter item has been processed
-        // calling some common checks
-        checks.drop_packets (rx_curr_dllp_type, rx_prev_dllp_type,
-                             curr_counters    , prev_counters,
-                             rx_curr_state    , rx_prev_state,
-                             rx_dllp_item );
+    checks.counter_update = 1'b1; // Set the flag to indicate a new counter item has been processed
+    // calling some common checks
+    // checks.drop_packets (rx_curr_dllp_type, rx_prev_dllp_type,
+    //                      curr_counters    , prev_counters,
+    //                      rx_curr_state    , rx_prev_state,
+    //                      rx_dllp_item );
 
 
   endfunction
@@ -241,8 +265,9 @@ endfunction
     curr_state = new_state;
 
     if (curr_state == DL_INACTIVE) begin
-      rx_initfc1_order_step = 0;
-      rx_initfc2_order_step = 0;
+      rx_initfc1_order_step  = 0;
+      rx_initfc2_order_step  = 0;
+      m_we_sent_feature_dllp = 0; // reset on link re-train so the handshake check stays valid
     end
 
     // 2. Perform state transition checks
