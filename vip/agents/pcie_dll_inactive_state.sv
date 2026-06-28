@@ -11,10 +11,8 @@ class pcie_dll_DL_INACTIVE extends pcie_dll_base_state;
     task start_state(pcie_dll_state_mgr manager);
 
         `uvm_info("STATE", "Entered DL_INACTIVE state", UVM_LOW)
-        manager.my_cfg.counter_fc1 = 0;
-        manager.my_cfg.counter_fc2 = 0;
-        manager.my_cfg.fi1_set = 0;
-        manager.my_cfg.fi2_set = 0;
+        manager.my_cfg.reset();
+        manager.partner_cfg.reset();
         manager.dllp_fifo.flush();
         manager.tlp_fifo.flush();
 

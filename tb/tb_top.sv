@@ -64,7 +64,7 @@ module tb_top;
         uvm_config_db#(virtual pcie_lpif_if)::set(uvm_root::get(), "*", "ep_vif", ep_if);
         uvm_config_db#(virtual pcie_lpif_if)::set(uvm_root::get(), "*", "lnk_vif", rc_if);
         // Run Test
-        run_test("pcie_dll_test_base");
+        run_test();
     end
 
 endmodule

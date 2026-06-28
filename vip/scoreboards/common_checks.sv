@@ -1,7 +1,8 @@
 class pcie_dll_common_checks extends uvm_object;
   //TODO : add checks for timing violation in initfc packets in recieving and transmitting
   //TODO : predict and check for current state
-
+  //TODO : add checks for the feature state correct transition
+  
   `uvm_object_utils(pcie_dll_common_checks)
 
   // control signals
@@ -85,6 +86,7 @@ class pcie_dll_common_checks extends uvm_object;
     pcie_dlcmsm_state_e curr_state,
     bit pl_lnk_up
   );
+  //TODO : to be revisited 
     bit regresses_from_active;
 
     regresses_from_active = (prev_state == DL_ACTIVE) && pl_lnk_up &&
@@ -339,30 +341,32 @@ class pcie_dll_common_checks extends uvm_object;
     //         end
           
           
-    //         // Error packet --> keep counter the same
-    //         if (pcie_dll_pkg::error_expector::determine_error_status(rx_dllp_item) != ERROR_FREE) begin 
-    //                     is_valid = (prev_st_count == current_st_count);
-    //         end
-    //         // repeated INITFC packets --> reset if 5 reptations
-    //         else if (current_dllp_type == prev_dllp_type) begin // repeated initfc
-    //                     is_valid = (prev_st_count == current_st_count);
-    //         end
-    //         // disorder INITFC packets --> zero
-    //         else if (   (current_state == DL_INIT_FC1 && prev_state == DL_FEATURE_EXCH) && current_dllp_type inside {DLLP_INITFC1_NP, DLLP_INITFC1_CPL}
-    //                   ||(current_dllp_type inside {DLLP_INITFC1_CPL } && prev_dllp_type inside {DLLP_INITFC1_P   })
-    //                   ||(current_dllp_type inside {DLLP_INITFC1_P   } && prev_dllp_type inside {DLLP_INITFC1_NP  })
-    //                   ||(current_dllp_type inside {DLLP_INITFC1_NP  } && prev_dllp_type inside {DLLP_INITFC1_CPL })
-    //                   ||(current_state == DL_INIT_FC2 && prev_state == DL_INIT_FC1)     && current_dllp_type inside {DLLP_INITFC2_NP, DLLP_INITFC2_CPL}
-    //                   ||(current_dllp_type inside {DLLP_INITFC2_CPL } && prev_dllp_type inside {DLLP_INITFC2_P   })
-    //                   ||(current_dllp_type inside {DLLP_INITFC2_P   } && prev_dllp_type inside {DLLP_INITFC2_NP  })
-    //                   ||(current_dllp_type inside {DLLP_INITFC2_NP  } && prev_dllp_type inside {DLLP_INITFC2_CPL }) ) begin
-    //                     is_valid = (current_st_count == 0);
-    //         end 
+            // Error packet --> keep counter the same
+            if (pcie_dll_pkg::error_expector::determine_error_status(rx_dllp_item) != ERROR_FREE) begin 
+                        is_valid = (prev_st_count == current_st_count);
+            end
+            // repeated INITFC packets --> reset if 5 reptations
+            else if (current_dllp_type == prev_dllp_type) begin // repeated initfc
+                        is_valid = (prev_st_count == current_st_count);
+            end
+            // disorder INITFC packets --> zero
+            else if (   (current_state == DL_INIT_FC1 && prev_state == DL_FEATURE_EXCH) && current_dllp_type inside {DLLP_INITFC1_NP, DLLP_INITFC1_CPL}
+                      ||(current_dllp_type inside {DLLP_INITFC1_CPL } && prev_dllp_type inside {DLLP_INITFC1_P   })
+                      ||(current_dllp_type inside {DLLP_INITFC1_P   } && prev_dllp_type inside {DLLP_INITFC1_NP  })
+                      ||(current_dllp_type inside {DLLP_INITFC1_NP  } && prev_dllp_type inside {DLLP_INITFC1_CPL })
+                      ||(current_state == DL_INIT_FC2 && prev_state == DL_INIT_FC1)     && current_dllp_type inside {DLLP_INITFC2_NP, DLLP_INITFC2_CPL}
+                      ||(current_dllp_type inside {DLLP_INITFC2_CPL } && prev_dllp_type inside {DLLP_INITFC2_P   })
+                      ||(current_dllp_type inside {DLLP_INITFC2_P   } && prev_dllp_type inside {DLLP_INITFC2_NP  })
+                      ||(current_dllp_type inside {DLLP_INITFC2_NP  } && prev_dllp_type inside {DLLP_INITFC2_CPL }) ) begin
+                        is_valid = (current_st_count == 0);
+                        //TODO : revisit the drop_packets function
+            end 
 
-    //         // INITFC1 within INITFC2 --> reset
-    //         else if (   (current_dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC1_NP, DLLP_INITFC1_CPL} && prev_dllp_type inside {DLLP_INITFC2_P, DLLP_INITFC2_NP, DLLP_INITFC2_CPL}) ) begin
-    //                     is_valid = (current_st_count == prev_st_count);
-    //         end
+            // INITFC1 within INITFC2 --> reset
+            else if (   (current_dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC1_NP, DLLP_INITFC1_CPL} && prev_dllp_type inside {DLLP_INITFC2_P, DLLP_INITFC2_NP, DLLP_INITFC2_CPL}) ) begin
+                        is_valid = (current_st_count == prev_st_count); 
+                        //TODO : revisit the drop_packets function
+            end
 
     //         else begin // normal behavior
     //                 is_valid = (current_st_count == prev_st_count+1);

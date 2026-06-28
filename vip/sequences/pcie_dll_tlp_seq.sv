@@ -1,29 +1,44 @@
+// ---- pcie_dll_tlp_seq ----
+// Generates a single Transaction Layer Packet (TLP) sequence item.
+// Used for basic directed testing by injecting a fixed dummy 
+// 128-bit TLP payload into the design without randomization.
+
 class pcie_dll_tlp_seq extends pcie_dll_base_seq;
 
-// registeration 
-`uvm_object_utils(pcie_dll_tlp_seq)
+  // ---- UVM Factory Registration ----
+  `uvm_object_utils(pcie_dll_tlp_seq)
 
-// construction
-function new (string name = "pcie_dll_tlp_seq");
-super.new(name);
-endfunction
+  // ---- Constructor ----
+  function new (string name = "pcie_dll_tlp_seq");
+    super.new(name);
+  endfunction
 
-// generate a sequence of TLP sequence item
-virtual task body ();
-pcie_dll_tlp_seq_item tlp_transaction ; // handle
+  // ---- Main Body Task ----
+  virtual task body();
+    pcie_dll_tlp_seq_item tlp_transaction;
 
+    `uvm_info("SEQ", "Starting Basic TLP Traffic Generation...", UVM_LOW)
 
-tlp_transaction= pcie_dll_tlp_seq_item::type_id::create ("tlp_transaction"); // instance in factory 
+    // Create the transaction item via the Factory
+    tlp_transaction = pcie_dll_tlp_seq_item::type_id::create("tlp_transaction");
 
-start_item (tlp_transaction);
+    // Request the Driver
+    start_item(tlp_transaction);
 
-// assign dummy value for tlp
-tlp_transaction.tlp = 128'hDEADBEEF_CAFEBABE_11223344_55667788;
+    // Assign the fixed dummy payload (Directed Stimulus)
+    if (!tlp_transaction.randomize() with { 
+            current_state == DL_ACTIVE;
+            tlp           == 128'hDEADBEEF_CAFEBABE_11223344_55667788;
+          }) begin
+        `uvm_fatal("SEQ_ITEM", "TLP Generation Failed!")
+      end
+    
 
-finish_item (tlp_transaction);
+    // Send the item to the Driver
+    finish_item(tlp_transaction);
 
+    `uvm_info("SEQ", "Basic TLP Traffic Complete.", UVM_LOW)
 
-endtask
+  endtask
 
-
-endclass : pcie_dll_tlp_seq 
+endclass : pcie_dll_tlp_seq

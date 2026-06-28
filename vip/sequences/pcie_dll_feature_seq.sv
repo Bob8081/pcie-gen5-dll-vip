@@ -11,13 +11,12 @@ class pcie_dll_feature_seq extends pcie_dll_base_seq;
   // ---- Sequence signals ----
   // Number of Feature Request packets to generate (Default is 5000)
   rand int unsigned   req_count;
-  rand bit [22:0]     seq_feature_support; //TODO : don't make the feature supported field random and make it inhirited from the config 
-  bit            seq_feature_ack;
+  rand bit [22:0]     seq_feature_support;
+       bit            seq_feature_ack;
 
   // ---- Constructor ----
   function new (string name = "pcie_dll_feature_seq");
     super.new(name);
-    seq_feature_ack = 0; 
   endfunction
 
   // ---- Main Body Task ----
@@ -29,7 +28,7 @@ class pcie_dll_feature_seq extends pcie_dll_base_seq;
     // Randomize sequence-level variables (Phase sizes and Constant Credits)
     if (!this.randomize() with { 
           req_count           inside {[1:5000]};
-          seq_feature_support inside {1'b1};
+          seq_feature_support inside {23'd1};
         }) begin
       `uvm_fatal("SEQ", "Sequence Randomization Failed!")
     end

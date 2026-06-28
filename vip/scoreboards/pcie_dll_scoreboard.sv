@@ -98,11 +98,9 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     // TODO: cross-validate Tx-driven DLLPs against expected protocol state
     // pcie_dll_dllp_seq_item dllp_item;
 
-    // if (!$cast(dllp_item, item)) begin
-    //   if (tx_curr_state != DL_ACTIVE) begin  // TLP sent while link is not active
-    //     `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
-    //   end
-    // end
+    if (!$cast(dllp_item, item) && (dllp_item.current_state != DL_ACTIVE)) begin
+      `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
+    end
 
     // tx_dllp_item      = dllp_item;
     // tx_prev_state     = tx_curr_state;
@@ -110,11 +108,11 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     // tx_prev_dllp_type = tx_curr_dllp_type;
     // tx_curr_dllp_type = dllp_item.dllp_type;
 
-    // checks.tx_updated = 1'b1; // Set the flag to indicate a new Tx item has been processed
-    // // calling some common checks
-    // checks.check_symmetric_active (tx_prev_state, tx_curr_state,
-    //                                rx_prev_state, rx_curr_state);
-
+    checks.tx_updated = 1'b1; // Set the flag to indicate a new Tx item has been processed
+    // calling some common checks
+    checks.check_symmetric_active (tx_prev_state, tx_curr_state, 
+                                   rx_prev_state, rx_curr_state);
+    //TODO : add the same checks as the write_rx ones .. no?
   endfunction
 
   // Called when the Rx monitor publishes a received DLLP
@@ -123,10 +121,8 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     int unsigned next_order_step;
     string fatal_msg;
 
-    if (!$cast(dllp_item, item)) begin
-      if (rx_curr_state != DL_ACTIVE) begin  // TLP received while link is not active
-        `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
-      end
+    if ((!$cast(dllp_item, item)) && (dllp_item.current_state != DL_ACTIVE) ) begin
+      `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
     end
 
     rx_dllp_item      = dllp_item;
@@ -285,6 +281,7 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
       fatal_msg = "FATAL: DL_INIT_FC1 -> DL_INIT_FC2 occurred before FI1 was set. FI1 must be asserted only after all InitFC1 credits are recorded for P, NP, and Cpl.";
       `uvm_fatal("SCOREBOARD",
         fatal_msg)
+
     end else if (!checks.check_active_gate_fi2(prev_state, curr_state, my_cfg.fi2_set)) begin
       fatal_msg = "FATAL: DL_Init -> DL_Active occurred before FI2 was set. FI2 must be asserted by an InitFC2 DLLP or TLP on VC0 first.";
       `uvm_fatal("SCOREBOARD",
