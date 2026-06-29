@@ -39,26 +39,31 @@ class pcie_dll_DL_INIT_FC1 extends pcie_dll_base_state;
 
                 if (manager.my_cfg.counter_fc1 == 3) 
                 begin
+                    manager.my_cfg.fi1_set = 1;
                     //TODO :add event for setting the initfc1 flag and make it break the loop not the manager.my_cfg.counter_fc1 check (done)
                     //TODO : add check for initfc2 recieve and make it trigger the flag only  (done)
+                    `uvm_info("INITFC1_STATE", "recieved prefect  triplets, setting fi1_set flag to 1", UVM_LOW)
+                    break; 
+                    //TODO : amybe make it only tranisition with the recieved credits condition 
+                    // I mean if you recieved prefect triplets then ofc you saved the credits
+                end
+
+                else if ((rx_p && rx_np && rx_cpl))
+                begin 
+                    //TODO : throw errors when the protocol is violated 
+                    //TODO : add checks for the timing using the timing check in the sequences (done)
+                    //TODO : add check for values of credits recieved is matched in each packet 
+                    manager.my_cfg.fi1_set = 1;
+                    `uvm_info("INITFC1_STATE", "All three DLLP types recieved, setting fi1_set flag to 1", UVM_LOW)
                     break;
                 end
 
-                else 
-                begin 
-                    //TODO : throw errors when the protocol is violated 
-                    //TODO : add checks for the timing using the timing check in the sequences 
-                    //TODO : add check for values of credits recieved is matched in each packet 
-
-
+                else
+                begin
                     manager.dllp_fifo.get(dllp_item_rx);
 
-                    if ((rx_p && rx_np && rx_cpl))
-                    //if ((dllp_item_rx.dllp_type == DLLP_INITFC2_P) || (rx_p && rx_np && rx_cpl)) 
-                    begin
-                        break;
-                    end
-                    else if ( (dllp_item_rx.dllp_type == DLLP_INITFC1_P) || (dllp_item_rx.dllp_type == DLLP_INITFC2_P))
+                    
+                    if ( (dllp_item_rx.dllp_type == DLLP_INITFC1_P) || (dllp_item_rx.dllp_type == DLLP_INITFC2_P))
                     begin
 
                         if (rx_p)

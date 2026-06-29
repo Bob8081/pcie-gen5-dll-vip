@@ -1,7 +1,8 @@
 class pcie_dll_common_checks extends uvm_object;
   //TODO : add checks for timing violation in initfc packets in recieving and transmitting
   //TODO : predict and check for current state
-
+  //TODO : add checks for the feature state correct transition
+  
   `uvm_object_utils(pcie_dll_common_checks)
 
   // control signals
@@ -85,6 +86,7 @@ class pcie_dll_common_checks extends uvm_object;
     pcie_dlcmsm_state_e curr_state,
     bit pl_lnk_up
   );
+  //TODO : to be revisited 
     bit regresses_from_active;
 
     regresses_from_active = (prev_state == DL_ACTIVE) && pl_lnk_up &&
@@ -225,6 +227,35 @@ class pcie_dll_common_checks extends uvm_object;
   );
     // Mask out bit 0; the remaining bits [22:1] must all be zero.
     if (feature_support[22:1] != 22'b0) begin
+      return 0;
+    end
+    return 1;
+  endfunction
+
+
+  /**
+   * check_feature_ack_handshake
+   * @brief Verify that the Feature Ack bit in a transmitted/received
+   *        DLLP_FEATURE_REQ equals the Remote Data Link Feature Supported
+   *        Valid bit (PCIe Base Spec Rev 5.0).
+   *
+   *        The spec mandates strict equality: a device sets feature_ack=1
+   *        if and only if it has already received a valid Feature DLLP from
+   *        its partner.  Setting ack=1 before that happens is a protocol
+   *        violation; leaving ack=0 after receiving is also non-compliant.
+   *
+   * @param feature_ack          The feature_ack bit from the DLLP under test.
+   * @param remote_feature_valid 1 if the sender has already received a valid
+   *                             Feature DLLP from its peer; 0 otherwise.
+   * @return 1 if feature_ack == remote_feature_valid (check passes),
+   *         0 if they differ (ERROR)
+   * @severity ERROR
+   */
+  function bit check_feature_ack_handshake(
+    bit feature_ack,
+    bit remote_feature_valid
+  );
+    if (feature_ack !== remote_feature_valid) begin
       return 0;
     end
     return 1;

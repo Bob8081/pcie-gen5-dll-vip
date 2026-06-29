@@ -52,7 +52,7 @@ class pcie_dll_tx_drv extends uvm_driver #(pcie_dll_base_seq_item);
 
                 if ($cast(dllp_txn, req)) begin
                     // delay DLLP transaction if it desired depending on cfg
-                    if (dllp_txn.delayed_packets)
+                    if (cfg.delayed_packets)
                         repeat (dllp_txn.delay) @(vif.cb_drv);
 
                     // callback pre_transmit

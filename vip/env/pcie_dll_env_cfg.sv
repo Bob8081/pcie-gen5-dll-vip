@@ -20,6 +20,11 @@ class pcie_dll_env_cfg extends uvm_object;
   // number of items iterations in sequences
   rand int unsigned      req_count;
 
+  //TODO : add the possibilty to simulate the DLLSM for any VC  
+  // and not just the default VC0 and maybe add a test that
+  // simulates the DLLSM for all the VCs in a random order
+  bit [3:0] Current_VC;
+
   // Data Link Feature Settings
   rand bit               scaled_fc_supported;
 
@@ -30,7 +35,7 @@ class pcie_dll_env_cfg extends uvm_object;
   rand bit [11:0]        init_fc_data[pcie_fc_type_e]; // Initial data credits (scaled by init_fc_data_scale)
 
   // Timing and behavior knobs
-
+  
   // Number of lclk cycles representing the 34 µs Init RX / Feature RX interval
   // (PCIe Base Spec Rev 5.0). At 1 GHz, 34 µs = 34_000 cycles.
   int unsigned           init_rx_interval_cycles;
