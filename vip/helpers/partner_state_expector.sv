@@ -1,6 +1,6 @@
 class partner_state_expector;
 
-  static pcie_dlcmsm_state_e prev_state [string] = '{default: DL_INACTIVE};; // to contain RC & EP previous states
+  static pcie_dlcmsm_state_e prev_state [string] = '{default: DL_INACTIVE}; // to contain RC & EP previous states
 
    static function pcie_dlcmsm_state_e get_rx_current_state (pcie_dllp_type_e dllp_type, string path);
     

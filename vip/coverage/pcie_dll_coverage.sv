@@ -24,7 +24,7 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
   pcie_dll_my_cfg       my_cfg;
 
 
-  // ---- role of side ----
+  // ---- role of the side ----
    pcie_dll_role_e role;
 
    pcie_dll_fc_watchdog_status_e watchdog_status;
@@ -32,12 +32,28 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
   // events to hit 34 microsecond timeout scenarios in coverage class
   uvm_event timeout_event_fc1;
   uvm_event timeout_event_fc2;
+  uvm_event timeout_event_feature;
 
   // path type signal for controlling
   string path_type;
 
 
   // ---- Covergroups ----
+
+  covergroup tx_machine_transitions (string path_label);
+
+    option.per_instance = 1;
+    option.weight       = 10;  // 10x weight compared to TLP coverage
+    option.name         = path_label;
+    option.comment      = " Tracks DL state machine transitions";
+
+    cp_state_machine: coverpoint state {
+      bins state_machine_flow [] = (DL_INACTIVE => DL_FEATURE_EXCH),
+                                   (DL_INACTIVE => DL_INIT_FC1    ),  
+                                   (DL_INIT_FC1 => DL_INIT_FC2    ), 
+                                   (DL_INIT_FC2 => DL_ACTIVE      );
+      }
+  endgroup
 
   // ---- 1. DLLP Coverage Group ----
   covergroup cg_dllp_transitions (string path_label);
@@ -47,14 +63,6 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     option.name         = path_label;
     option.comment      = " Detailed DLLP Analysis — state, type, errors, credits ";
 
-
-    cp_state_machine: coverpoint state {
-      option.comment = " Tracks DL state machine transitions";
-      bins state_machine_flow [] = (DL_INACTIVE => DL_FEATURE_EXCH),
-                                   (DL_INACTIVE => DL_INIT_FC1    ),  
-                                   (DL_INIT_FC1 => DL_INIT_FC2    ), 
-                                   (DL_INIT_FC2 => DL_ACTIVE      );
-      }
 
     cp_state: coverpoint state {
       option.comment = " Tracks DL state machine states";
@@ -105,7 +113,7 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     cr_invalid_vc: cross cp_state, cp_error_status {
       option.comment = " Invalid VC scenarios during states";
       ignore_bins not_invalid_vc     = !binsof(cp_error_status.invalid_vc);
-      ignore_bins feature_exch       = binsof(cp_state.main_states) intersect {DL_FEATURE_EXCH};
+      ignore_bins feature_exch       =  binsof(cp_state.main_states) intersect {DL_FEATURE_EXCH};
     }
     
 
@@ -173,8 +181,9 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     option.comment      = " Tracks timeout scenarios for InitFC1 and InitFC2 received packets ";
 
     cp_watchdog_status: coverpoint watchdog_status {
-      bins timeout_fc1 = {timeout_fc1};
-      bins timeout_fc2 = {timeout_fc2};
+      bins timeout_feature = {timeout_feature};
+      bins timeout_fc1     = {timeout_fc1};
+      bins timeout_fc2     = {timeout_fc2};
     }
 
   endgroup
@@ -200,8 +209,9 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
 
     // create coverage groups
     if (uvm_is_match("*tx*", name)) begin
-      cg_dllp_transitions = new({get_full_name(), "_dllp"});
-      cg_tlp_transitions  = new({get_full_name(), "_tlp"});
+      cg_dllp_transitions    = new({get_full_name(), "_dllp"});
+      cg_tlp_transitions     = new({get_full_name(), "_tlp"});
+      tx_machine_transitions = new({get_full_name(), "_tx_machine"});
 
       path_type = "Tx_path";
     end
@@ -219,6 +229,7 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
 
     string event_name_fc1 ;
     string event_name_fc2 ;
+    string event_name_feature ;
 
     super.build_phase(phase);
 
@@ -226,24 +237,40 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     if (!uvm_config_db#(pcie_dll_role_e)::get(this, "", "role", role))
       `uvm_fatal("NOCFG", "pcie_dll_env: no role found in config_db")
 
-      // events to hit 34 microsecond timeout scenarios for received packets in coverage class
-      event_name_fc1 = $sformatf("timeout_event_fc1_%s", role.name());
-      event_name_fc2 = $sformatf("timeout_event_fc2_%s", role.name());
+    if(!uvm_config_db#(pcie_dll_my_cfg)::get(this, "", "my_cfg", my_cfg)) begin
+      `uvm_fatal("NOCFG", $sformatf("no my_cfg found in the config_db for %s scoreboard", role.name()))
+    end
 
-      timeout_event_fc1 = uvm_event_pool::get_global(event_name_fc1);
-      timeout_event_fc2 = uvm_event_pool::get_global(event_name_fc2);
+      // events to hit 34 microsecond timeout scenarios for received packets in coverage class
+      event_name_fc1     = $sformatf("timeout_event_fc1_%s", role.name());
+      event_name_fc2     = $sformatf("timeout_event_fc2_%s", role.name());
+      event_name_feature = $sformatf("timeout_event_feature_%s", role.name());
+
+      timeout_event_fc1     = uvm_event_pool::get_global(event_name_fc1);
+      timeout_event_fc2     = uvm_event_pool::get_global(event_name_fc2);
+      timeout_event_feature = uvm_event_pool::get_global(event_name_feature);
 
   endfunction
 
   virtual task run_phase(uvm_phase phase);
     super.run_phase(phase);
       state = DL_INACTIVE;
+      tx_machine_transitions.sample();
       cg_dllp_transitions.sample();
 
 
       // check timeout scenarios
       if (path_type == "Rx_path") begin
       fork
+
+        begin
+          forever begin
+            timeout_event_feature.wait_trigger();
+            watchdog_status = timeout_feature;
+            cg_watchdog.sample();
+            watchdog_status = no_timeout;
+          end
+        end
 
         begin
           forever begin
@@ -279,26 +306,42 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     pcie_dll_dllp_seq_item dllp_item;
     pcie_dll_tlp_seq_item  tlp_item;
 
+    state         = my_cfg.dlsm_state; // Tx path state for both Rx and Tx paths
+    if (path_type == "Tx_path") begin
+        error_status  = pcie_dll_pkg::error_expector::tx_determine_error_status(t, state);
+        tx_machine_transitions.sample();
+      end
+      else begin
+        error_status  = pcie_dll_pkg::error_expector::rx_determine_error_status(t, state);
+      end
+
 
     if ($cast(dllp_item, t)) begin
       dllp          = dllp_item.dllp;
       dllp_type     = dllp_item.dllp_type;
       dllp_payload  = dllp_item.dllp_payload;
       crc           = dllp_item.crc;
-      state         = dllp_item.current_state;
       
-      error_status  = pcie_dll_pkg::error_expector::determine_error_status(dllp_item);
+      cg_dllp_transitions.sample();
+
+      `uvm_info("COVERAGE", $sformatf("------------------------- coverage ----------------------------"), UVM_LOW)
+      `uvm_info("COVERAGE", $sformatf("------------- %s in %s -------------", path_type, role.name()), UVM_LOW)
+      `uvm_info("COVERAGE", $sformatf("--------- DLLP: %h  in Tx_state: %s --------", dllp, state), UVM_LOW)
+      `uvm_info("COVERAGE", $sformatf("-------DLLP type: %s, error status: %s -------", dllp_type.name(), error_status.name()), UVM_LOW)
 
     end
     else if ($cast(tlp_item, t)) begin
       tlp   = tlp_item.tlp;
-      state = DL_ACTIVE; // TODO: determine state based on sequence item
-      `uvm_info("COVERAGE", $sformatf("Received TLP item in state: %s", state), UVM_LOW)
+
+      `uvm_info("COVERAGE", $sformatf("------------------------- coverage ----------------------------"), UVM_LOW)
+      `uvm_info("COVERAGE", $sformatf("------------- %s in %s -------------", path_type, role.name()), UVM_LOW)
+      `uvm_info("COVERAGE", $sformatf("--------- TLP: %h  in Tx_state: %s --------", tlp, state), UVM_LOW)
 
       cg_tlp_transitions.sample();
     end
 
-    cg_dllp_transitions.sample();
+
+
 
   endfunction
 

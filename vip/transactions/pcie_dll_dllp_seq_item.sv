@@ -12,9 +12,10 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
   // Drives the randomization of dllp_type based on the current Link state
   rand pcie_dlcmsm_state_e  current_state;  
 
-  // 
+  // control type of generated traffic behavior
   bit                      enable_errors; // Whether to inject errors in the generated DLLPs using callbacks in driver
   bit                      corrupted_initfc; // Whether to inject errors in InitFC DLLPs (only applicable if enable_errors is set)
+  bit                      delayed_packets; // Whether to introduce delays in packet transmission
 
   // ---- Core DLLP Fields ----
   rand pcie_dllp_type_e     dllp_type;      // INITFC1_P, FEATURE_REQ
@@ -63,12 +64,12 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
     soft current_state inside {DL_INACTIVE};
   }
 
-  // Back-to-back traffic is highly probable, with occasional slight delays
+  // Back-to-back traffic delay distribution (in cycles) for delayed packet generation
   constraint delay_constr { 
     delay dist {
-      0  := 90, 
-      10 := 9, 
-      20 := 1
+      0      := 20, 
+      10000  := 30, 
+      35000  := 50
     };
   }
 
@@ -137,6 +138,7 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
 
     enable_errors    = cfg.enable_errors;
     corrupted_initfc = cfg.corrupted_initfc;
+    delayed_packets  = cfg.delayed_packets;
 
     super.pre_randomize();
   endfunction

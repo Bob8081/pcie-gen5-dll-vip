@@ -26,6 +26,7 @@ class pcie_dll_fc_watchdog extends uvm_component;
   // events to hit timeout scenarios in coverage class
   uvm_event timeout_event_fc1;
   uvm_event timeout_event_fc2;
+  uvm_event timeout_event_feature;
 
 
   // Interface : needed for clock access
@@ -57,6 +58,7 @@ class pcie_dll_fc_watchdog extends uvm_component;
 
     string event_name_fc1 ;
     string event_name_fc2 ;
+    string event_name_feature ;
 
     super.build_phase(phase);
 
@@ -83,11 +85,12 @@ class pcie_dll_fc_watchdog extends uvm_component;
       UVM_MEDIUM)
 
   // events to hit timeout scenarios in coverage class
-  event_name_fc1 = $sformatf("timeout_event_fc1_%s", role.name());
-  event_name_fc2 = $sformatf("timeout_event_fc2_%s", role.name());
-
-  timeout_event_fc1 = uvm_event_pool::get_global(event_name_fc1);
-  timeout_event_fc2 = uvm_event_pool::get_global(event_name_fc2);
+  event_name_fc1        = $sformatf("timeout_event_fc1_%s", role.name());
+  event_name_fc2        = $sformatf("timeout_event_fc2_%s", role.name());
+  event_name_feature    = $sformatf("timeout_event_feature_%s", role.name());
+  timeout_event_fc1     = uvm_event_pool::get_global(event_name_fc1);
+  timeout_event_fc2     = uvm_event_pool::get_global(event_name_fc2);
+  timeout_event_feature = uvm_event_pool::get_global(event_name_feature);
   endfunction
 
 
@@ -124,6 +127,10 @@ class pcie_dll_fc_watchdog extends uvm_component;
             // Count the full interval; fire ERROR if no feature DLLP arrived
             repeat (cfg.init_rx_interval_cycles) @(posedge vif.lclk);
             if (curr_state == DL_FEATURE_EXCH) begin
+              // trigger the coverage event for this timeout scenario
+              timeout_event_feature.trigger();
+
+              // Spec violation: DLLP_FEATURE_REQ not received within the interval
               `uvm_error("WDOG_FEAT_TIMEOUT",
                 $sformatf(
                   "[%s] SPEC VIOLATION: DLLP_FEATURE_REQ not received within %0d cycles (%0d µs) while in DL_FEATURE_EXCH.",

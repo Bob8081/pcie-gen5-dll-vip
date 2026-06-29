@@ -13,14 +13,16 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
   pcie_dlcmsm_state_e curr_state;
   bit state_seeded;
 
-  // Track transmitted DLLP
+  // Track transmitted packet
+  pcie_dll_base_seq_item  tx_item;
   pcie_dll_dllp_seq_item  tx_dllp_item;
   pcie_dlcmsm_state_e     tx_prev_state;
   pcie_dlcmsm_state_e     tx_curr_state;
   pcie_dllp_type_e        tx_prev_dllp_type;
   pcie_dllp_type_e        tx_curr_dllp_type;
 
-  // Track received DLLP
+  // Track received packet
+  pcie_dll_base_seq_item  rx_item;
   pcie_dll_dllp_seq_item  rx_dllp_item;
   pcie_dlcmsm_state_e     rx_prev_state;
   pcie_dlcmsm_state_e     rx_curr_state;
@@ -30,6 +32,12 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
   // Track state manager counters
   pcie_state_mgr_counters_s prev_counters;
   pcie_state_mgr_counters_s curr_counters;
+  pcie_state_mgr_counters_s temp_counters;
+
+  // Queues to store packets to avoid race condition
+  pcie_dll_base_seq_item     tx_queue [$];
+  pcie_dll_base_seq_item     rx_queue [$];
+  pcie_state_mgr_counters_s  counters_queue[$];
 
 
   // Track RX DLLP ordering
@@ -56,13 +64,11 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
 
   function new(string name = "pcie_dll_scoreboard", uvm_component parent = null);
     super.new(name, parent);
-    curr_state = DL_INACTIVE;
-    prev_state = DL_INACTIVE;
-    tx_prev_state = DL_INACTIVE;
-    tx_curr_state = DL_INACTIVE;
-    rx_prev_state = DL_INACTIVE;
-    rx_curr_state = DL_INACTIVE;
-    state_seeded  = 0;
+    curr_state     = DL_INACTIVE;
+    prev_state     = DL_INACTIVE;
+    tx_prev_state  = DL_INACTIVE;
+    tx_curr_state  = DL_INACTIVE;
+    state_seeded   = 0;
     rx_initfc1_order_step = 0;
     rx_initfc2_order_step = 0;
     tx_export      = new("tx_export",    this);
@@ -88,25 +94,59 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     end
   endfunction
 
+  virtual task run_phase(uvm_phase phase);
+    super.run_phase(phase);
+
+    forever begin
+    if (tx_queue.size() && rx_queue.size() && (counters_queue.size() || my_cfg.dlsm_state == DL_FEATURE_EXCH)) begin
+      tx_item       = tx_queue.pop_front();
+      rx_item       = rx_queue.pop_front();
+      temp_counters = counters_queue.pop_front();
+
+      prev_counters.counter_fc1  = curr_counters.counter_fc1;
+      prev_counters.counter_fc2  = curr_counters.counter_fc2;
+      curr_counters.counter_fc2  = temp_counters.counter_fc2; // = default value "0" if no counters "feature state"
+      curr_counters.counter_fc1  = temp_counters.counter_fc1; // = default value "0" if no counters "feature state"
+
+      if ($cast(tx_dllp_item, tx_item)) begin
+        tx_prev_state     = tx_curr_state;
+        tx_curr_state     = my_cfg.dlsm_state;
+        tx_prev_dllp_type = tx_curr_dllp_type;
+        tx_curr_dllp_type = tx_dllp_item.dllp_type;
+      end
+
+      if ($cast(rx_dllp_item, rx_item)) begin
+        rx_prev_dllp_type = rx_curr_dllp_type;
+        rx_curr_dllp_type = rx_dllp_item.dllp_type;
+      end
+
+      // calling some common checks functions
+      checks.traffic_isolation_check (rx_item, tx_curr_state);
+
+      checks.check_symmetric_active  (rx_item, tx_curr_state); 
+
+      checks.Credit_Capture          (rx_item, partner_cfg);
+
+      if (tx_curr_state inside {DL_INIT_FC1, DL_INIT_FC2})
+          checks.drop_packets        (rx_curr_dllp_type, rx_prev_dllp_type,
+                                      tx_curr_state    , rx_item,
+                                      curr_counters    , prev_counters);
+
+    end
+  end
+
+  endtask
+
   // Called when the Tx monitor publishes a driven DLLP
   virtual function void write_tx(pcie_dll_base_seq_item item);
     // TODO: cross-validate Tx-driven DLLPs against expected protocol state
     pcie_dll_dllp_seq_item dllp_item;
 
-    if (!$cast(dllp_item, item) && (dllp_item.current_state != DL_ACTIVE)) begin
+    tx_queue.push_front(item);
+
+    if (!$cast(dllp_item, item) && (my_cfg.dlsm_state != DL_ACTIVE)) begin // protocol violation
       `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
     end
-
-    tx_dllp_item      = dllp_item;
-    tx_prev_state     = tx_curr_state;
-    tx_curr_state     = dllp_item.current_state;
-    tx_prev_dllp_type = tx_curr_dllp_type;
-    tx_curr_dllp_type = dllp_item.dllp_type;
-
-    checks.tx_updated = 1'b1; // Set the flag to indicate a new Tx item has been processed
-    // calling some common checks
-    checks.check_symmetric_active (tx_prev_state, tx_curr_state, 
-                                   rx_prev_state, rx_curr_state);
 
   endfunction
 
@@ -116,15 +156,16 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     int unsigned next_order_step;
     string fatal_msg;
 
-    if ((!$cast(dllp_item, item)) && (dllp_item.current_state != DL_ACTIVE) ) begin
-      `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
-    end
+    rx_queue.push_front(item);
 
-    rx_dllp_item      = dllp_item;
-    rx_prev_state     = rx_curr_state;
-    rx_curr_state     = dllp_item.current_state;
-    rx_prev_dllp_type = rx_curr_dllp_type;
-    rx_curr_dllp_type = dllp_item.dllp_type;
+    if (!$cast(dllp_item, item)) begin
+      if (!(my_cfg.dlsm_state inside {DL_INIT_FC2, DL_ACTIVE, DL_INACTIVE})) begin
+        `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
+      end
+      else begin
+        return ;
+      end
+    end
 
     // Check: Reserved Fields Zero 
     // Bits [22:1] of the Feature Supported field must be zero.
@@ -181,39 +222,14 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
       end
     end
 
-    checks.rx_updated = 1'b1; // Set the flag to indicate a new Rx item has been processed
-    // calling some common checks
-    checks.traffic_isolation_check (dllp_item);
-
-    checks.check_symmetric_active  (tx_prev_state, tx_curr_state, 
-                                    rx_prev_state, rx_curr_state);
-
-    checks.drop_packets            (rx_curr_dllp_type, rx_prev_dllp_type,
-                                    curr_counters    , prev_counters,
-                                    rx_curr_state    , rx_prev_state ,
-                                    rx_dllp_item );
-
-    checks.Credit_Capture          (dllp_item, partner_cfg);
-
 endfunction
 
 
-  // Called when the state manager publishes a new state
+  // Called when the state manager update its counters due to receive packets
   virtual function void write_counter (pcie_state_mgr_counters_s counters);
-        prev_counters.counter_fc1  = curr_counters.counter_fc1;
-        prev_counters.counter_fc2  = curr_counters.counter_fc2;
-        curr_counters.counter_fc2  = counters.counter_fc2;
-        curr_counters.counter_fc1  = counters.counter_fc1;
-
-        checks.counter_update = 1'b1; // Set the flag to indicate a new counter item has been processed
-        // calling some common checks
-        checks.drop_packets (rx_curr_dllp_type, rx_prev_dllp_type,
-                             curr_counters    , prev_counters,
-                             rx_curr_state    , rx_prev_state,
-                             rx_dllp_item );
-
-
+      counters_queue.push_front(counters);
   endfunction
+
 
   // This function is called automatically when the state_mgr writes to the port
   virtual function void write_state(pcie_dlcmsm_state_e new_state);

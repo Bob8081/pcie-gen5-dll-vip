@@ -1,0 +1,732 @@
+COVERGROUP COVERAGE:
+-----------------------------------------------------------------------------------------------
+Covergroup                                             Metric       Goal    Status               
+                                                                                              
+-----------------------------------------------------------------------------------------------
+ TYPE /pcie_dll_pkg/pcie_dll_coverage/tx_machine_transitions 
+                                                       100.0%        100    Covered              
+    covered/total bins:                                     8          8                      
+    missing/total bins:                                     0          8                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint tx_machine_transitions::cp_state_machine 
+                                                       100.0%        100    Covered              
+        covered/total bins:                                 8          8                      
+        missing/total bins:                                 0          8                      
+        % Hit:                                         100.0%        100                      
+ CLASS pcie_dll_coverage
+ Covergroup instance uvm_test_top.env_ep.cov_tx_tx_machine 
+                                                       100.0%        100    Covered              
+    covered/total bins:                                     4          4                      
+    missing/total bins:                                     0          4                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint cp_state_machine                        100.0%        100    Covered              
+        covered/total bins:                                 4          4                      
+        missing/total bins:                                 0          4                      
+        % Hit:                                         100.0%        100                      
+        bin state_machine_flow[DL_INACTIVE=>DL_FEATURE_EXCH] 
+                                                            5          1    Covered              
+        bin state_machine_flow[DL_INACTIVE=>DL_INIT_FC1] 
+                                                            1          1    Covered              
+        bin state_machine_flow[DL_INIT_FC1=>DL_INIT_FC2] 
+                                                           20          1    Covered              
+        bin state_machine_flow[DL_INIT_FC2=>DL_ACTIVE] 
+                                                           15          1    Covered              
+ Covergroup instance uvm_test_top.env_rc.cov_tx_tx_machine 
+                                                       100.0%        100    Covered              
+    covered/total bins:                                     4          4                      
+    missing/total bins:                                     0          4                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint cp_state_machine                        100.0%        100    Covered              
+        covered/total bins:                                 4          4                      
+        missing/total bins:                                 0          4                      
+        % Hit:                                         100.0%        100                      
+        bin state_machine_flow[DL_INACTIVE=>DL_FEATURE_EXCH] 
+                                                            5          1    Covered              
+        bin state_machine_flow[DL_INACTIVE=>DL_INIT_FC1] 
+                                                            1          1    Covered              
+        bin state_machine_flow[DL_INIT_FC1=>DL_INIT_FC2] 
+                                                           20          1    Covered              
+        bin state_machine_flow[DL_INIT_FC2=>DL_ACTIVE] 
+                                                           18          1    Covered              
+ TYPE /pcie_dll_pkg/pcie_dll_coverage/cg_dllp_transitions 
+                                                       100.0%        100    Covered              
+    covered/total bins:                                   208        208                      
+    missing/total bins:                                     0        208                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint cg_dllp_transitions::cp_state           100.0%        100    Covered              
+        covered/total bins:                                12         12                      
+        missing/total bins:                                 0         12                      
+        % Hit:                                         100.0%        100                      
+    Coverpoint cg_dllp_transitions::cp_dllp_type       100.0%        100    Covered              
+        covered/total bins:                                28         28                      
+        missing/total bins:                                 0         28                      
+        % Hit:                                         100.0%        100                      
+    Coverpoint cg_dllp_transitions::cp_error_status 
+                                                       100.0%        100    Covered              
+        covered/total bins:                                16         16                      
+        missing/total bins:                                 0         16                      
+        % Hit:                                         100.0%        100                      
+    Coverpoint cg_dllp_transitions::cp_initfc          100.0%        100    Covered              
+        covered/total bins:                                64         64                      
+        missing/total bins:                                 0         64                      
+        % Hit:                                         100.0%        100                      
+    Coverpoint cg_dllp_transitions::cp_data_credits 
+                                                       100.0%        100    Covered              
+        covered/total bins:                                 4          4                      
+        missing/total bins:                                 0          4                      
+        % Hit:                                         100.0%        100                      
+    Coverpoint cg_dllp_transitions::cp_hdr_credits     100.0%        100    Covered              
+        covered/total bins:                                 4          4                      
+        missing/total bins:                                 0          4                      
+        % Hit:                                         100.0%        100                      
+    Cross cg_dllp_transitions::cr_inv_dllp             100.0%        100    Covered              
+        covered/total bins:                                12         12                      
+        missing/total bins:                                 0         12                      
+        % Hit:                                         100.0%        100                      
+    Cross cg_dllp_transitions::cr_wrong_crc            100.0%        100    Covered              
+        covered/total bins:                                12         12                      
+        missing/total bins:                                 0         12                      
+        % Hit:                                         100.0%        100                      
+    Cross cg_dllp_transitions::cr_invalid_vc           100.0%        100    Covered              
+        covered/total bins:                                 8          8                      
+        missing/total bins:                                 0          8                      
+        % Hit:                                         100.0%        100                      
+    Cross cg_dllp_transitions::cr_zero_data_credits 
+                                                       100.0%        100    Covered              
+        covered/total bins:                                24         24                      
+        missing/total bins:                                 0         24                      
+        % Hit:                                         100.0%        100                      
+    Cross cg_dllp_transitions::cr_zero_hdr_credits     100.0%        100    Covered              
+        covered/total bins:                                24         24                      
+        missing/total bins:                                 0         24                      
+        % Hit:                                         100.0%        100                      
+ CLASS pcie_dll_coverage
+ Covergroup instance uvm_test_top.env_ep.cov_tx_dllp 
+                                                       100.0%        100    Covered              
+    covered/total bins:                                    52         52                      
+    missing/total bins:                                     0         52                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint cp_state                                100.0%        100    Covered              
+        covered/total bins:                                 3          3                      
+        missing/total bins:                                 0          3                      
+        % Hit:                                         100.0%        100                      
+        bin main_states[DL_FEATURE_EXCH]                   53          1    Covered              
+        bin main_states[DL_INIT_FC1]                      106          1    Covered              
+        bin main_states[DL_INIT_FC2]                      228          1    Covered              
+    Coverpoint cp_dllp_type                            100.0%        100    Covered              
+        covered/total bins:                                 7          7                      
+        missing/total bins:                                 0          7                      
+        % Hit:                                         100.0%        100                      
+        bin feature_state                                  35          1    Covered              
+        bin init_state_1[DLLP_INITFC1_P]                   24          1    Covered              
+        bin init_state_1[DLLP_INITFC1_NP]                  34          1    Covered              
+        bin init_state_1[DLLP_INITFC1_CPL]                 32          1    Covered              
+        bin init_state_2[DLLP_INITFC2_P]                   57          1    Covered              
+        bin init_state_2[DLLP_INITFC2_NP]                  51          1    Covered              
+        bin init_state_2[DLLP_INITFC2_CPL]                 50          1    Covered              
+    Coverpoint cp_error_status                         100.0%        100    Covered              
+        covered/total bins:                                 4          4                      
+        missing/total bins:                                 0          4                      
+        % Hit:                                         100.0%        100                      
+        bin invalid_dllp                                   42          1    Covered              
+        bin wrong_crc                                      52          1    Covered              
+        bin invalid_vc                                     63          1    Covered              
+        bin error_free                                    230          1    Covered              
+    Coverpoint cp_initfc                               100.0%        100    Covered              
+        covered/total bins:                                16         16                      
+        missing/total bins:                                 0         16                      
+        % Hit:                                         100.0%        100                      
+        bin initfc1_B2B                                    11          1    Covered              
+        bin initfc1_disorder[DLLP_INITFC1_P=>DLLP_INITFC1_CPL] 
+                                                            3          1    Covered              
+        bin initfc1_disorder[DLLP_INITFC1_NP=>DLLP_INITFC1_P] 
+                                                            5          1    Covered              
+        bin initfc1_disorder[DLLP_INITFC1_CPL=>DLLP_INITFC1_NP] 
+                                                            6          1    Covered              
+        bin initfc1_repeated[DLLP_INITFC1_P=>DLLP_INITFC1_P] 
+                                                            2          1    Covered              
+        bin initfc1_repeated[DLLP_INITFC1_NP=>DLLP_INITFC1_NP] 
+                                                            5          1    Covered              
+        bin initfc1_repeated[DLLP_INITFC1_CPL=>DLLP_INITFC1_CPL] 
+                                                            3          1    Covered              
+        bin initfc2_B2B                                    18          1    Covered              
+        bin initfc2_disorder[DLLP_INITFC2_P=>DLLP_INITFC2_CPL] 
+                                                           10          1    Covered              
+        bin initfc2_disorder[DLLP_INITFC2_NP=>DLLP_INITFC2_P] 
+                                                            9          1    Covered              
+        bin initfc2_disorder[DLLP_INITFC2_CPL=>DLLP_INITFC2_NP] 
+                                                            9          1    Covered              
+        bin initfc2_repeated[DLLP_INITFC2_P=>DLLP_INITFC2_P] 
+                                                            6          1    Covered              
+        bin initfc2_repeated[DLLP_INITFC2_NP=>DLLP_INITFC2_NP] 
+                                                           10          1    Covered              
+        bin initfc2_repeated[DLLP_INITFC2_CPL=>DLLP_INITFC2_CPL] 
+                                                            5          1    Covered              
+        bin initfc2_witin_initfc1                           5          1    Covered              
+        bin initfc1_witin_initfc2                           3          1    Covered              
+    Coverpoint cp_data_credits                         100.0%        100    Covered              
+        covered/total bins:                                 1          1                      
+        missing/total bins:                                 0          1                      
+        % Hit:                                         100.0%        100                      
+        bin no_data_credits                                59          1    Covered              
+    Coverpoint cp_hdr_credits                          100.0%        100    Covered              
+        covered/total bins:                                 1          1                      
+        missing/total bins:                                 0          1                      
+        % Hit:                                         100.0%        100                      
+        bin no_hdr_credits                                106          1    Covered              
+    Cross cr_inv_dllp                                  100.0%        100    Covered              
+        covered/total bins:                                 3          3                      
+        missing/total bins:                                 0          3                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin not_invalid_dllp                       345               Occurred             
+        bin <main_states[DL_FEATURE_EXCH],invalid_dllp> 
+                                                           19          1    Covered              
+        bin <main_states[DL_INIT_FC1],invalid_dllp> 
+                                                            6          1    Covered              
+        bin <main_states[DL_INIT_FC2],invalid_dllp> 
+                                                           17          1    Covered              
+    Cross cr_wrong_crc                                 100.0%        100    Covered              
+        covered/total bins:                                 3          3                      
+        missing/total bins:                                 0          3                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin not_wrong_crc                          335               Occurred             
+        bin <main_states[DL_FEATURE_EXCH],wrong_crc> 
+                                                            5          1    Covered              
+        bin <main_states[DL_INIT_FC1],wrong_crc>            7          1    Covered              
+        bin <main_states[DL_INIT_FC2],wrong_crc>           40          1    Covered              
+    Cross cr_invalid_vc                                100.0%        100    Covered              
+        covered/total bins:                                 2          2                      
+        missing/total bins:                                 0          2                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin not_invalid_vc                         324               Occurred             
+        ignore_bin feature_exch                            53               Occurred             
+        bin <main_states[DL_INIT_FC1],invalid_vc>          10          1    Covered              
+        bin <main_states[DL_INIT_FC2],invalid_vc>          53          1    Covered              
+    Cross cr_zero_data_credits                         100.0%        100    Covered              
+        covered/total bins:                                 6          6                      
+        missing/total bins:                                 0          6                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin zero_credit                              0               ZERO                 
+        bin <init_state_1[DLLP_INITFC1_P],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_NP],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_CPL],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_P],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_NP],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_CPL],no_data_credits> 
+                                                            4          1    Covered              
+    Cross cr_zero_hdr_credits                          100.0%        100    Covered              
+        covered/total bins:                                 6          6                      
+        missing/total bins:                                 0          6                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin zero_credit                             35               Occurred             
+        bin <init_state_1[DLLP_INITFC1_P],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_NP],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_CPL],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_P],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_NP],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_CPL],no_hdr_credits> 
+                                                            4          1    Covered              
+ Covergroup instance uvm_test_top.env_ep.cov_rx_dllp 
+                                                       100.0%        100    Covered              
+    covered/total bins:                                    52         52                      
+    missing/total bins:                                     0         52                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint cp_state                                100.0%        100    Covered              
+        covered/total bins:                                 3          3                      
+        missing/total bins:                                 0          3                      
+        % Hit:                                         100.0%        100                      
+        bin main_states[DL_FEATURE_EXCH]                   56          1    Covered              
+        bin main_states[DL_INIT_FC1]                      114          1    Covered              
+        bin main_states[DL_INIT_FC2]                      244          1    Covered              
+    Coverpoint cp_dllp_type                            100.0%        100    Covered              
+        covered/total bins:                                 7          7                      
+        missing/total bins:                                 0          7                      
+        % Hit:                                         100.0%        100                      
+        bin feature_state                                  38          1    Covered              
+        bin init_state_1[DLLP_INITFC1_P]                   41          1    Covered              
+        bin init_state_1[DLLP_INITFC1_NP]                  46          1    Covered              
+        bin init_state_1[DLLP_INITFC1_CPL]                 41          1    Covered              
+        bin init_state_2[DLLP_INITFC2_P]                   41          1    Covered              
+        bin init_state_2[DLLP_INITFC2_NP]                  51          1    Covered              
+        bin init_state_2[DLLP_INITFC2_CPL]                 58          1    Covered              
+    Coverpoint cp_error_status                         100.0%        100    Covered              
+        covered/total bins:                                 4          4                      
+        missing/total bins:                                 0          4                      
+        % Hit:                                         100.0%        100                      
+        bin invalid_dllp                                   47          1    Covered              
+        bin wrong_crc                                      51          1    Covered              
+        bin invalid_vc                                     59          1    Covered              
+        bin error_free                                    262          1    Covered              
+    Coverpoint cp_initfc                               100.0%        100    Covered              
+        covered/total bins:                                16         16                      
+        missing/total bins:                                 0         16                      
+        % Hit:                                         100.0%        100                      
+        bin initfc1_B2B                                    16          1    Covered              
+        bin initfc1_disorder[DLLP_INITFC1_P=>DLLP_INITFC1_CPL] 
+                                                            4          1    Covered              
+        bin initfc1_disorder[DLLP_INITFC1_NP=>DLLP_INITFC1_P] 
+                                                            8          1    Covered              
+        bin initfc1_disorder[DLLP_INITFC1_CPL=>DLLP_INITFC1_NP] 
+                                                            3          1    Covered              
+        bin initfc1_repeated[DLLP_INITFC1_P=>DLLP_INITFC1_P] 
+                                                            4          1    Covered              
+        bin initfc1_repeated[DLLP_INITFC1_NP=>DLLP_INITFC1_NP] 
+                                                            2          1    Covered              
+        bin initfc1_repeated[DLLP_INITFC1_CPL=>DLLP_INITFC1_CPL] 
+                                                            3          1    Covered              
+        bin initfc2_B2B                                    17          1    Covered              
+        bin initfc2_disorder[DLLP_INITFC2_P=>DLLP_INITFC2_CPL] 
+                                                            6          1    Covered              
+        bin initfc2_disorder[DLLP_INITFC2_NP=>DLLP_INITFC2_P] 
+                                                            7          1    Covered              
+        bin initfc2_disorder[DLLP_INITFC2_CPL=>DLLP_INITFC2_NP] 
+                                                           10          1    Covered              
+        bin initfc2_repeated[DLLP_INITFC2_P=>DLLP_INITFC2_P] 
+                                                            6          1    Covered              
+        bin initfc2_repeated[DLLP_INITFC2_NP=>DLLP_INITFC2_NP] 
+                                                            6          1    Covered              
+        bin initfc2_repeated[DLLP_INITFC2_CPL=>DLLP_INITFC2_CPL] 
+                                                           14          1    Covered              
+        bin initfc2_witin_initfc1                           5          1    Covered              
+        bin initfc1_witin_initfc2                           3          1    Covered              
+    Coverpoint cp_data_credits                         100.0%        100    Covered              
+        covered/total bins:                                 1          1                      
+        missing/total bins:                                 0          1                      
+        % Hit:                                         100.0%        100                      
+        bin no_data_credits                                63          1    Covered              
+    Coverpoint cp_hdr_credits                          100.0%        100    Covered              
+        covered/total bins:                                 1          1                      
+        missing/total bins:                                 0          1                      
+        % Hit:                                         100.0%        100                      
+        bin no_hdr_credits                                105          1    Covered              
+    Cross cr_inv_dllp                                  100.0%        100    Covered              
+        covered/total bins:                                 3          3                      
+        missing/total bins:                                 0          3                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin not_invalid_dllp                       367               Occurred             
+        bin <main_states[DL_FEATURE_EXCH],invalid_dllp> 
+                                                           13          1    Covered              
+        bin <main_states[DL_INIT_FC1],invalid_dllp> 
+                                                            9          1    Covered              
+        bin <main_states[DL_INIT_FC2],invalid_dllp> 
+                                                           25          1    Covered              
+    Cross cr_wrong_crc                                 100.0%        100    Covered              
+        covered/total bins:                                 3          3                      
+        missing/total bins:                                 0          3                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin not_wrong_crc                          363               Occurred             
+        bin <main_states[DL_FEATURE_EXCH],wrong_crc> 
+                                                           11          1    Covered              
+        bin <main_states[DL_INIT_FC1],wrong_crc>            8          1    Covered              
+        bin <main_states[DL_INIT_FC2],wrong_crc>           32          1    Covered              
+    Cross cr_invalid_vc                                100.0%        100    Covered              
+        covered/total bins:                                 2          2                      
+        missing/total bins:                                 0          2                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin not_invalid_vc                         355               Occurred             
+        ignore_bin feature_exch                            56               Occurred             
+        bin <main_states[DL_INIT_FC1],invalid_vc>           8          1    Covered              
+        bin <main_states[DL_INIT_FC2],invalid_vc>          51          1    Covered              
+    Cross cr_zero_data_credits                         100.0%        100    Covered              
+        covered/total bins:                                 6          6                      
+        missing/total bins:                                 0          6                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin zero_credit                              0               ZERO                 
+        bin <init_state_1[DLLP_INITFC1_P],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_NP],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_CPL],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_P],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_NP],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_CPL],no_data_credits> 
+                                                            4          1    Covered              
+    Cross cr_zero_hdr_credits                          100.0%        100    Covered              
+        covered/total bins:                                 6          6                      
+        missing/total bins:                                 0          6                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin zero_credit                             38               Occurred             
+        bin <init_state_1[DLLP_INITFC1_P],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_NP],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_CPL],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_P],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_NP],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_CPL],no_hdr_credits> 
+                                                            4          1    Covered              
+ Covergroup instance uvm_test_top.env_rc.cov_tx_dllp 
+                                                       100.0%        100    Covered              
+    covered/total bins:                                    52         52                      
+    missing/total bins:                                     0         52                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint cp_state                                100.0%        100    Covered              
+        covered/total bins:                                 3          3                      
+        missing/total bins:                                 0          3                      
+        % Hit:                                         100.0%        100                      
+        bin main_states[DL_FEATURE_EXCH]                   36          1    Covered              
+        bin main_states[DL_INIT_FC1]                      144          1    Covered              
+        bin main_states[DL_INIT_FC2]                      204          1    Covered              
+    Coverpoint cp_dllp_type                            100.0%        100    Covered              
+        covered/total bins:                                 7          7                      
+        missing/total bins:                                 0          7                      
+        % Hit:                                         100.0%        100                      
+        bin feature_state                                  32          1    Covered              
+        bin init_state_1[DLLP_INITFC1_P]                   34          1    Covered              
+        bin init_state_1[DLLP_INITFC1_NP]                  39          1    Covered              
+        bin init_state_1[DLLP_INITFC1_CPL]                 35          1    Covered              
+        bin init_state_2[DLLP_INITFC2_P]                   37          1    Covered              
+        bin init_state_2[DLLP_INITFC2_NP]                  48          1    Covered              
+        bin init_state_2[DLLP_INITFC2_CPL]                 56          1    Covered              
+    Coverpoint cp_error_status                         100.0%        100    Covered              
+        covered/total bins:                                 4          4                      
+        missing/total bins:                                 0          4                      
+        % Hit:                                         100.0%        100                      
+        bin invalid_dllp                                   37          1    Covered              
+        bin wrong_crc                                      51          1    Covered              
+        bin invalid_vc                                     66          1    Covered              
+        bin error_free                                    230          1    Covered              
+    Coverpoint cp_initfc                               100.0%        100    Covered              
+        covered/total bins:                                16         16                      
+        missing/total bins:                                 0         16                      
+        % Hit:                                         100.0%        100                      
+        bin initfc1_B2B                                    10          1    Covered              
+        bin initfc1_disorder[DLLP_INITFC1_P=>DLLP_INITFC1_CPL] 
+                                                            4          1    Covered              
+        bin initfc1_disorder[DLLP_INITFC1_NP=>DLLP_INITFC1_P] 
+                                                            8          1    Covered              
+        bin initfc1_disorder[DLLP_INITFC1_CPL=>DLLP_INITFC1_NP] 
+                                                            3          1    Covered              
+        bin initfc1_repeated[DLLP_INITFC1_P=>DLLP_INITFC1_P] 
+                                                            4          1    Covered              
+        bin initfc1_repeated[DLLP_INITFC1_NP=>DLLP_INITFC1_NP] 
+                                                            2          1    Covered              
+        bin initfc1_repeated[DLLP_INITFC1_CPL=>DLLP_INITFC1_CPL] 
+                                                            3          1    Covered              
+        bin initfc2_B2B                                    15          1    Covered              
+        bin initfc2_disorder[DLLP_INITFC2_P=>DLLP_INITFC2_CPL] 
+                                                            6          1    Covered              
+        bin initfc2_disorder[DLLP_INITFC2_NP=>DLLP_INITFC2_P] 
+                                                            7          1    Covered              
+        bin initfc2_disorder[DLLP_INITFC2_CPL=>DLLP_INITFC2_NP] 
+                                                           10          1    Covered              
+        bin initfc2_repeated[DLLP_INITFC2_P=>DLLP_INITFC2_P] 
+                                                            6          1    Covered              
+        bin initfc2_repeated[DLLP_INITFC2_NP=>DLLP_INITFC2_NP] 
+                                                            6          1    Covered              
+        bin initfc2_repeated[DLLP_INITFC2_CPL=>DLLP_INITFC2_CPL] 
+                                                           14          1    Covered              
+        bin initfc2_witin_initfc1                           3          1    Covered              
+        bin initfc1_witin_initfc2                           3          1    Covered              
+    Coverpoint cp_data_credits                         100.0%        100    Covered              
+        covered/total bins:                                 1          1                      
+        missing/total bins:                                 0          1                      
+        % Hit:                                         100.0%        100                      
+        bin no_data_credits                                63          1    Covered              
+    Coverpoint cp_hdr_credits                          100.0%        100    Covered              
+        covered/total bins:                                 1          1                      
+        missing/total bins:                                 0          1                      
+        % Hit:                                         100.0%        100                      
+        bin no_hdr_credits                                 99          1    Covered              
+    Cross cr_inv_dllp                                  100.0%        100    Covered              
+        covered/total bins:                                 3          3                      
+        missing/total bins:                                 0          3                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin not_invalid_dllp                       347               Occurred             
+        bin <main_states[DL_FEATURE_EXCH],invalid_dllp> 
+                                                            4          1    Covered              
+        bin <main_states[DL_INIT_FC1],invalid_dllp> 
+                                                           11          1    Covered              
+        bin <main_states[DL_INIT_FC2],invalid_dllp> 
+                                                           22          1    Covered              
+    Cross cr_wrong_crc                                 100.0%        100    Covered              
+        covered/total bins:                                 3          3                      
+        missing/total bins:                                 0          3                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin not_wrong_crc                          333               Occurred             
+        bin <main_states[DL_FEATURE_EXCH],wrong_crc> 
+                                                            3          1    Covered              
+        bin <main_states[DL_INIT_FC1],wrong_crc>           25          1    Covered              
+        bin <main_states[DL_INIT_FC2],wrong_crc>           23          1    Covered              
+    Cross cr_invalid_vc                                100.0%        100    Covered              
+        covered/total bins:                                 2          2                      
+        missing/total bins:                                 0          2                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin not_invalid_vc                         318               Occurred             
+        ignore_bin feature_exch                            36               Occurred             
+        bin <main_states[DL_INIT_FC1],invalid_vc>          25          1    Covered              
+        bin <main_states[DL_INIT_FC2],invalid_vc>          41          1    Covered              
+    Cross cr_zero_data_credits                         100.0%        100    Covered              
+        covered/total bins:                                 6          6                      
+        missing/total bins:                                 0          6                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin zero_credit                              0               ZERO                 
+        bin <init_state_1[DLLP_INITFC1_P],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_NP],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_CPL],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_P],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_NP],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_CPL],no_data_credits> 
+                                                            4          1    Covered              
+    Cross cr_zero_hdr_credits                          100.0%        100    Covered              
+        covered/total bins:                                 6          6                      
+        missing/total bins:                                 0          6                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin zero_credit                             32               Occurred             
+        bin <init_state_1[DLLP_INITFC1_P],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_NP],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_CPL],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_P],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_NP],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_CPL],no_hdr_credits> 
+                                                            4          1    Covered              
+ Covergroup instance uvm_test_top.env_rc.cov_rx_dllp 
+                                                       100.0%        100    Covered              
+    covered/total bins:                                    52         52                      
+    missing/total bins:                                     0         52                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint cp_state                                100.0%        100    Covered              
+        covered/total bins:                                 3          3                      
+        missing/total bins:                                 0          3                      
+        % Hit:                                         100.0%        100                      
+        bin main_states[DL_FEATURE_EXCH]                   40          1    Covered              
+        bin main_states[DL_INIT_FC1]                      152          1    Covered              
+        bin main_states[DL_INIT_FC2]                      206          1    Covered              
+    Coverpoint cp_dllp_type                            100.0%        100    Covered              
+        covered/total bins:                                 7          7                      
+        missing/total bins:                                 0          7                      
+        % Hit:                                         100.0%        100                      
+        bin feature_state                                  38          1    Covered              
+        bin init_state_1[DLLP_INITFC1_P]                   26          1    Covered              
+        bin init_state_1[DLLP_INITFC1_NP]                  35          1    Covered              
+        bin init_state_1[DLLP_INITFC1_CPL]                 32          1    Covered              
+        bin init_state_2[DLLP_INITFC2_P]                   61          1    Covered              
+        bin init_state_2[DLLP_INITFC2_NP]                  55          1    Covered              
+        bin init_state_2[DLLP_INITFC2_CPL]                 52          1    Covered              
+    Coverpoint cp_error_status                         100.0%        100    Covered              
+        covered/total bins:                                 4          4                      
+        missing/total bins:                                 0          4                      
+        % Hit:                                         100.0%        100                      
+        bin invalid_dllp                                   43          1    Covered              
+        bin wrong_crc                                      52          1    Covered              
+        bin invalid_vc                                     63          1    Covered              
+        bin error_free                                    245          1    Covered              
+    Coverpoint cp_initfc                               100.0%        100    Covered              
+        covered/total bins:                                16         16                      
+        missing/total bins:                                 0         16                      
+        % Hit:                                         100.0%        100                      
+        bin initfc1_B2B                                    11          1    Covered              
+        bin initfc1_disorder[DLLP_INITFC1_P=>DLLP_INITFC1_CPL] 
+                                                            3          1    Covered              
+        bin initfc1_disorder[DLLP_INITFC1_NP=>DLLP_INITFC1_P] 
+                                                            5          1    Covered              
+        bin initfc1_disorder[DLLP_INITFC1_CPL=>DLLP_INITFC1_NP] 
+                                                            6          1    Covered              
+        bin initfc1_repeated[DLLP_INITFC1_P=>DLLP_INITFC1_P] 
+                                                            2          1    Covered              
+        bin initfc1_repeated[DLLP_INITFC1_NP=>DLLP_INITFC1_NP] 
+                                                            5          1    Covered              
+        bin initfc1_repeated[DLLP_INITFC1_CPL=>DLLP_INITFC1_CPL] 
+                                                            3          1    Covered              
+        bin initfc2_B2B                                    20          1    Covered              
+        bin initfc2_disorder[DLLP_INITFC2_P=>DLLP_INITFC2_CPL] 
+                                                           10          1    Covered              
+        bin initfc2_disorder[DLLP_INITFC2_NP=>DLLP_INITFC2_P] 
+                                                            9          1    Covered              
+        bin initfc2_disorder[DLLP_INITFC2_CPL=>DLLP_INITFC2_NP] 
+                                                            9          1    Covered              
+        bin initfc2_repeated[DLLP_INITFC2_P=>DLLP_INITFC2_P] 
+                                                            6          1    Covered              
+        bin initfc2_repeated[DLLP_INITFC2_NP=>DLLP_INITFC2_NP] 
+                                                           10          1    Covered              
+        bin initfc2_repeated[DLLP_INITFC2_CPL=>DLLP_INITFC2_CPL] 
+                                                            5          1    Covered              
+        bin initfc2_witin_initfc1                           7          1    Covered              
+        bin initfc1_witin_initfc2                           3          1    Covered              
+    Coverpoint cp_data_credits                         100.0%        100    Covered              
+        covered/total bins:                                 1          1                      
+        missing/total bins:                                 0          1                      
+        % Hit:                                         100.0%        100                      
+        bin no_data_credits                                59          1    Covered              
+    Coverpoint cp_hdr_credits                          100.0%        100    Covered              
+        covered/total bins:                                 1          1                      
+        missing/total bins:                                 0          1                      
+        % Hit:                                         100.0%        100                      
+        bin no_hdr_credits                                109          1    Covered              
+    Cross cr_inv_dllp                                  100.0%        100    Covered              
+        covered/total bins:                                 3          3                      
+        missing/total bins:                                 0          3                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin not_invalid_dllp                       355               Occurred             
+        bin <main_states[DL_FEATURE_EXCH],invalid_dllp> 
+                                                            6          1    Covered              
+        bin <main_states[DL_INIT_FC1],invalid_dllp> 
+                                                           27          1    Covered              
+        bin <main_states[DL_INIT_FC2],invalid_dllp> 
+                                                           10          1    Covered              
+    Cross cr_wrong_crc                                 100.0%        100    Covered              
+        covered/total bins:                                 3          3                      
+        missing/total bins:                                 0          3                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin not_wrong_crc                          346               Occurred             
+        bin <main_states[DL_FEATURE_EXCH],wrong_crc> 
+                                                            2          1    Covered              
+        bin <main_states[DL_INIT_FC1],wrong_crc>           16          1    Covered              
+        bin <main_states[DL_INIT_FC2],wrong_crc>           34          1    Covered              
+    Cross cr_invalid_vc                                100.0%        100    Covered              
+        covered/total bins:                                 2          2                      
+        missing/total bins:                                 0          2                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin not_invalid_vc                         337               Occurred             
+        ignore_bin feature_exch                            40               Occurred             
+        bin <main_states[DL_INIT_FC1],invalid_vc>          19          1    Covered              
+        bin <main_states[DL_INIT_FC2],invalid_vc>          42          1    Covered              
+    Cross cr_zero_data_credits                         100.0%        100    Covered              
+        covered/total bins:                                 6          6                      
+        missing/total bins:                                 0          6                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin zero_credit                              0               ZERO                 
+        bin <init_state_1[DLLP_INITFC1_P],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_NP],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_CPL],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_P],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_NP],no_data_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_CPL],no_data_credits> 
+                                                            4          1    Covered              
+    Cross cr_zero_hdr_credits                          100.0%        100    Covered              
+        covered/total bins:                                 6          6                      
+        missing/total bins:                                 0          6                      
+        % Hit:                                         100.0%        100                      
+        ignore_bin zero_credit                             38               Occurred             
+        bin <init_state_1[DLLP_INITFC1_P],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_NP],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_1[DLLP_INITFC1_CPL],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_P],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_NP],no_hdr_credits> 
+                                                            4          1    Covered              
+        bin <init_state_2[DLLP_INITFC2_CPL],no_hdr_credits> 
+                                                            4          1    Covered              
+ TYPE /pcie_dll_pkg/pcie_dll_coverage/cg_watchdog      100.0%        100    Covered              
+    covered/total bins:                                     3          3                      
+    missing/total bins:                                     0          3                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint cg_watchdog::cp_watchdog_status         100.0%        100    Covered              
+        covered/total bins:                                 3          3                      
+        missing/total bins:                                 0          3                      
+        % Hit:                                         100.0%        100                      
+        bin timeout_feature                                 4          1    Covered              
+        bin timeout_fc1                                     7          1    Covered              
+        bin timeout_fc2                                     9          1    Covered              
+ CLASS pcie_dll_coverage
+ Covergroup instance uvm_test_top.env_ep.cov_rx_watchdog 
+                                                       100.0%        100    Covered              
+    covered/total bins:                                     3          3                      
+    missing/total bins:                                     0          3                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint cp_watchdog_status                      100.0%        100    Covered              
+        covered/total bins:                                 3          3                      
+        missing/total bins:                                 0          3                      
+        % Hit:                                         100.0%        100                      
+        bin timeout_feature                                 2          1    Covered              
+        bin timeout_fc1                                     1          1    Covered              
+        bin timeout_fc2                                     6          1    Covered              
+ Covergroup instance uvm_test_top.env_rc.cov_rx_watchdog 
+                                                       100.0%        100    Covered              
+    covered/total bins:                                     3          3                      
+    missing/total bins:                                     0          3                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint cp_watchdog_status                      100.0%        100    Covered              
+        covered/total bins:                                 3          3                      
+        missing/total bins:                                 0          3                      
+        % Hit:                                         100.0%        100                      
+        bin timeout_feature                                 2          1    Covered              
+        bin timeout_fc1                                     6          1    Covered              
+        bin timeout_fc2                                     3          1    Covered              
+ TYPE /pcie_dll_pkg/pcie_dll_coverage/cg_tlp_transitions 
+                                                       100.0%        100    Covered              
+    covered/total bins:                                     1          1                      
+    missing/total bins:                                     0          1                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint cg_tlp_transitions::cp_tlp              100.0%        100    Covered              
+        covered/total bins:                                 1          1                      
+        missing/total bins:                                 0          1                      
+        % Hit:                                         100.0%        100                      
+        bin send_tlp                                       77          1    Covered              
+ CLASS pcie_dll_coverage
+ Covergroup instance uvm_test_top.env_ep.cov_tx_tlp 
+                                                       100.0%        100    Covered              
+    covered/total bins:                                     1          1                      
+    missing/total bins:                                     0          1                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint cp_tlp                                  100.0%        100    Covered              
+        covered/total bins:                                 1          1                      
+        missing/total bins:                                 0          1                      
+        % Hit:                                         100.0%        100                      
+        bin send_tlp                                       15          1    Covered              
+ Covergroup instance uvm_test_top.env_ep.cov_rx_tlp 
+                                                       100.0%        100    Covered              
+    covered/total bins:                                     1          1                      
+    missing/total bins:                                     0          1                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint cp_tlp                                  100.0%        100    Covered              
+        covered/total bins:                                 1          1                      
+        missing/total bins:                                 0          1                      
+        % Hit:                                         100.0%        100                      
+        bin send_tlp                                       22          1    Covered              
+ Covergroup instance uvm_test_top.env_rc.cov_tx_tlp 
+                                                       100.0%        100    Covered              
+    covered/total bins:                                     1          1                      
+    missing/total bins:                                     0          1                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint cp_tlp                                  100.0%        100    Covered              
+        covered/total bins:                                 1          1                      
+        missing/total bins:                                 0          1                      
+        % Hit:                                         100.0%        100                      
+        bin send_tlp                                       18          1    Covered              
+ Covergroup instance uvm_test_top.env_rc.cov_rx_tlp 
+                                                       100.0%        100    Covered              
+    covered/total bins:                                     1          1                      
+    missing/total bins:                                     0          1                      
+    % Hit:                                             100.0%        100                      
+    Coverpoint cp_tlp                                  100.0%        100    Covered              
+        covered/total bins:                                 1          1                      
+        missing/total bins:                                 0          1                      
+        % Hit:                                         100.0%        100                      
+        bin send_tlp                                       22          1    Covered              
+
+TOTAL COVERGROUP COVERAGE: 100.0%  COVERGROUP TYPES: 4
