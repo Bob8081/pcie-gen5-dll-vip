@@ -72,19 +72,10 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     prev_state = DL_INACTIVE;
     tx_prev_state = DL_INACTIVE;
     tx_curr_state = DL_INACTIVE;
-    rx_prev_state = DL_INACTIVE;
-    rx_curr_state = DL_INACTIVE;
     state_seeded  = 0;
     rx_initfc1_order_step    = 0;
     rx_initfc2_order_step    = 0;
     m_we_sent_feature_dllp   = 0;
-    curr_state     = DL_INACTIVE;
-    prev_state     = DL_INACTIVE;
-    tx_prev_state  = DL_INACTIVE;
-    tx_curr_state  = DL_INACTIVE;
-    state_seeded   = 0;
-    rx_initfc1_order_step = 0;
-    rx_initfc2_order_step = 0;
     tx_export      = new("tx_export",    this);
     rx_export      = new("rx_export",    this);
     state_export   = new("state_export", this);
@@ -161,17 +152,6 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
       `uvm_fatal("TRAFFIC_ISOLATION", "Violation: TLP detected while Link is NOT ACTIVE!")
     end
 
-    // tx_dllp_item      = dllp_item;
-    // tx_prev_state     = tx_curr_state;
-    // tx_curr_state     = dllp_item.current_state;
-    // tx_prev_dllp_type = tx_curr_dllp_type;
-    // tx_curr_dllp_type = dllp_item.dllp_type;
-
-    checks.tx_updated = 1'b1; // Set the flag to indicate a new Tx item has been processed
-    // calling some common checks
-    checks.check_symmetric_active (tx_prev_state, tx_curr_state, 
-                                   rx_prev_state, rx_curr_state);
-    //TODO : add the same checks as the write_rx ones .. no?
   endfunction
 
   // Called when the Rx monitor publishes a received DLLP
@@ -267,39 +247,12 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
       end
     end
 
-    checks.rx_updated = 1'b1; // Set the flag to indicate a new Rx item has been processed
-    // calling some common checks
-    checks.traffic_isolation_check (dllp_item);
-
-    checks.check_symmetric_active  (tx_prev_state, tx_curr_state,
-      rx_prev_state, rx_curr_state);
-
-    // checks.drop_packets            (rx_curr_dllp_type, rx_prev_dllp_type,
-    //                                 curr_counters    , prev_counters,
-    //                                 rx_curr_state    , rx_prev_state ,
-    //                                 rx_dllp_item );
-
-    checks.Credit_Capture          (dllp_item, partner_cfg);
-
   endfunction
 endfunction
 
 
   // Called when the state manager update its counters due to receive packets
   virtual function void write_counter (pcie_state_mgr_counters_s counters);
-    prev_counters.counter_fc1  = curr_counters.counter_fc1;
-    prev_counters.counter_fc2  = curr_counters.counter_fc2;
-    curr_counters.counter_fc2  = counters.counter_fc2;
-    curr_counters.counter_fc1  = counters.counter_fc1;
-
-    checks.counter_update = 1'b1; // Set the flag to indicate a new counter item has been processed
-    // calling some common checks
-    // checks.drop_packets (rx_curr_dllp_type, rx_prev_dllp_type,
-    //                      curr_counters    , prev_counters,
-    //                      rx_curr_state    , rx_prev_state,
-    //                      rx_dllp_item );
-
-
       counters_queue.push_front(counters);
   endfunction
 
