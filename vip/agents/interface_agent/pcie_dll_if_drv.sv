@@ -19,7 +19,9 @@ class pcie_dll_if_drv extends uvm_driver #(pcie_dll_if_seq_item);
 
     task run_phase(uvm_phase phase);
         super.run_phase(phase);
-        vif.pl_lnk_up = 1'b1; //initially set the link to be up, the test can control it later by sending requests to the driver
+        vif.pl_lnk_up <= 1'b0; //initialize the linkup signal to 0
+        wait(vif.rst_n == 1'b1); //wait for the reset then set the linkup signal
+        vif.cb_drv.pl_lnk_up <= 1'b1;
         forever 
         begin
 
