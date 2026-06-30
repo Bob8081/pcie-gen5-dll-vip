@@ -287,8 +287,7 @@ class pcie_dll_common_checks extends uvm_object;
 
     // to make sure that the state manager drops packets with ubnormal behavior
     // note: we check the behavior of state manager with the received packets
-    function void drop_packets (pcie_dllp_type_e  current_dllp_type, pcie_dllp_type_e prev_dllp_type,
-                                pcie_dlcmsm_state_e tx_state,        pcie_dll_base_seq_item  item,
+    function int drop_packets ( pcie_dlcmsm_state_e tx_state, pcie_dll_base_seq_item  item,
                                 pcie_fc_pkt_counters_s curr_counters, 
                                 pcie_fc_pkt_counters_s prev_counters);
 

@@ -171,8 +171,7 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
 
       
       if (curr_state inside {DL_INIT_FC1, DL_INIT_FC2}) begin
-          case (checks.drop_packets      (rx_dllp_item.dllp_type,
-                                         curr_state, rx_item,
+          case (checks.drop_packets      (curr_state, rx_item,
                                          curr_counters, prev_counters)) 
             0:  `uvm_error("SCOREBOARD", "PKT_DROP: Violation abnormal behavior in state manager packet drop/increment logic!")
             1:  `uvm_info ("SCOREBOARD", "PKT_DROP: Valid Correct drop/increment behavior", UVM_LOW)
