@@ -52,7 +52,7 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
   uvm_analysis_imp_tx        #(pcie_dll_base_seq_item, pcie_dll_scoreboard) tx_export;
   uvm_analysis_imp_rx        #(pcie_dll_base_seq_item, pcie_dll_scoreboard) rx_export;
   uvm_analysis_imp_state     #(pcie_dlcmsm_state_e,    pcie_dll_scoreboard) state_export;
-  uvm_analysis_imp_counter #(pcie_state_mgr_counters_s, pcie_dll_scoreboard) counter_export; // counter item
+  uvm_analysis_imp_counter   #(pcie_state_mgr_counters_s, pcie_dll_scoreboard) counter_export; // counter item
 
 
   // Handle to common checks
@@ -103,16 +103,18 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     super.run_phase(phase);
 
     forever begin
-    if (tx_queue.size() && rx_queue.size() && (counters_queue.size() || my_cfg.dlsm_state == DL_FEATURE_EXCH)) begin
+    wait (tx_queue.size() && rx_queue.size() && (counters_queue.size() || my_cfg.dlsm_state inside {DL_FEATURE_EXCH, DL_ACTIVE})) begin
       tx_item       = tx_queue.pop_front();
       rx_item       = rx_queue.pop_front();
       temp_counters = counters_queue.pop_front();
+
 
       prev_counters.counter_fc1  = curr_counters.counter_fc1;
       prev_counters.counter_fc2  = curr_counters.counter_fc2;
       curr_counters.counter_fc2  = temp_counters.counter_fc2; // = default value "0" if no counters "feature state"
       curr_counters.counter_fc1  = temp_counters.counter_fc1; // = default value "0" if no counters "feature state"
 
+      /** 
       if ($cast(tx_dllp_item, tx_item)) begin
         tx_prev_state     = tx_curr_state;
         tx_curr_state     = my_cfg.dlsm_state;
@@ -125,20 +127,63 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
         rx_curr_dllp_type = rx_dllp_item.dllp_type;
       end
 
-      // calling some common checks functions
-      checks.traffic_isolation_check (rx_item, tx_curr_state);
+   
+    `uvm_info("SCOREBOARD", $sformatf("----------------- %s scoreboard information -----------------", role.name()), UVM_LOW)
+    if ($cast(rx_dllp_item, rx_item) && ($cast(tx_dllp_item, tx_item))) begin
+      `uvm_info("SCOREBOARD", $sformatf("Current State: %s, Previous State: %s", curr_state.name(), prev_state.name()), UVM_LOW)
+      `uvm_info("SCOREBOARD", $sformatf("Tx packet: %0h ,  type : %s", tx_dllp_item.dllp, tx_dllp_item.dllp_type.name()), UVM_LOW)
+      `uvm_info("SCOREBOARD", $sformatf("Rx packet: %0h ,  type : %s", rx_dllp_item.dllp, rx_dllp_item.dllp_type.name()), UVM_LOW)
+      `uvm_info("SCOREBOARD", $sformatf("FC1: current counter: %d,  prev counter: %d", curr_counters.counter_fc1, prev_counters.counter_fc1), UVM_LOW)
+      `uvm_info("SCOREBOARD", $sformatf("FC2: current counter: %d,  prev counter: %d", curr_counters.counter_fc2, prev_counters.counter_fc2), UVM_LOW)
+      end
+     else begin
+      `uvm_info("SCOREBOARD", $sformatf("----------------- TLP detected -----------------"), UVM_LOW)
+     end **/
+     
 
-      checks.check_symmetric_active  (rx_item, tx_curr_state); 
+      // -------------- calling some common checks functions ------------------
+      case (checks.proper_packets (rx_item, curr_state))
+        0:  `uvm_error("SCOREBOARD", "ILLEGAL_DLLP: Violation invalid DLLP received!")
+        1:  `uvm_error("SCOREBOARD", "ILLEGAL_TLP: Violation received TLP while Link is NOT ACTIVE!")
+        2:  `uvm_info ("SCOREBOARD", "PROPER_PACKET: Valid valid packet received.", UVM_LOW) 
+        default: ;
+      endcase
 
-      checks.Credit_Capture          (rx_item, partner_cfg);
 
-      if (tx_curr_state inside {DL_INIT_FC1, DL_INIT_FC2})
-          checks.drop_packets        (rx_curr_dllp_type, rx_prev_dllp_type,
-                                      tx_curr_state    , rx_item,
-                                      curr_counters    , prev_counters);
+      if (! checks.valid_VC (rx_item, curr_state))
+          `uvm_error("SCOREBOARD", "VIRTUAL_CHANNEL: Violation Only credit advertisement DLLPs allowed for Virtual Channel 0 (VCO) during InitFC states!")
 
+
+      case (checks.check_symmetric_active (rx_item, curr_state))
+        0:  `uvm_fatal("SCOREBOARD", "ASYMMETRIC_ACTIVE: Violation both RC and EP don't reach active state symmetrically !!!")
+        1:  `uvm_info ("SCOREBOARD", "SYMMETRIC_ACTIVE: Valid both RC and EP reached active state symmetrically!", UVM_LOW)
+        default: ;
+      endcase 
+
+
+      if ($cast(rx_dllp_item, rx_item)) begin
+          case (checks.Credit_Capture     (rx_item, curr_state, partner_cfg)) 
+            0:  `uvm_error("SCOREBOARD", $sformatf("CREDIT_MISMATCH: Captured credits do not match expected values for type %s!", rx_dllp_item.dllp_type.name()))
+            1:  `uvm_info ("SCOREBOARD", $sformatf("CREDIT_MATCH: Captured credits match expected values for type %s.", rx_dllp_item.dllp_type.name()), UVM_LOW)
+            2:  `uvm_info ("SCOREBOARD", $sformatf("CREDIT_CAPTURE: Cannot capture credits."), UVM_LOW)
+            default: ;
+          endcase 
+      end
+
+      
+      if (curr_state inside {DL_INIT_FC1, DL_INIT_FC2}) begin
+          case (checks.drop_packets      (rx_dllp_item.dllp_type,
+                                         curr_state, rx_item,
+                                         curr_counters, prev_counters)) 
+            0:  `uvm_error("SCOREBOARD", "PKT_DROP: Violation abnormal behavior in state manager packet drop/increment logic!")
+            1:  `uvm_info ("SCOREBOARD", "PKT_DROP: Valid Correct drop/increment behavior", UVM_LOW)
+            default: ;
+          endcase 
     end
-  end
+
+
+  end 
+end
 
   endtask
 
@@ -248,8 +293,6 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     end
 
   endfunction
-endfunction
-
 
   // Called when the state manager update its counters due to receive packets
   virtual function void write_counter (pcie_state_mgr_counters_s counters);
