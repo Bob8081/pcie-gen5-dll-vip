@@ -68,7 +68,7 @@ class pcie_dll_tx_drv extends uvm_driver #(pcie_dll_base_seq_item);
                   //  `uvm_info("callback", $sformatf("tlp: %b", tlp_txn.tlp), UVM_LOW)
                 end
                 else begin
-                    `uvm_fatal("CAST_FAIL", "Fatal Error: req is neither DLLP nor TLP!")
+                    `uvm_fatal("DRV", "Fatal Error: req is neither DLLP nor TLP!")
                 end
 
                 if (txn_type == 1) begin

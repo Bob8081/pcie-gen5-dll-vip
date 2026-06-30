@@ -6,13 +6,17 @@ class pcie_dll_tx_drv_cb_invalid_dllp extends pcie_dll_tx_drv_cb_base;
     super.new(name);
   endfunction
 
-  virtual function bit pre_transmit(pcie_dll_dllp_seq_item req = null, bit drop = 1'b0);
+  virtual function bit pre_transmit(pcie_dll_base_seq_item req = null, bit drop = 1'b0);
     
     bit trigger = 1'b0;
     int roll;
+    pcie_dll_dllp_seq_item dllp;
+    if (!$cast(dllp, req)) begin
+        `uvm_error("CB_CAST", "pre_transmit: req is not a DLLP seq item")
+        return 1'b0;
+    end
 
-      if (req.enable_errors == 1'b1) begin
-
+    if (dllp.enable_errors == 1'b1) begin
         roll =$urandom_range(1, 3); // 25%
         //roll = 0;
         if (roll == 1) begin
@@ -21,7 +25,7 @@ class pcie_dll_tx_drv_cb_invalid_dllp extends pcie_dll_tx_drv_cb_base;
       end
 
     if (trigger) begin
-        req.dllp = {pcie_dll_pkg::crc16_generator::calculate_dllp_crc(32'd0), 32'd0}; // Invalid DLLP with type = 0 and payload = 0, CRC = 0xB362
+        dllp.dllp = {pcie_dll_pkg::crc16_generator::calculate_dllp_crc(32'd0), 32'd0}; // Invalid DLLP with type = 0 and payload = 0, CRC = 0xB362
         //$display("ddddddddddddddddddddddddddddddddddddddddddddddddddddddd");
         return 1'b1;
     end

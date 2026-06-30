@@ -79,18 +79,18 @@ class pcie_dll_fc_watchdog extends uvm_component;
         `uvm_fatal("NOVIF", "FC watchdog (EP): ep_vif not set in config_db")
     end
 
-    `uvm_info("WDOG_BUILD",
+    `uvm_info("WDOG",
       $sformatf("[%s] FC watchdog built. Interval = %0d cycles (%0d ns)",
         role.name(), cfg.init_rx_interval_cycles, cfg.init_rx_interval_cycles),
       UVM_MEDIUM)
 
-  // events to hit timeout scenarios in coverage class
-  event_name_fc1        = $sformatf("timeout_event_fc1_%s", role.name());
-  event_name_fc2        = $sformatf("timeout_event_fc2_%s", role.name());
-  event_name_feature    = $sformatf("timeout_event_feature_%s", role.name());
-  timeout_event_fc1     = uvm_event_pool::get_global(event_name_fc1);
-  timeout_event_fc2     = uvm_event_pool::get_global(event_name_fc2);
-  timeout_event_feature = uvm_event_pool::get_global(event_name_feature);
+    // events to hit timeout scenarios in coverage class
+    event_name_fc1        = $sformatf("timeout_event_fc1_%s", role.name());
+    event_name_fc2        = $sformatf("timeout_event_fc2_%s", role.name());
+    event_name_feature    = $sformatf("timeout_event_feature_%s", role.name());
+    timeout_event_fc1     = uvm_event_pool::get_global(event_name_fc1);
+    timeout_event_fc2     = uvm_event_pool::get_global(event_name_fc2);
+    timeout_event_feature = uvm_event_pool::get_global(event_name_feature);
   endfunction
 
 
@@ -133,7 +133,7 @@ class pcie_dll_fc_watchdog extends uvm_component;
               // Spec violation: DLLP_FEATURE_REQ not received within the interval
               `uvm_error("WDOG_FEAT_TIMEOUT",
                 $sformatf(
-                  "[%s] SPEC VIOLATION: DLLP_FEATURE_REQ not received within %0d cycles (%0d µs) while in DL_FEATURE_EXCH.",
+                  "[%s] SPEC VIOLATION: DLLP_FEATURE_REQ not received within %0d cycles (%0d us) while in DL_FEATURE_EXCH.",
                   role.name(), cfg.init_rx_interval_cycles,
                   cfg.init_rx_interval_cycles / 1000))
             end
@@ -196,7 +196,7 @@ class pcie_dll_fc_watchdog extends uvm_component;
               // Spec violation: InitFC1_P not received within the interval
               `uvm_error("WDOG_FC1_TIMEOUT",
                 $sformatf(
-                  "[%s] SPEC VIOLATION: InitFC1 set (P+NP+Cpl) not started within %0d cycles (%0d µs). ",
+                  "[%s] SPEC VIOLATION: InitFC1 set (P+NP+Cpl) not started within %0d cycles (%0d us). ",
                   role.name(), cfg.init_rx_interval_cycles,
                   cfg.init_rx_interval_cycles / 1000))
             end
@@ -258,7 +258,7 @@ class pcie_dll_fc_watchdog extends uvm_component;
               // Spec violation: InitFC2_P not received within the interval
               `uvm_error("WDOG_FC2_TIMEOUT",
                 $sformatf(
-                  "[%s] SPEC VIOLATION: InitFC2 set (P+NP+Cpl) not started within %0d cycles (%0d µs). ",
+                  "[%s] SPEC VIOLATION: InitFC2 set (P+NP+Cpl) not started within %0d cycles (%0d us). ",
                   role.name(), cfg.init_rx_interval_cycles,
                   cfg.init_rx_interval_cycles / 1000))
             end

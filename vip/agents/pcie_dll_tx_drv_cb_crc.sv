@@ -6,12 +6,17 @@ class pcie_dll_tx_drv_cb_crc extends pcie_dll_tx_drv_cb_base;
     super.new(name);
   endfunction
 
-  virtual function bit pre_transmit(pcie_dll_dllp_seq_item req = null, bit drop = 1'b0);
+  virtual function bit pre_transmit(pcie_dll_base_seq_item req = null, bit drop = 1'b0);
     
     bit trigger = 1'b0;
     int roll;
+    pcie_dll_dllp_seq_item dllp;
+    if (!$cast(dllp, req)) begin
+        `uvm_error("CB_CAST", "pre_transmit: req is not a DLLP seq item")
+        return 1'b0;
+    end
 
-      if (req.enable_errors == 1'b1) begin
+    if (dllp.enable_errors == 1'b1) begin
         roll = $urandom_range(1, 3); // 25%
         //roll = 0;
         if (roll == 1) begin
@@ -22,7 +27,7 @@ class pcie_dll_tx_drv_cb_crc extends pcie_dll_tx_drv_cb_base;
       
     // Apply the change to the top 16 bits)
     if (trigger) begin
-        req.dllp[47:32] = 16'h0000;
+        dllp.dllp[47:32] = 16'h0000;
         //$display("cccccccccccccccccccccccccccccccccccccccccccccccccccccc");
         return 1'b1;
     end

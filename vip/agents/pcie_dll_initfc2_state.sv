@@ -55,7 +55,7 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
                     
                         if (!(dllp_item_rx.hdr_FC == manager.partner_cfg.partner_credits[FC_P].hdr_limit))
                         begin
-                            `uvm_error("CREDITS_ERR_INITFC2",$sformatf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.partner_cfg.partner_credits[FC_P].hdr_limit))     
+                            // `uvm_error("CREDITS_ERR_INITFC2",$sformatf("recieved wrong POSTED HDR CREDITS, real value = %d",manager.partner_cfg.partner_credits[FC_P].hdr_limit))     
                         end
 
                         manager.my_cfg.counter_fc2++;
@@ -63,7 +63,7 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
                     end // end of IN_ORDER posted recieved
                     else 
                     begin  
-                        `uvm_error("INITFC2_ERR",$sformatf("recieved OUT_OF_ORDER packet of type : %s",dllp_item_rx.dllp_type))
+                        // `uvm_error("INITFC2_ERR",$sformatf("recieved OUT_OF_ORDER packet of type : %s",dllp_item_rx.dllp_type))
                     end 
                 end//end of posted case
 
@@ -74,7 +74,7 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
                       
                         if (!(dllp_item_rx.hdr_FC == manager.partner_cfg.partner_credits[FC_NP].hdr_limit))
                         begin
-                            `uvm_error("CREDITS_ERR_INITFC2",$sformatf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.partner_cfg.partner_credits[FC_NP].hdr_limit))     
+                            // `uvm_error("CREDITS_ERR_INITFC2",$sformatf("recieved wrong NON_POSTED HDR CREDITS, real value = %d",manager.partner_cfg.partner_credits[FC_NP].hdr_limit))     
                         end
                        
                         manager.my_cfg.counter_fc2++;
@@ -83,7 +83,7 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
                     else 
                     begin
                         manager.my_cfg.counter_fc2 = 0;
-                        `uvm_error("INITFC2_ERR",$sformatf("recieved OUT_OF_ORDER packet of type : %s",dllp_item_rx.dllp_type))
+                        // `uvm_error("INITFC2_ERR",$sformatf("recieved OUT_OF_ORDER packet of type : %s",dllp_item_rx.dllp_type))
                     end 
                 end   //end of non posted case
 
@@ -95,7 +95,7 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
                         
                         if (!(dllp_item_rx.hdr_FC == manager.partner_cfg.partner_credits[FC_CPL].hdr_limit))
                         begin
-                            `uvm_error("CREDITS_ERR_INITFC2",$sformatf("recieved wrong CPL HDR CREDITS, real value = %d",manager.partner_cfg.partner_credits[FC_CPL].hdr_limit))     
+                            // `uvm_error("CREDITS_ERR_INITFC2",$sformatf("recieved wrong CPL HDR CREDITS, real value = %d",manager.partner_cfg.partner_credits[FC_CPL].hdr_limit))     
                         end
                         
                         manager.my_cfg.counter_fc2++;
@@ -104,18 +104,18 @@ class pcie_dll_DL_INIT_FC2 extends pcie_dll_base_state;
                     else 
                     begin  
                         manager.my_cfg.counter_fc2 = 0;
-                        `uvm_error("INITFC2_ERR",$sformatf("recieved OUT_OF_ORDER packet of type : %s",dllp_item_rx.dllp_type))
+                        // `uvm_error("INITFC2_ERR",$sformatf("recieved OUT_OF_ORDER packet of type : %s",dllp_item_rx.dllp_type))
                     end
                 end // end of compeletion state
                 else // else for any non initfc1 packet types recieved in initfc1 state
                 begin
                     manager.my_cfg.counter_fc2 = 0;
-                    `uvm_error("INITFC2_ERR",$sformatf("recieved WRONG STATE DLLP of type : %s in INITFC2_STATE",dllp_item_rx.dllp_type))
+                    // `uvm_error("INITFC2_ERR",$sformatf("recieved WRONG STATE DLLP of type : %s in INITFC2_STATE",dllp_item_rx.dllp_type))
                 end
 
                         manager.counters.counter_fc2 = manager.my_cfg.counter_fc2;
                         manager.counters.counter_fc1 = 0;
-                        manager.st_mgr_counter_ap.write(manager.counters);
+                        manager.fc_pkt_counter_ap.write(manager.counters);
             end // big else
             end //forever loop
 

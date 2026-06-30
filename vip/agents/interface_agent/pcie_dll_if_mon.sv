@@ -14,10 +14,10 @@ class pcie_dll_if_mon extends uvm_monitor;
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
         if (!uvm_config_db#(virtual pcie_lpif_if)::get(this, "", "lnk_vif", vif)) begin
-            `uvm_fatal("NOCONFIG", "pcie_dll_if_mon: virtual interface not found in config_db")
+            `uvm_fatal("NOCFG", "pcie_dll_if_mon: virtual interface not found in config_db")
         end
         if(!uvm_config_db#(pcie_dll_link_cfg)::get(this, "", "lnk_cfg", lnk_cfg))begin
-            `uvm_fatal("NOCONFIG", "pcie_dll_if_mon: pcie_dll_link_cfg not found in config_db")
+            `uvm_fatal("NOCFG", "pcie_dll_if_mon: pcie_dll_link_cfg not found in config_db")
         end
     endfunction
 

@@ -13,7 +13,7 @@ class pcie_dll_if_drv extends uvm_driver #(pcie_dll_if_seq_item);
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
         if (!uvm_config_db#(virtual pcie_lpif_if)::get(this, "", "lnk_vif", vif)) begin
-            `uvm_fatal("NOCONFIG", "pcie_dll_if_drv: virtual interface not found in config_db")
+            `uvm_fatal("NOCFG", "pcie_dll_if_drv: virtual interface not found in config_db")
         end
     endfunction
 

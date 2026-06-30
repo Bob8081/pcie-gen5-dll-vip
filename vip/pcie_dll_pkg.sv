@@ -85,7 +85,7 @@ package pcie_dll_pkg;
   typedef struct {
     int unsigned counter_fc1;
     int unsigned counter_fc2;
-  } pcie_state_mgr_counters_s;
+  } pcie_fc_pkt_counters_s;
 
 
   //enum for credits

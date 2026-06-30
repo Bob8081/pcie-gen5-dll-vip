@@ -133,7 +133,7 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
   function void pre_randomize();
     // Get config from uvm_config_db using sequencer context
     if (!uvm_config_db#(pcie_dll_env_cfg)::get(m_sequencer, "", "cfg", cfg)) begin
-      `uvm_fatal("SEQ", "Failed to get pcie_dll_env_cfg from config_db")
+      `uvm_fatal("NOCFG", "Failed to get pcie_dll_env_cfg from config_db")
     end
 
     enable_errors    = cfg.enable_errors;

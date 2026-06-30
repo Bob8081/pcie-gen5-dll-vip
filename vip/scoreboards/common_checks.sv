@@ -233,33 +233,6 @@ class pcie_dll_common_checks extends uvm_object;
   endfunction
 
 
-  /**
-   * check_feature_ack_handshake
-   * @brief Verify that the Feature Ack bit in a transmitted/received
-   *        DLLP_FEATURE_REQ equals the Remote Data Link Feature Supported
-   *        Valid bit (PCIe Base Spec Rev 5.0).
-   *
-   *        The spec mandates strict equality: a device sets feature_ack=1
-   *        if and only if it has already received a valid Feature DLLP from
-   *        its partner.  Setting ack=1 before that happens is a protocol
-   *        violation; leaving ack=0 after receiving is also non-compliant.
-   *
-   * @param feature_ack          The feature_ack bit from the DLLP under test.
-   * @param remote_feature_valid 1 if the sender has already received a valid
-   *                             Feature DLLP from its peer; 0 otherwise.
-   * @return 1 if feature_ack == remote_feature_valid (check passes),
-   *         0 if they differ (ERROR)
-   * @severity ERROR
-   */
-  function bit check_feature_ack_handshake(
-    bit feature_ack,
-    bit remote_feature_valid
-  );
-    if (feature_ack !== remote_feature_valid) begin
-      return 0;
-    end
-    return 1;
-  endfunction
 
   /////////////////////////////////////// ----------------------------------- /////////////////////////////////
 
@@ -298,8 +271,8 @@ class pcie_dll_common_checks extends uvm_object;
     // note: we check the behavior of state manager with the received packets
     function void drop_packets (pcie_dllp_type_e  current_dllp_type, pcie_dllp_type_e prev_dllp_type,
                                 pcie_dlcmsm_state_e tx_state,        pcie_dll_base_seq_item  item,
-                                pcie_state_mgr_counters_s curr_counters, 
-                                pcie_state_mgr_counters_s prev_counters);
+                                pcie_fc_pkt_counters_s curr_counters, 
+                                pcie_fc_pkt_counters_s prev_counters);
 
         
         bit                   is_valid = 0; // A single flag to evaluate the entire logic

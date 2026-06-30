@@ -65,7 +65,6 @@ class pcie_dll_init1_seq extends pcie_dll_base_seq;
       finish_item(init1_transaction);
 
 
-      // ---- Phase 2: NP-Heavy Traffic ----
       init1_transaction = pcie_dll_dllp_seq_item::type_id::create("init1_transaction");
 
       start_item(init1_transaction);
@@ -91,7 +90,7 @@ class pcie_dll_init1_seq extends pcie_dll_base_seq;
 
       finish_item(init1_transaction);
 
-      // ---- Phase 3: CPL-Heavy Traffic (2% P, 2% NP, 96% CPL) ----
+
       init1_transaction = pcie_dll_dllp_seq_item::type_id::create("init1_transaction");
 
       start_item(init1_transaction);

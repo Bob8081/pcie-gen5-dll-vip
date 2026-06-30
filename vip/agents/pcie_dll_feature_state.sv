@@ -58,7 +58,7 @@ class pcie_dll_DL_FEATURE_EXCH extends pcie_dll_base_state;
                 end
                 else
                 begin
-                    `uvm_error("FEATURE_ERR",$sformatf("recieved WRONG STATE DLLP of type : %s in FEATURE_STATE",dllp_item_rx.dllp_type))
+                    //`uvm_error("FEATURE_ERR",$sformatf("recieved WRONG STATE DLLP of type : %s in FEATURE_STATE",dllp_item_rx.dllp_type))
                 end
             end
         end

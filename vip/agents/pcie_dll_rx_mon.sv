@@ -49,7 +49,7 @@ class pcie_dll_rx_mon extends uvm_monitor;
           dllp_item.unpack(vif.cb_mon_rx.pl_data[47:0]);
           dllp_item.current_state = pcie_dll_pkg::partner_state_expector::get_rx_current_state(dllp_item.dllp_type, this.get_full_name());
           mon_rx_ap.write(dllp_item);
-          `uvm_info("MON", $sformatf("Observed RX DLLP: %h", dllp_item.dllp), UVM_LOW)
+          `uvm_info("RX_MON", $sformatf("Observed RX DLLP: %h", dllp_item.dllp), UVM_LOW)
         end
         else if ((!(vif.cb_mon_rx.pl_tlpstart >= vif.cb_mon_rx.pl_tlpend)) &
              (vif.cb_mon_rx.pl_valid == 16'b1111_1111_1111_1111)) 
@@ -59,7 +59,7 @@ class pcie_dll_rx_mon extends uvm_monitor;
           tlp_item.tlp=vif.cb_mon_rx.pl_data[127:0];
           tlp_item.current_state = DL_ACTIVE;
           mon_rx_ap.write(tlp_item);
-          `uvm_info("MON", $sformatf("Observed RX TLP: %h", tlp_item.tlp), UVM_LOW)
+          `uvm_info("RX_MON", $sformatf("Observed RX TLP: %h", tlp_item.tlp), UVM_LOW)
         end
       end
     end

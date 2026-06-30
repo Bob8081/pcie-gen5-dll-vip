@@ -10,14 +10,15 @@ class pcie_dll_agent extends uvm_component;
   pcie_dll_seqr sqr;
   pcie_dll_tx_drv tx_drv;
 
-  uvm_analysis_port #(pcie_dlcmsm_state_e)     state_ap;
-  uvm_analysis_port #(pcie_dll_base_seq_item)  agent_tx_ap;
-  uvm_analysis_port #(pcie_dll_base_seq_item)  agent_rx_ap;
+  uvm_analysis_port #(pcie_dlcmsm_state_e)        state_ap;
+  uvm_analysis_port #(pcie_dll_base_seq_item)     agent_tx_ap;
+  uvm_analysis_port #(pcie_dll_base_seq_item)     agent_rx_ap;
+  uvm_analysis_port #(pcie_fc_pkt_counters_s)  agent_counter_ap;
 
   virtual pcie_lpif_if myvif;
 
   `uvm_component_utils(pcie_dll_agent)
-
+ 
   function new(string name = "pcie_dll_agent", uvm_component parent = null);
     super.new(name, parent);
   endfunction
@@ -25,13 +26,14 @@ class pcie_dll_agent extends uvm_component;
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
 
-    state_ap     = new("state_ap", this);
-    agent_tx_ap  = new("agent_tx_ap", this);
-    agent_rx_ap  = new("agent_rx_ap", this);
+    state_ap          = new("state_ap", this);
+    agent_tx_ap       = new("agent_tx_ap", this);
+    agent_rx_ap       = new("agent_rx_ap", this);
+    agent_counter_ap  = new("agent_counter_ap", this);
 
     //get the configuration for the agent
     if (!pcie_dll_env_cfg::get_cfg(this, "", cfg)) begin
-      `uvm_fatal("cfg_err",$sformatf("couldn't load the configuration object for this agent %s", get_full_name()))
+      `uvm_fatal("NOCFG",$sformatf("couldn't load the configuration object for this agent %s", get_full_name()))
     end
     
     if (!uvm_config_db#(pcie_dll_role_e)::get(this, "", "role", role)) begin
@@ -73,7 +75,7 @@ class pcie_dll_agent extends uvm_component;
       rx_mon.vif = myvif;
     end
     else begin
-      `uvm_fatal("ROLE_ERR", "Invalid role specified for pcie_dll_agent. Role must be either ROLE_RC or ROLE_EP.")
+      `uvm_fatal("AGENT", "Invalid role specified for pcie_dll_agent. Role must be either ROLE_RC or ROLE_EP.")
     end
 
     state_mgr.dllp_sequencer = sqr;
@@ -86,9 +88,9 @@ class pcie_dll_agent extends uvm_component;
     rx_mon.mon_rx_ap.connect(state_mgr.dllp_export);
     tx_drv.seq_item_port.connect(sqr.seq_item_export);
     state_mgr.state_ap.connect(state_ap);
-    //state_mgr.state_ap.connect(tx_mon.mon_state_export);
     tx_mon.mon_tx_ap.connect(this.agent_tx_ap);
     rx_mon.mon_rx_ap.connect(this.agent_rx_ap);
+    state_mgr.fc_pkt_counter_ap.connect(this.agent_counter_ap);
   endfunction
 
 endclass : pcie_dll_agent

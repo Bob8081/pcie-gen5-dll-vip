@@ -158,7 +158,7 @@ class pcie_dll_env_cfg extends uvm_object;
 
     ok = uvm_config_db#(pcie_dll_env_cfg)::get(cntxt, inst_name, field_name, cfg);
     if (!ok && required) begin
-      `uvm_error("CFG_MISSING",
+      `uvm_error("NOCFG",
         $sformatf("Missing %s for %s", field_name, cntxt.get_full_name()))
     end
 

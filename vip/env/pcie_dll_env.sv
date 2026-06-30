@@ -35,8 +35,8 @@ class pcie_dll_env extends uvm_env;
 
     my_cfg = pcie_dll_my_cfg::type_id::create("my_cfg");
     uvm_config_db#(pcie_dll_my_cfg)::set(this, "*", "my_cfg", my_cfg);
-    
-    // create coverage collector 
+
+    // create coverage collector
     cov_tx = pcie_dll_coverage::type_id::create("cov_tx", this);
     cov_rx = pcie_dll_coverage::type_id::create("cov_rx", this);
   endfunction
@@ -50,14 +50,15 @@ class pcie_dll_env extends uvm_env;
 
     // Scoreboard connections
     agent.state_ap.connect(scoreboard.state_export);
-    agent.rx_mon.mon_rx_ap.connect(scoreboard.rx_export);
-    agent.tx_mon.mon_tx_ap.connect(scoreboard.tx_export);
+    agent.agent_rx_ap.connect(scoreboard.rx_export);
+    agent.agent_tx_ap.connect(scoreboard.tx_export);
+    agent.agent_counter_ap.connect(scoreboard.counter_export);
 
     // Watchdog connections
     agent.state_ap.connect(fc_watchdog.state_export);
-    agent.rx_mon.mon_rx_ap.connect(fc_watchdog.rx_export);
-    
-    agent.state_mgr.st_mgr_counter_ap.connect(scoreboard.counter_export);
+    agent.agent_rx_ap.connect(fc_watchdog.rx_export);
+
+
 
   endfunction
 

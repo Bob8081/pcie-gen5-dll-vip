@@ -10,7 +10,7 @@ class pcie_dll_DL_INACTIVE extends pcie_dll_base_state;
 
     task start_state(pcie_dll_state_mgr manager);
 
-        `uvm_info("STATE", "Entered DL_INACTIVE state", UVM_LOW)
+        `uvm_info("INACTIVE_STATE", "Entered DL_INACTIVE state", UVM_LOW)
         manager.my_cfg.reset();
         manager.partner_cfg.reset();
         manager.dllp_fifo.flush();
@@ -20,10 +20,10 @@ class pcie_dll_DL_INACTIVE extends pcie_dll_base_state;
         //TODO : add logic to check for the presence of the feature state (e.g. the configuration's scaled_support filed is set or not) and decide what is next state depepnding on it)
         while(!manager.lnk_cfg.pl_up)
         begin
-            `uvm_info("STATE", "Waiting for link to come up...", UVM_LOW)
+            `uvm_info("INACTIVE_STATE", "Waiting for link to come up...", UVM_LOW)
             manager.lnk_cfg.pl_asserted.wait_trigger();
         end
-        `uvm_info("STATE", "Link is up, moving to next state...", UVM_LOW)
+        `uvm_info("INACTIVE_STATE", "Link is up, moving to next state...", UVM_LOW)
         if (manager.cfg.scaled_fc_supported )
         begin
             next_state = DL_FEATURE_EXCH;

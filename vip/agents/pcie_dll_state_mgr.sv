@@ -5,13 +5,13 @@ class pcie_dll_state_mgr extends uvm_component;
     pcie_dll_role_e role;
 
     uvm_analysis_imp #(pcie_dll_base_seq_item, pcie_dll_state_mgr) dllp_export; //connected to the monitor on the agent level
-    uvm_analysis_port #(pcie_state_mgr_counters_s) st_mgr_counter_ap;
+    uvm_analysis_port #(pcie_fc_pkt_counters_s) fc_pkt_counter_ap;
 
     pcie_dll_seqr dllp_sequencer; //to be a handle to the sequencer of the agent to be able to send from the state manager if needed, and to be able to pass it to the states if needed
 
     pcie_dll_dllp_seq_item dllp_item;
     pcie_dll_tlp_seq_item tlp_item;
-    pcie_state_mgr_counters_s counters;
+    pcie_fc_pkt_counters_s counters;
 
 
     uvm_tlm_fifo#(pcie_dll_dllp_seq_item) dllp_fifo;
@@ -36,7 +36,7 @@ class pcie_dll_state_mgr extends uvm_component;
         dllp_export = new("dllp_export", this);
         target_reached = new("target_reached");
         state_ap = new("state_ap", this);
-        st_mgr_counter_ap = new("st_mgr_counter_ap", this);
+        fc_pkt_counter_ap = new("fc_pkt_counter_ap", this);
     endfunction
 
     function void write (pcie_dll_base_seq_item item);
@@ -54,7 +54,7 @@ class pcie_dll_state_mgr extends uvm_component;
         end
         else
         begin
-            `uvm_fatal("ITEM_ERR", $sformatf("Received item of type %s, expected pcie_dll_dllp_seq_item or pcie_dll_tlp_seq_item", item.get_type_name()))
+            `uvm_fatal("STATE_MGR", $sformatf("Received item of type %s, expected pcie_dll_dllp_seq_item or pcie_dll_tlp_seq_item", item.get_type_name()))
         end
     endfunction
 
@@ -87,7 +87,7 @@ class pcie_dll_state_mgr extends uvm_component;
 
     task run_phase(uvm_phase phase);
         super.run_phase(phase);
-        `uvm_info("STATE_CTRL", "Starting State Manager run_phase", UVM_LOW)
+        `uvm_info("STATE_MGR", "Starting State Manager run_phase", UVM_LOW)
         change_state(DL_INACTIVE);
     endtask
 
@@ -99,15 +99,15 @@ class pcie_dll_state_mgr extends uvm_component;
         obj = uvm_factory::get().create_object_by_name(state_name, get_full_name(), state_name);
 
         if (obj == null) begin
-            `uvm_fatal("STATE_ERR", $sformatf("Factory failed to create state: '%s'. check for typos and make sure the class has `uvm_object_utils", new_state.name()))
+            `uvm_fatal("STATE_MGR", $sformatf("Factory failed to create state: '%s'. check for typos and make sure the class has `uvm_object_utils", new_state.name()))
         end
 
         //for debugging purposes, to track state changes in the log
-        `uvm_info("STATE_CTRL", $sformatf("Changing state from %s to %s", (current_state != null) ? current_state.get_full_name() : "None"   , new_state.name()), UVM_LOW)
+        `uvm_info("STATE_MGR", $sformatf("Changing state from %s to %s", (current_state != null) ? current_state.get_full_name() : "None"   , new_state.name()), UVM_LOW)
 
         //crate the new state and check if it extends the correct base class
         if(!$cast(current_state, obj))begin
-            `uvm_fatal("STATE_ERR", $sformatf("Failed to cast object '%s' to pcie_dll_state. make sure it extends the correct base class", new_state.name()))
+            `uvm_fatal("STATE_MGR", $sformatf("Failed to cast object '%s' to pcie_dll_state. make sure it extends the correct base class", new_state.name()))
         end
 
         my_cfg.dlsm_state = new_state; //update the current state variable to the new state
