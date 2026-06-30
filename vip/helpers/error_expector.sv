@@ -93,7 +93,7 @@ class error_expector;
       //`uvm_info("determine_error_status", $sformatf("------------ Invalid DLLP type %s ------------", dllp_item.dllp_type.name()), UVM_LOW)
       return INVALID_DLLP;
     end
-    else if ((state == DL_INIT_FC1) && !(dllp_item.dllp_type[7:3] inside {DLLP_FEATURE_REQ, DLLP_INITFC1_P_VC, DLLP_INITFC1_NP_VC, DLLP_INITFC1_CPL_VC, DLLP_INITFC2_P_VC, DLLP_INITFC2_NP_VC, DLLP_INITFC2_CPL_VC})) begin
+    else if ((state == DL_INIT_FC1) && !(dllp_item.dllp_type == DLLP_FEATURE_REQ || dllp_item.dllp_type[7:3] inside {DLLP_INITFC1_P_VC, DLLP_INITFC1_NP_VC, DLLP_INITFC1_CPL_VC, DLLP_INITFC2_P_VC, DLLP_INITFC2_NP_VC, DLLP_INITFC2_CPL_VC})) begin
       //`uvm_info("determine_error_status", $sformatf("------------ Invalid DLLP type %s ------------", dllp_item.dllp_type.name()), UVM_LOW)
       return INVALID_DLLP;
     end

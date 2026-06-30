@@ -35,21 +35,30 @@ class pcie_dll_tx_drv extends uvm_driver #(pcie_dll_base_seq_item);
         super.run_phase(phase);
 
         // Initialize all driven signals to idle via clocking block
-        vif.cb_drv.lp_irdy     <= 1'b0;
-        vif.cb_drv.lp_valid    <= '0;
-        vif.cb_drv.lp_dlpstart <= '0;
-        vif.cb_drv.lp_dlpend   <= '0;
-        vif.cb_drv.lp_tlpstart <= '0;
-        vif.cb_drv.lp_tlpend   <= '0;
-        vif.cb_drv.lp_data     <= '0;
+        vif.lp_irdy     <= 1'b0;
+        vif.lp_valid    <= '0;
+        vif.lp_dlpstart <= '0;
+        vif.lp_dlpend   <= '0;
+        vif.lp_tlpstart <= '0;
+        vif.lp_tlpend   <= '0;
+        vif.lp_data     <= '0;
 
         forever begin
+
             @(vif.cb_drv); // synchronize to clocking block edge
+            
+            //reset interface signals
+            vif.cb_drv.lp_irdy     <= 1'b0;
+            vif.cb_drv.lp_valid    <= '0;
+            vif.cb_drv.lp_dlpstart <= '0;
+            vif.cb_drv.lp_dlpend   <= '0;
+            vif.cb_drv.lp_tlpstart <= '0;
+            vif.cb_drv.lp_tlpend   <= '0;
+            vif.cb_drv.lp_data     <= '0;
+
             if (vif.rst_n) begin
                 seq_item_port.get_next_item(req);
                            
-                
-
                 if ($cast(dllp_txn, req)) begin
                     // delay DLLP transaction if it desired depending on cfg
                     if (cfg.delayed_packets)
@@ -57,7 +66,7 @@ class pcie_dll_tx_drv extends uvm_driver #(pcie_dll_base_seq_item);
 
                     // callback pre_transmit
                     //`uvm_do_callbacks(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_base, pre_transmit(req))
-                    `pcie_do_callbacks_one_hot(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_base, pre_transmit(req))
+                    `pcie_do_callbacks_one_hot(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_base, pre_transmit(dllp_txn))
                    // `uvm_info("CAST", "Successfully cast to DLLP", UVM_HIGH)
                     txn_type = 1;
                   //  `uvm_info("callback", $sformatf("dllp: %b", dllp_txn.dllp), UVM_LOW)
@@ -77,8 +86,8 @@ class pcie_dll_tx_drv extends uvm_driver #(pcie_dll_base_seq_item);
                     vif.cb_drv.lp_data    <= dllp_txn.dllp;
                     // Mark only the 6 DLLP bytes as valid
                     vif.cb_drv.lp_valid   <= 6'b111_111;
-                    vif.cb_drv.lp_dlpstart <= '0;    // DLLP starts at byte 0
-                    vif.cb_drv.lp_dlpend  <= 'd5;   // DLLP ends at byte 6
+                    vif.cb_drv.lp_dlpstart <= 1'b1 << 0;    // DLLP starts at byte 0
+                    vif.cb_drv.lp_dlpend  <= 1'b1 << 5;   // DLLP ends at byte 5
                 end
 
                 else begin
@@ -89,20 +98,12 @@ class pcie_dll_tx_drv extends uvm_driver #(pcie_dll_base_seq_item);
                     vif.cb_drv.lp_data    <= tlp_txn.tlp;
                     // Mark 16 byte for TLP
                     vif.cb_drv.lp_valid   <= 16'b1111_1111_1111_1111;
-                    vif.cb_drv.lp_tlpstart <= '0;    // TLP starts at byte 0
-                    vif.cb_drv.lp_tlpend  <= 'd15;   // TLP ends at byte 15
+                    vif.cb_drv.lp_tlpstart <= 1'b1 << 0;    // TLP starts at byte 0
+                    vif.cb_drv.lp_tlpend  <= 1'b1 << 15;   // TLP ends at byte 15
                 
                 end
 
-                #1;
-                // //reset interface signals
-                vif.cb_drv.lp_irdy     <= 1'b0;
-                vif.cb_drv.lp_valid    <= '0;
-                vif.cb_drv.lp_dlpstart <= '0;
-                vif.cb_drv.lp_dlpend   <= '0;
-                vif.cb_drv.lp_tlpstart <= '0;
-                vif.cb_drv.lp_tlpend   <= '0;
-                vif.cb_drv.lp_data     <= '0;
+
 
                 //`uvm_do_callbacks(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_base, post_transmit(req))
                 seq_item_port.item_done();
