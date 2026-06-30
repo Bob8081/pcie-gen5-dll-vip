@@ -45,7 +45,6 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
   // Feature Ack Handshake tracking
   // Set to 1 the instant we drive our first DLLP_FEATURE_REQ (seen via Tx monitor)
   bit feat_dllp_sent;
-  bit feat_ack_received;
 
   // Analysis implementation ports
   uvm_analysis_imp_tx        #(pcie_dll_base_seq_item, pcie_dll_scoreboard) tx_export;
@@ -243,17 +242,15 @@ end
       end
 
       // Feature Ack Handshake check
-      if (!(dllp_item.feature_ack == feat_dllp_sent) && feat_ack_received) begin
+      if (dllp_item.feature_ack && !feat_dllp_sent) begin
         fatal_msg = $sformatf(
-          "SPEC VIOLATION (Feature Ack Handshake - PARTNER Rx): Partner sent feature_ack=%0b but feat_dllp_sent=%0b. Partner may only ack after we have transmitted our Feature DLLP.",
-          dllp_item.feature_ack, feat_dllp_sent);
+          "SPEC VIOLATION (Feature Ack Handshake - PARTNER Rx): Partner sent feature_ack 1 but a Feature DLLP was never sent. Partner may only ack after we have transmitted our Feature DLLP.");
         `uvm_error("SCOREBOARD", fatal_msg)
       end else begin
         `uvm_info("SCOREBOARD",
           $sformatf("PASS (Feature Ack Handshake - PARTNER Rx): feature_ack=%0b == feat_dllp_sent=%0b.",
             rx_dllp_item.feature_ack, feat_dllp_sent), UVM_HIGH)
       end
-      feat_ack_received = 1;
     end
 
     // Check InitFC1 Order
@@ -316,7 +313,6 @@ end
         rx_initfc1_order_step = 0;
         rx_initfc2_order_step = 0;
         feat_dllp_sent = 0;
-        feat_ack_received = 0;
       end
       return;
     end

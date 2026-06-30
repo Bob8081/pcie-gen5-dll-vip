@@ -52,7 +52,7 @@ class test_base_error_injected extends pcie_dll_test_base;
     super.run_phase(phase);
     phase.raise_objection(this, "Waiting for Link Up");
     `uvm_info("TEST", "Waiting for State Manager to reach ACTIVE...", UVM_LOW)
-    repeat (2) begin
+    repeat (10) begin
       `uvm_info("TEST", "Starting error injection test for both RC and EP", UVM_LOW)
       fork
         begin
