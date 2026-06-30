@@ -114,6 +114,7 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
       curr_counters.counter_fc2  = temp_counters.counter_fc2; // = default value "0" if no counters "feature state"
       curr_counters.counter_fc1  = temp_counters.counter_fc1; // = default value "0" if no counters "feature state"
 
+      /** 
       if ($cast(tx_dllp_item, tx_item)) begin
         tx_prev_state     = tx_curr_state;
         tx_curr_state     = my_cfg.dlsm_state;
@@ -137,47 +138,45 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
       end
      else begin
       `uvm_info("SCOREBOARD", $sformatf("----------------- TLP detected -----------------"), UVM_LOW)
-     end 
+     end **/
      
 
       // -------------- calling some common checks functions ------------------
       case (checks.proper_packets (rx_item, curr_state))
-        0:  `uvm_error("SCOREBOARD: ILLEGAL_DLLP", "Violation: invalid DLLP received!")
-        1:  `uvm_error("SCOREBOARD: ILLEGAL_TLP", "Violation: received TLP while Link is NOT ACTIVE!")
-        2:  `uvm_info ("SCOREBOARD: PROPER_PACKET", "Valid: valid packet received.", UVM_LOW) 
+        0:  `uvm_error("SCOREBOARD", "ILLEGAL_DLLP: Violation invalid DLLP received!")
+        1:  `uvm_error("SCOREBOARD", "ILLEGAL_TLP: Violation received TLP while Link is NOT ACTIVE!")
+        2:  `uvm_info ("SCOREBOARD", "PROPER_PACKET: Valid valid packet received.", UVM_LOW) 
         default: ;
       endcase
 
 
       if (! checks.valid_VC (rx_item, curr_state))
-          `uvm_error("SCOREBOARD: VIRTUAL_CHANNEL", "Violation: Only credit advertisement DLLPs allowed for Virtual Channel 0 (VCO) during InitFC states!")
+          `uvm_error("SCOREBOARD", "VIRTUAL_CHANNEL: Violation Only credit advertisement DLLPs allowed for Virtual Channel 0 (VCO) during InitFC states!")
 
 
       case (checks.check_symmetric_active (rx_item, curr_state))
-        0:  `uvm_fatal("SCOREBOARD: ASYMMETRIC_ACTIVE", "Violation: both RC and EP don't reach active state symmetrically !!!")
-        1:  `uvm_info ("SCOREBOARD: SYMMETRIC_ACTIVE", "Valid: both RC and EP reached active state symmetrically!", UVM_LOW)
+        0:  `uvm_fatal("SCOREBOARD", "ASYMMETRIC_ACTIVE: Violation both RC and EP don't reach active state symmetrically !!!")
+        1:  `uvm_info ("SCOREBOARD", "SYMMETRIC_ACTIVE: Valid both RC and EP reached active state symmetrically!", UVM_LOW)
         default: ;
       endcase 
 
 
       if ($cast(rx_dllp_item, rx_item)) begin
           case (checks.Credit_Capture     (rx_item, curr_state, partner_cfg)) 
-            0:  `uvm_error("SCOREBOARD:CREDIT_MISMATCH",$sformatf("Captured credits do not match expected values for type %s!", rx_dllp_item.dllp_type.name()))
-            1:  `uvm_info ("SCOREBOARD:CREDIT_MATCH", $sformatf("Captured credits match expected values for type %s.", rx_dllp_item.dllp_type.name()), UVM_LOW)
-            2:  `uvm_info ("SCOREBOARD:CREDIT_CAPTURE", $sformatf("Cannot capture credits."), UVM_LOW)
+            0:  `uvm_error("SCOREBOARD", $sformatf("CREDIT_MISMATCH: Captured credits do not match expected values for type %s!", rx_dllp_item.dllp_type.name()))
+            1:  `uvm_info ("SCOREBOARD", $sformatf("CREDIT_MATCH: Captured credits match expected values for type %s.", rx_dllp_item.dllp_type.name()), UVM_LOW)
+            2:  `uvm_info ("SCOREBOARD", $sformatf("CREDIT_CAPTURE: Cannot capture credits."), UVM_LOW)
             default: ;
           endcase 
       end
 
       
       if (curr_state inside {DL_INIT_FC1, DL_INIT_FC2}) begin
-          `uvm_info("SCOREBOARD", $sformatf("Current State: %s", curr_state.name()), UVM_LOW)
-          `uvm_info("SCOREBOARD", $sformatf("current dllp type: %s, prev dllp type: %s", tx_curr_dllp_type.name(), tx_prev_dllp_type.name()), UVM_LOW)
           case (checks.drop_packets      (rx_dllp_item.dllp_type,
                                          curr_state, rx_item,
                                          curr_counters, prev_counters)) 
-            0:  `uvm_error("SCOREBOARD: PKT_DROP", "Violation: abnormal behavior in state manager packet drop/increment logic!")
-            1:  `uvm_info ("SCOREBOARD: PKT_DROP", "Valid: Correct drop/increment behavior", UVM_LOW)
+            0:  `uvm_error("SCOREBOARD", "PKT_DROP: Violation abnormal behavior in state manager packet drop/increment logic!")
+            1:  `uvm_info ("SCOREBOARD", "PKT_DROP: Valid Correct drop/increment behavior", UVM_LOW)
             default: ;
           endcase 
     end

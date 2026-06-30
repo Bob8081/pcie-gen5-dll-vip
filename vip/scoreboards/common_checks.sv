@@ -391,7 +391,7 @@ class pcie_dll_common_checks extends uvm_object;
           DLLP_FEATURE_REQ:                                   rx_path_state = 1;
           DLLP_INITFC1_P, DLLP_INITFC1_NP, DLLP_INITFC1_CPL:  rx_path_state = 2;
           DLLP_INITFC2_P, DLLP_INITFC2_NP, DLLP_INITFC2_CPL:  rx_path_state = 3;
-          default :                                           rx_path_state = 0; // INACTIVE state
+          default : ;
         endcase
       end
 
