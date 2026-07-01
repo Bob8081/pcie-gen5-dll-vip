@@ -48,7 +48,7 @@ class pcie_dll_partner_cfg extends uvm_object;
                                     partner_credits[target_type].absolute_hdr_limit, partner_credits[target_type].absolute_data_limit);
                                     
 
-        `uvm_info("CRD_SAVED", $sformatf("device with %s saved partner credits of %s type. ", role, t.name()), UVM_LOW)
+        `uvm_info("CRD_SAVED", $sformatf("device with %s saved partner credits of %s type. ", role, t.name()), UVM_HIGH)
         view_credits();
         
     endfunction
@@ -79,7 +79,7 @@ class pcie_dll_partner_cfg extends uvm_object;
         begin
             `uvm_info("CRD_STATUS", $sformatf("partner %s credits : hdr_limit = %0d , data_limit = %0d , hdr_scale = %0d, data_scale = %0d , total_hdr_limit = %0d , total_data_limit = %0d",
                                                 i.name(), partner_credits[i].hdr_limit, partner_credits[i].data_limit, partner_credits[i].hdr_scale, partner_credits[i].data_scale,
-                                                partner_credits[i].absolute_hdr_limit, partner_credits[i].absolute_data_limit), UVM_LOW)
+                                                partner_credits[i].absolute_hdr_limit, partner_credits[i].absolute_data_limit), UVM_HIGH)
         end
     endfunction 
 

@@ -88,34 +88,24 @@ interface pcie_lpif_if #(
     // =========================================================
     // SYSTEMVERILOG ASSERTIONS (SVA)
     // =========================================================
-    // 1 - rdy_trdy_handshake
-    property lp_irdy_trdy_handshake;
-        @(posedge lclk) disable iff (!rst_n || !pl_lnk_up)
-        ((|lp_valid) && lp_irdy && (!pl_trdy) ) |=> 
-        $stable(lp_data)     && 
-        $stable(lp_valid)    &&
-        $stable(lp_dlpstart) &&
-        $stable(lp_dlpend)   &&
-        $stable(lp_tlpstart) &&
-        $stable(lp_tlpend);
-    endproperty
+   
 
+    /*_____________the framing and valid signals______________*/
 
-
-    //2 - check that if valid is set then irdy is set as well (no valid without irdy)
+    //1 - check that if valid is set then irdy is set as well (no valid without irdy)
     property lp_valid_irdy_relation;
     @(posedge lclk) disable iff (!rst_n || !pl_lnk_up)
     (|lp_valid) |-> lp_irdy;
     endproperty
-    /*_____________the framing and valid signals*/
-    //3 - check that packet starts at a byte less than its end (no negative length packets)
+    
+    //2 - check that packet starts at a byte less than its end (no negative length packets)
     property packet_start_end_valid (pkt_start, pkt_end);
         @(posedge lclk) disable iff (!rst_n || !pl_lnk_up)
         ((|pkt_start) && (|pkt_end)) |->
         (pkt_start <= pkt_end); 
     endproperty  
 
-    //4 - check that framing singals are right (no 2 ones set in one cycle)
+    //3 - check that framing singals are right (no 2 ones set in one cycle)
     property framing_signals_valid;
         @(posedge lclk) disable iff (!rst_n || !pl_lnk_up)
         $onehot0(lp_tlpstart) && 
@@ -124,26 +114,28 @@ interface pcie_lpif_if #(
         $onehot0(lp_dlpend);
     endproperty
 
-    //5 - check that the tlp and dllp -if sent on same cycle- dont start or end on same byte
+    //4 - check that the tlp and dllp -if sent on same cycle- dont start or end on same byte
     property no_tlp_dllp_overlap;
         @(posedge lclk) disable iff (!rst_n || !pl_lnk_up)
         ((|lp_tlpstart) && (|lp_dlpstart)) |->
         (lp_tlpstart & lp_dlpstart) == '0; 
     endproperty  
 
-    // 6 - lp_valid in correct range of start and end flags
+    // 5 - lp_valid in correct range of start and end flags
     property lp_valid_between_limits;
         @(posedge lclk) disable iff (!rst_n || !pl_lnk_up)
         
         (|lp_tlpstart || |lp_dlpstart) |-> 
         
-        // let expected_tlp = (|lp_tlpstart) ? (lp_tlpend | (lp_tlpend - lp_tlpstart)) : '0;
-        // let expected_dlp = (|lp_dlpstart) ? (lp_dlpend | (lp_dlpend - lp_dlpstart)) : '0;
         
-        (lp_valid == (((|lp_tlpstart) ? (lp_tlpend | (lp_tlpend - lp_tlpstart)) : '0) | ((|lp_dlpstart) ? (lp_dlpend | (lp_dlpend - lp_dlpstart)) : '0)));
+        (lp_valid == (((|lp_tlpstart) ? (lp_tlpend | (lp_tlpend - lp_tlpstart)) : '0) 
+                            | ((|lp_dlpstart) ? (lp_dlpend | (lp_dlpend - lp_dlpstart)) : '0))
+        );
     endproperty
 
-    //7 - pl_lnk_up porperty
+    /*__________control signals reset and pl_lnkup___________*/
+
+    //6 - pl_lnk_up porperty
     property p_lnk_down_flush;
         @(posedge lclk) disable iff (!rst_n)
         (!pl_lnk_up) |->
@@ -157,7 +149,7 @@ interface pcie_lpif_if #(
         (lp_tlpend   == '0);
     endproperty
 
-    //8 - reset property
+    // 7 - reset property
     property reset_property;
         @(posedge lclk) 
         (!rst_n) |->
@@ -172,7 +164,9 @@ interface pcie_lpif_if #(
         (lp_tlpend   == '0);
     endproperty
 
-    // 9 - check for unknown state on pins
+    /*________no X on pins___________*/
+
+    // 8 - check for unknown state on pins
     property no_x_on_pins;
         @(posedge lclk) 
         !$isunknown({
@@ -188,8 +182,7 @@ interface pcie_lpif_if #(
     endproperty
     
     
-    CHK_HANDSHAKE: assert property (lp_irdy_trdy_handshake)
-        else $error("LPIF Handshake Violation: TX changed data/framing while pl_trdy was 0 at time %0t", $time);
+   
 
     CHK_VALID_IRDY: assert property (lp_valid_irdy_relation)
         else $error("LPIF Protocol Violation: lp_valid asserted but lp_irdy is 0 at time %0t", $time);

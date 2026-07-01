@@ -60,7 +60,7 @@ class pcie_dll_agent extends uvm_component;
     //setting the VIF for the components
     if (role == ROLE_RC) begin
       if(!uvm_config_db#(virtual pcie_lpif_if)::get(this, "", "rc_vif", myvif)) begin
-        `uvm_fatal("NOVIF", $sformatf("Virtual interface not set for: %s . Please set it using uvm_config_db::set(this, \"\", \"rc_vif\", vif)",get_full_name()))
+        `uvm_fatal("NOVIF", $sformatf("Virtual interface not set for: %s .",get_full_name()))
       end
       tx_drv.vif = myvif;
       tx_mon.vif = myvif;
@@ -68,7 +68,7 @@ class pcie_dll_agent extends uvm_component;
     end
     else if (role == ROLE_EP) begin
       if(!uvm_config_db#(virtual pcie_lpif_if)::get(this, "", "ep_vif", myvif)) begin
-        `uvm_fatal("NOVIF", $sformatf("Virtual interface not set for: %s . Please set it using uvm_config_db::set(this, \"\", \"ep_vif\", vif)",get_full_name()))
+        `uvm_fatal("NOVIF", $sformatf("Virtual interface not set for: %s .",get_full_name()))
       end
       tx_drv.vif = myvif;
       tx_mon.vif = myvif;

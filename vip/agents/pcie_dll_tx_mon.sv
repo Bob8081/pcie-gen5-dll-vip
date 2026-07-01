@@ -49,7 +49,6 @@ class pcie_dll_tx_mon extends uvm_monitor;
     super.run_phase(phase);
     forever begin
 
-      //TODO : check for reset with assertions not monitor
       @(vif.cb_mon_tx);
       if (vif.rst_n && vif.pl_lnk_up) begin
         // A DLLP is present when:
@@ -68,7 +67,7 @@ class pcie_dll_tx_mon extends uvm_monitor;
           dllp_item.unpack(vif.cb_mon_tx.lp_data[47:0]);
           dllp_item.current_state = my_cfg.dlsm_state;
           mon_tx_ap.write(dllp_item);
-          `uvm_info("TX_MON", $sformatf("Observed TX DLLP: %h", dllp_item.dllp), UVM_LOW)
+          `uvm_info("TX_MON", $sformatf("%s: Observed TX DLLP: %h", role.name(), dllp_item.dllp), UVM_HIGH)
         end
 
         else if ((!(vif.cb_mon_tx.lp_tlpstart >= vif.cb_mon_tx.lp_tlpend))             &
@@ -80,7 +79,7 @@ class pcie_dll_tx_mon extends uvm_monitor;
           // DLLP is always packed into the lowest 48 bits of lp_data
           tlp_item.tlp=vif.cb_mon_tx.lp_data[127:0];
           mon_tx_ap.write(tlp_item);
-          `uvm_info("TX_MON", $sformatf("Observed TX TLP: %h", tlp_item.tlp), UVM_LOW)
+          `uvm_info("TX_MON", $sformatf("%s: Observed TX TLP: %h", role.name(), tlp_item.tlp), UVM_HIGH)
         end
       end
     end
