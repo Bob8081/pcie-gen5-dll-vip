@@ -26,8 +26,8 @@ class pcie_dll_if_mon extends uvm_monitor;
 
         forever 
         begin
-            @(vif.pl_lnk_up); //TODO : add more signals to monitor for better checking and coverage
-            `uvm_info("LINK_STATUS_CHANGE", $sformatf("Link status changed, new status: %b", vif.pl_lnk_up), UVM_LOW)
+            @(vif.pl_lnk_up); 
+            `uvm_info("LINK_STATUS_CHANGE", $sformatf("Link status changed, new status: %b", vif.pl_lnk_up), UVM_HIGH)
             lnk_cfg.pl_up = vif.pl_lnk_up;
             if(lnk_cfg.pl_up) begin
                 `uvm_info("LINK_UP", "Link is up!", UVM_LOW)

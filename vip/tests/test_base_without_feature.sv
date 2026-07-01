@@ -73,12 +73,12 @@ class test_base_without_feature extends pcie_dll_test_base;
       `uvm_info("TEST", "Starting correct test without feature state for both RC and EP", UVM_LOW)
       fork
         begin
-          target_reached_rc.wait_trigger();
+          wait (env_rc.my_cfg.dlsm_state == DL_ACTIVE);
           `uvm_info("TEST", "the RC reached active state!!!!!!", UVM_LOW)
           #2ns;
         end
         begin
-          target_reached_ep.wait_trigger();
+          wait(env_ep.my_cfg.dlsm_state == DL_ACTIVE);
           `uvm_info("TEST", "the EP reached active state!!!!!!", UVM_LOW)
           #2ns;
         end

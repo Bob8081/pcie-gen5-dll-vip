@@ -18,7 +18,6 @@ class pcie_dll_tx_drv_cb_invalid_dllp extends pcie_dll_tx_drv_cb_base;
 
     if (dllp.enable_errors == 1'b1) begin
         roll =$urandom_range(1, 3); // 25%
-        //roll = 0;
         if (roll == 1) begin
             trigger = 1'b1;
         end
@@ -26,7 +25,6 @@ class pcie_dll_tx_drv_cb_invalid_dllp extends pcie_dll_tx_drv_cb_base;
 
     if (trigger) begin
         dllp.dllp = {pcie_dll_pkg::crc16_generator::calculate_dllp_crc(32'd0), 32'd0}; // Invalid DLLP with type = 0 and payload = 0, CRC = 0xB362
-        //$display("ddddddddddddddddddddddddddddddddddddddddddddddddddddddd");
         return 1'b1;
     end
 

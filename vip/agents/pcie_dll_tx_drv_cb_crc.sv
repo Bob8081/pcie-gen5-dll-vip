@@ -18,7 +18,6 @@ class pcie_dll_tx_drv_cb_crc extends pcie_dll_tx_drv_cb_base;
 
     if (dllp.enable_errors == 1'b1) begin
         roll = $urandom_range(1, 3); // 25%
-        //roll = 0;
         if (roll == 1) begin
             trigger = 1'b1;
         end
@@ -28,7 +27,6 @@ class pcie_dll_tx_drv_cb_crc extends pcie_dll_tx_drv_cb_base;
     // Apply the change to the top 16 bits)
     if (trigger) begin
         dllp.dllp[47:32] = 16'h0000;
-        //$display("cccccccccccccccccccccccccccccccccccccccccccccccccccccc");
         return 1'b1;
     end
 

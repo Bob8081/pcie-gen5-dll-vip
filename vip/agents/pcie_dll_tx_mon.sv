@@ -2,11 +2,9 @@
 class pcie_dll_tx_mon extends uvm_monitor;
 
   uvm_analysis_port #(pcie_dll_base_seq_item) mon_tx_ap;
-  //uvm_analysis_imp  #(pcie_dlcmsm_state_e, pcie_dll_tx_mon) mon_state_export; 
   
   pcie_dll_role_e   role;
   pcie_dll_env_cfg  cfg;
-  pcie_dll_my_cfg   my_cfg;
 
   virtual pcie_lpif_if vif;
 
@@ -14,7 +12,6 @@ class pcie_dll_tx_mon extends uvm_monitor;
   pcie_dll_tlp_seq_item  tlp_item;
   pcie_dll_dllp_seq_item dllp_item; 
 
-  //pcie_dlcmsm_state_e    state;
 
 
   `uvm_component_utils(pcie_dll_tx_mon)
@@ -26,20 +23,13 @@ class pcie_dll_tx_mon extends uvm_monitor;
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
     mon_tx_ap = new("mon_tx_ap", this);
-    //mon_state_export = new("mon_state_export", this);
 
     if (!pcie_dll_env_cfg::get_cfg(this, "", cfg)) begin
       `uvm_fatal("NOCFG", "pcie_dll_tx_mon: no cfg found in config_db")
     end
 
-    if (!uvm_config_db#(pcie_dll_my_cfg)::get(this, "", "my_cfg", my_cfg))begin
-            `uvm_fatal("NOCFG",$sformatf("no my_cfg found in teh config_db for %s state_manager",role.name()))
-        end
   endfunction
 
-  /**virtual function void write(pcie_dlcmsm_state_e current_state);
-    state = current_state;
-  endfunction **/
 
   function void connect_phase(uvm_phase phase);
     super.connect_phase(phase);
@@ -49,7 +39,6 @@ class pcie_dll_tx_mon extends uvm_monitor;
     super.run_phase(phase);
     forever begin
 
-      //TODO : check for reset with assertions not monitor
       @(vif.cb_mon_tx);
       if (vif.rst_n && vif.pl_lnk_up) begin
         // A DLLP is present when:
@@ -66,9 +55,8 @@ class pcie_dll_tx_mon extends uvm_monitor;
           dllp_item = pcie_dll_dllp_seq_item::type_id::create("dllp_item");
           // DLLP is always packed into the lowest 48 bits of lp_data
           dllp_item.unpack(vif.cb_mon_tx.lp_data[47:0]);
-          dllp_item.current_state = my_cfg.dlsm_state;
           mon_tx_ap.write(dllp_item);
-          `uvm_info("TX_MON", $sformatf("Observed TX DLLP: %h", dllp_item.dllp), UVM_LOW)
+          `uvm_info("TX_MON", $sformatf("%s: Observed TX DLLP: %h", role.name(), dllp_item.dllp), UVM_HIGH)
         end
 
         else if ((!(vif.cb_mon_tx.lp_tlpstart >= vif.cb_mon_tx.lp_tlpend))             &
@@ -80,7 +68,7 @@ class pcie_dll_tx_mon extends uvm_monitor;
           // DLLP is always packed into the lowest 48 bits of lp_data
           tlp_item.tlp=vif.cb_mon_tx.lp_data[127:0];
           mon_tx_ap.write(tlp_item);
-          `uvm_info("TX_MON", $sformatf("Observed TX TLP: %h", tlp_item.tlp), UVM_LOW)
+          `uvm_info("TX_MON", $sformatf("%s: Observed TX TLP: %h", role.name(), tlp_item.tlp), UVM_HIGH)
         end
       end
     end

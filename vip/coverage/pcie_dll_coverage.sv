@@ -1,11 +1,6 @@
 // ---- pcie_dll_coverage ----
 
-//`uvm_analysis_imp_decl(_state)
 class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
-
-
-  // to recieve tghe current state of state manager
- // uvm_analysis_imp_state #(pcie_dlcmsm_state_e, pcie_dll_coverage) state_export;
 
   // ---- UVM Factory Registration ----
   `uvm_component_utils(pcie_dll_coverage)
@@ -77,10 +72,6 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
       bins init_state_2 [] = {DLLP_INITFC2_P, DLLP_INITFC2_NP, DLLP_INITFC2_CPL};
     }
 
-    // Indicates if the DLLP is part of a credit flow (bit 0 = 1)
-    //cp_payload_bit0: coverpoint dllp_payload[0] { 
-      //bins scl_flow [] = {1'b0, 1'b1};
-    //}
 
     // -- Errors --
     cp_error_status: coverpoint error_status {
@@ -94,11 +85,6 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
       
     }
 
-    // -- Crosses --
-    //cr_scaled_fc: cross cp_dllp_type, dllp_payload[0] {
-      //option.comment = " Ensures Scaled Flow Control feature exchange";
-      //ignore_bins scl_fc = !binsof(cp_dllp_type.feature_state);
-    //}
 
     cr_inv_dllp: cross cp_state, cp_error_status {
       option.comment = " Invalid DLLP scenarios during states";
@@ -205,7 +191,6 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
   // ---- Constructor ----
   function new(string name = "pcie_dll_coverage", uvm_component parent = null);
     super.new(name, parent);
-    //state_export = new("state_export", this);
 
     // create coverage groups
     if (uvm_is_match("*tx*", name)) begin
@@ -296,11 +281,6 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
   endtask
 
 
-  // ---- Write for state updates ----
-  //virtual function void write_state(pcie_dlcmsm_state_e current_state);
-    //state = current_state;
-  //endfunction
-
   // ---- Write for sequence item ----
   virtual function void write(pcie_dll_base_seq_item t);
     pcie_dll_dllp_seq_item dllp_item;
@@ -325,8 +305,8 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
       cg_dllp_transitions.sample();
 
       `uvm_info("COVERAGE", $sformatf("------------------------- coverage ----------------------------"), UVM_LOW)
-      `uvm_info("COVERAGE", $sformatf("------------- %s in %s -------------", path_type, role.name()), UVM_LOW)
-      `uvm_info("COVERAGE", $sformatf("--------- DLLP: %h  in Tx_state: %s --------", dllp, state), UVM_LOW)
+      `uvm_info("COVERAGE", $sformatf("--------------------- %s in %s ------------------", path_type, role.name()), UVM_LOW)
+      `uvm_info("COVERAGE", $sformatf("----------- DLLP: %h  in Tx_state: %s ----------", dllp, state), UVM_LOW)
       `uvm_info("COVERAGE", $sformatf("-------DLLP type: %s, error status: %s -------", dllp_type.name(), error_status.name()), UVM_LOW)
 
     end
@@ -334,14 +314,11 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
       tlp   = tlp_item.tlp;
 
       `uvm_info("COVERAGE", $sformatf("------------------------- coverage ----------------------------"), UVM_LOW)
-      `uvm_info("COVERAGE", $sformatf("------------- %s in %s -------------", path_type, role.name()), UVM_LOW)
-      `uvm_info("COVERAGE", $sformatf("--------- TLP: %h  in Tx_state: %s --------", tlp, state), UVM_LOW)
+      `uvm_info("COVERAGE", $sformatf("-------------------- %s in %s ------------------", path_type, role.name()), UVM_LOW)
+      `uvm_info("COVERAGE", $sformatf("----------- TLP: %h  in Tx_state: %s ----------", tlp, state), UVM_LOW)
 
       cg_tlp_transitions.sample();
     end
-
-
-
 
   endfunction
 
