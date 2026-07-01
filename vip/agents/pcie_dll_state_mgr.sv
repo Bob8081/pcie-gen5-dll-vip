@@ -25,8 +25,6 @@ class pcie_dll_state_mgr extends uvm_component;
     pcie_dll_link_cfg lnk_cfg;
     uvm_analysis_port #(pcie_dlcmsm_state_e) state_ap; //broadcast state changes to the scoreboard
 
-    uvm_event target_reached; //to be triggered when the state machine reaches the target state (DL_ACTIVE) to let the testbench know about it and to check the coverage at that point
-
 
 
     function new(string name = "pcie_dll_state_mgr", uvm_component parent = null);
@@ -34,7 +32,6 @@ class pcie_dll_state_mgr extends uvm_component;
         dllp_fifo = new("dllp_fifo", this);
         tlp_fifo = new("tlp_fifo", this);
         dllp_export = new("dllp_export", this);
-        target_reached = new("target_reached");
         state_ap = new("state_ap", this);
         fc_pkt_counter_ap = new("fc_pkt_counter_ap", this);
     endfunction
@@ -60,10 +57,6 @@ class pcie_dll_state_mgr extends uvm_component;
 
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        //each device's state manager in the vip gets a differnet instance of the event according to thier env
-        if(!uvm_config_db#(uvm_event)::get(this, "", "event", target_reached)) begin
-            `uvm_fatal("NOEV", $sformatf("No event found in config_db for %s state_manager.",role.name()))
-        end
 
         if(!uvm_config_db#(pcie_dll_partner_cfg)::get(this, "", "partner_cfg", partner_cfg))begin
             `uvm_fatal("NOCFG",$sformatf("no partner_cfg found in teh config_db for %s state_manager",role.name()))
@@ -87,7 +80,7 @@ class pcie_dll_state_mgr extends uvm_component;
 
     task run_phase(uvm_phase phase);
         super.run_phase(phase);
-        `uvm_info("STATE_MGR", "Starting State Manager run_phase", UVM_LOW)
+        `uvm_info("STATE_MGR", $sformatf("%s: Starting State Manager run_phase", role.name()), UVM_LOW)
         change_state(DL_INACTIVE);
     endtask
 
@@ -103,7 +96,8 @@ class pcie_dll_state_mgr extends uvm_component;
         end
 
         //for debugging purposes, to track state changes in the log
-        `uvm_info("STATE_MGR", $sformatf("Changing state from %s to %s", (current_state != null) ? current_state.get_full_name() : "None"   , new_state.name()), UVM_LOW)
+        `uvm_info("STATE_MGR", $sformatf("%s: Changing state from %s to %s", 
+                    role.name(), (current_state != null) ? current_state.get_full_name() : "None"   , new_state.name()), UVM_HIGH)
 
         //crate the new state and check if it extends the correct base class
         if(!$cast(current_state, obj))begin
@@ -123,12 +117,4 @@ class pcie_dll_state_mgr extends uvm_component;
     endtask
 
 
-    virtual task send_to_driver(pcie_dll_base_seq_item packet); //to be used in case of the state decides what to send next
-        send_single_packet single_seq;
-        single_seq = send_single_packet::type_id::create("single_seq");
-        single_seq.item_to_send = packet;
-        single_seq.start(dllp_sequencer);
-    endtask
-
-
-endclass
+endclass : pcie_dll_state_mgr

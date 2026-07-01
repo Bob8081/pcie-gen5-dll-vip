@@ -7,15 +7,13 @@ class pcie_dll_test_base extends uvm_test;
   pcie_dll_env      env_ep;
   pcie_dll_if_agent if_agent;
 
-  uvm_event target_reached_rc;
-  uvm_event target_reached_ep;
+
 
   `uvm_component_utils(pcie_dll_test_base)
 
   function new(string name = "pcie_dll_test_base", uvm_component parent = null);
     super.new(name, parent);
-    target_reached_rc = new("target_reached_rc");
-    target_reached_ep = new("target_reached_ep");
+
   endfunction
 
   // -------------------------------------------------------------------------
@@ -66,9 +64,7 @@ class pcie_dll_test_base extends uvm_test;
     uvm_config_db#(pcie_dll_role_e)::set(this, "env_rc*", "role", ROLE_RC);
     uvm_config_db#(pcie_dll_role_e)::set(this, "env_ep*", "role", ROLE_EP);
 
-    // DL_ACTIVE events
-    uvm_config_db#(uvm_event)::set(this, "env_rc*", "event", target_reached_rc);
-    uvm_config_db#(uvm_event)::set(this, "env_ep*", "event", target_reached_ep);
+
 
     // Instantiate environments and IF agent
     env_rc   = pcie_dll_env::type_id::create("env_rc",   this);

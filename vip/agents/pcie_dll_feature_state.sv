@@ -26,9 +26,9 @@ class pcie_dll_DL_FEATURE_EXCH extends pcie_dll_base_state;
         manager.partner_cfg.partner_feature_valid = 0;
         manager.partner_cfg.partner_feature_support = 0;
 
-        `uvm_info("STATE", "Entered DL_FEATURE_EXCH state", UVM_LOW)
-        `uvm_info("FEATURE_STATE", $sformatf("Feature Exchange starting. with remote_feature_support = %b, remote_feature_valid = %b", 
-                                            manager.partner_cfg.partner_feature_support, manager.partner_cfg.partner_feature_valid), UVM_LOW)
+        `uvm_info("FEATURE_STATE", $sformatf("_____________%s: Entered DL_FEATURE_EXCH state______________", manager.role.name()), UVM_LOW)
+        `uvm_info("FEATURE_STATE", $sformatf("%s: Feature Exchange starting. with remote_feature_support = %b, remote_feature_valid = %b", 
+                                            manager.role.name(), manager.partner_cfg.partner_feature_support, manager.partner_cfg.partner_feature_valid), UVM_HIGH)
 
         fork 
         begin
@@ -49,8 +49,8 @@ class pcie_dll_DL_FEATURE_EXCH extends pcie_dll_base_state;
                     manager.partner_cfg.partner_feature_support = dllp_item_rx.feature_support;
                     manager.partner_cfg.partner_feature_valid = 1;
                     feature_seq.seq_feature_ack = 1;
-                    `uvm_info("FEATURE_STATE", $sformatf("%s : Recieived FEATURE DLLP from partner, feature support = %b, feature_ack=%b", 
-                                                        manager.role,dllp_item_rx.feature_support, dllp_item_rx.feature_ack), UVM_LOW)
+                    `uvm_info("FEATURE_STATE", $sformatf("%s: Received FEATURE DLLP from partner, feature support = %b, feature_ack=%b", 
+                                                        manager.role.name(), dllp_item_rx.feature_support, dllp_item_rx.feature_ack), UVM_HIGH)
                 end
                 else if (dllp_item_rx.dllp_type == DLLP_INITFC1_P)
                 begin
@@ -61,7 +61,22 @@ class pcie_dll_DL_FEATURE_EXCH extends pcie_dll_base_state;
                     //`uvm_error("FEATURE_ERR",$sformatf("recieved WRONG STATE DLLP of type : %s in FEATURE_STATE",dllp_item_rx.dllp_type))
                 end
             end
-        end
+        end //end of thread 2 for receiving the feature dllps
+
+        begin //thread 3 to monitor the linkup signal 
+            if(manager.lnk_cfg.pl_up) //stay in the active state as long as the link is up
+            begin
+                manager.lnk_cfg.pl_realesed.wait_trigger();
+                `uvm_info("FEATURE_STATE", $sformatf("%s: Link is down, moving back to DL_INACTIVE...", manager.role.name()), UVM_HIGH)
+                next_state = DL_INACTIVE;
+            end
+            else 
+            begin 
+                `uvm_info("FEATURE_STATE", $sformatf("%s: Link is down, moving back to DL_INACTIVE...", manager.role.name()), UVM_HIGH)
+                next_state = DL_INACTIVE;
+            end
+            finished.trigger();
+        end //end of thread 3
         
         join_none
 
@@ -80,8 +95,8 @@ class pcie_dll_DL_FEATURE_EXCH extends pcie_dll_base_state;
 
         disable fork;
 
-        `uvm_info("FEATURE_STATE", $sformatf("Feature Exchange Completed, moving to next state. with remote_feature_support = %b, remote_feature_valid = %b", 
-                                            manager.partner_cfg.partner_feature_support, manager.partner_cfg.partner_feature_valid), UVM_LOW)
+        `uvm_info("FEATURE_STATE", $sformatf("%s: Feature Exchange Completed, moving to next state. with remote_feature_support = %b, remote_feature_valid = %b", 
+                                            manager.role.name(), manager.partner_cfg.partner_feature_support, manager.partner_cfg.partner_feature_valid), UVM_HIGH)
         
         next_state = DL_INIT_FC1;
         manager.change_state(next_state); 
