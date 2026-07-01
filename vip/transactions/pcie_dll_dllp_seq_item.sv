@@ -161,7 +161,7 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
     dllp = pack();
 
 
-    `uvm_info("SEQ_ITEM", $sformatf("corrupted_initfc= %0b and enable_errors= %0b", corrupted_initfc, enable_errors), UVM_LOW);
+    `uvm_info("SEQ_ITEM", $sformatf("corrupted_initfc= %0b and enable_errors= %0b and delayed_packets= %0b", corrupted_initfc, enable_errors, delayed_packets), UVM_LOW);
 
   endfunction
 

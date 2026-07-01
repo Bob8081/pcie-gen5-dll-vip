@@ -236,8 +236,7 @@ class pcie_dll_common_checks extends uvm_object;
 
   /////////////////////////////////////// ----------------------------------- /////////////////////////////////
 
-  // traffic_isolation check implementation...
-
+    // Only proper DLLPs are transmitted during states
     // note this function works for received DLLP items
     function int proper_packets (pcie_dll_base_seq_item  item,
                                 pcie_dlcmsm_state_e     tx_state);
@@ -246,24 +245,22 @@ class pcie_dll_common_checks extends uvm_object;
       error_status= pcie_dll_pkg::error_expector::rx_determine_error_status(item, tx_state);
 
         // Only proper DLLPs are transmitted during states
-      
         if (error_status == INVALID_DLLP) begin
           return 0;
-          //`uvm_error("SCOREBOARD: ILLEGAL_DLLP", "Violation: invalid DLLP received!")
         end
         else if (error_status == INVALID_TLP) begin
           return 1;
-          //`uvm_error("SCOREBOARD: ILLEGAL_TLP", "Violation: received TLP while Link is NOT ACTIVE!")
         end
         else begin
           return 2;
-          //`uvm_info("SCOREBOARD: PROPER_DLLP", "Valid: valid packet received.", UVM_LOW)
         end
 
 
     endfunction
 
 
+    // Only proper DLLPs with valid Virtual Channel (VC) are transmitted during states
+    // note this function works for received DLLP items
     function bit valid_VC (pcie_dll_base_seq_item  item,
                           pcie_dlcmsm_state_e     tx_state);
 
@@ -273,11 +270,9 @@ class pcie_dll_common_checks extends uvm_object;
         // All InitFC DLLPs are strictly addressed to Virtual Channel 0 (VCO).
         if (error_status == INVALID_VC) begin
           return 0; // error
-          //`uvm_error("SCOREBOARD: VIRTUAL_CHANNEL", "Violation: Only credit advertisement DLLPs allowed for Virtual Channel 0 (VCO) during InitFC states!")
         end
         else begin
           return 1;
-          //`uvm_info("SCOREBOARD: VIRTUAL_CHANNEL", "Valid: credit advertisement DLLPs is for Virtual Channel 0 (VCO) during InitFC states!", UVM_LOW)
         end
 
     endfunction
@@ -288,46 +283,41 @@ class pcie_dll_common_checks extends uvm_object;
     // to make sure that the state manager drops packets with ubnormal behavior
     // note: we check the behavior of state manager with the received packets
     function int drop_packets ( pcie_dlcmsm_state_e tx_state, pcie_dll_base_seq_item  item,
+                                pcie_dll_dllp_seq_item rx_dllp_item,
                                 pcie_fc_pkt_counters_s curr_counters, 
                                 pcie_fc_pkt_counters_s prev_counters);
 
         
-        int unsigned          is_valid; // A single flag to evaluate the entire logic
+        bit                   is_valid; // A single flag to evaluate the entire logic
         int unsigned          current_st_count;
         int unsigned          prev_st_count;
 
         pcie_dllp_error_e     error_status;
         error_status = pcie_dll_pkg::error_expector::rx_determine_error_status(item, tx_state);
     
-            if (tx_state == DL_INIT_FC1) begin
+            if (rx_dllp_item.dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC1_NP, DLLP_INITFC1_CPL}) begin
               current_st_count = curr_counters.counter_fc1;
               prev_st_count    = prev_counters.counter_fc1;
             end
-            else if (tx_state == DL_INIT_FC2) begin
+            else if (rx_dllp_item.dllp_type inside {DLLP_INITFC2_P, DLLP_INITFC2_NP, DLLP_INITFC2_CPL}) begin
               current_st_count = curr_counters.counter_fc2;
               prev_st_count    = prev_counters.counter_fc2;
+            end
+            else if (rx_dllp_item.dllp_type == DLLP_FEATURE_REQ) begin  // incase feature req dllp
+              return 2;
+            end
+            else begin // invalid (dllp & VC) case "note: will print if invalid dllp for feature state"
+                return (curr_counters.counter_fc1 == 0 && curr_counters.counter_fc2 == 0) ? 1 : 0; 
             end
           
           
             // Error packet
-            is_valid = 2;
-            if (error_status != ERROR_FREE) begin 
-                  if (error_status == WRONG_CRC)
+            if (error_status == WRONG_CRC) begin 
                         is_valid = (prev_st_count == current_st_count);
-                  else if (error_status inside {INVALID_DLLP, INVALID_VC})
-                        is_valid = (current_st_count == 0);
             end
             else begin // error free case
                         is_valid = (current_st_count == prev_st_count+1);
             end
-
-
-      /** if (is_valid) begin
-            `uvm_info("SCOREBOARD: PKT_DROP", "Valid: Correct drop/increment behavior", UVM_LOW)
-        end 
-        else begin
-            `uvm_error("SCOREBOARD: PKT_DROP", "Violation: abnormal behavior in state manager packet drop/increment logic!")
-        end **/
 
         return is_valid;
 
@@ -377,11 +367,9 @@ class pcie_dll_common_checks extends uvm_object;
           if ((tx_path_state == 4 || rx_path_state == 4)) begin
            if (!(delta inside {1,0,-1})) begin
             return 0; // error
-            //`uvm_fatal("SCOREBOARD: ASYMMETRIC_ACTIVE", "Violation: both RC and EP don't reach active state symmetrically !!!")
            end
            else begin
             return 1; // normal
-            //`uvm_info("SCOREBOARD: SYMMETRIC_ACTIVE", "Valid: both RC and EP reached active state symmetrically!", UVM_LOW)
            end
           end
         end
@@ -421,24 +409,20 @@ if (error_status != INVALID_VC) begin
              ||(rx_dllp_item.data_scale != partner_cfg.partner_credits[credit_type].data_scale) ) begin
 
               return 0; // error
-            //`uvm_error("SCOREBOARD:CREDIT_MISMATCH",$sformatf("Captured credits do not match expected values for type %s!", credit_type.name()))
         end 
         else begin
              return 1; // normal
-            //`uvm_info("SCOREBOARD:CREDIT_MATCH", $sformatf("Captured credits match expected values for type %s.", credit_type.name()), UVM_LOW)
         end
     end
 
     else begin 
       return 2;
-       // `uvm_info("SCOREBOARD:CREDIT_CAPTURE", $sformatf("Received non-InitFC DLLP type %s. Cannot capture credits.", rx_dllp_item.dllp_type.name()), UVM_LOW)
     end 
 
   end
 end
     else begin 
       return 2;
-       // `uvm_info("SCOREBOARD:CREDIT_CAPTURE", $sformatf("Received non-InitFC DLLP type %s. Cannot capture credits.", rx_dllp_item.dllp_type.name()), UVM_LOW)
     end 
 
 

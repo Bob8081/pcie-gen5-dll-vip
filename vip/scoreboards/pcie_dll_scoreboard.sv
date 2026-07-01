@@ -16,16 +16,10 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
   // Track transmitted packet
   pcie_dll_base_seq_item  tx_item;
   pcie_dll_dllp_seq_item  tx_dllp_item;
-  pcie_dlcmsm_state_e     tx_prev_state;
-  pcie_dlcmsm_state_e     tx_curr_state;
-  pcie_dllp_type_e        tx_prev_dllp_type;
-  pcie_dllp_type_e        tx_curr_dllp_type;
 
   // Track received packet
   pcie_dll_base_seq_item  rx_item;
   pcie_dll_dllp_seq_item  rx_dllp_item;
-  pcie_dllp_type_e        rx_prev_dllp_type;
-  pcie_dllp_type_e        rx_curr_dllp_type;
 
   // Track state manager counters
   pcie_fc_pkt_counters_s prev_counters;
@@ -50,7 +44,7 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
   uvm_analysis_imp_tx        #(pcie_dll_base_seq_item, pcie_dll_scoreboard) tx_export;
   uvm_analysis_imp_rx        #(pcie_dll_base_seq_item, pcie_dll_scoreboard) rx_export;
   uvm_analysis_imp_state     #(pcie_dlcmsm_state_e,    pcie_dll_scoreboard) state_export;
-  uvm_analysis_imp_counter #(pcie_fc_pkt_counters_s, pcie_dll_scoreboard) counter_export; // counter item
+  uvm_analysis_imp_counter   #(pcie_fc_pkt_counters_s, pcie_dll_scoreboard) counter_export; // counter item
 
 
   // Handle to common checks
@@ -68,8 +62,6 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     super.new(name, parent);
     curr_state = DL_INACTIVE;
     prev_state = DL_INACTIVE;
-    tx_prev_state = DL_INACTIVE;
-    tx_curr_state = DL_INACTIVE;
     state_seeded  = 0;
     rx_initfc1_order_step    = 0;
     rx_initfc2_order_step    = 0;
@@ -111,39 +103,13 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
         prev_counters.counter_fc2  = curr_counters.counter_fc2;
         curr_counters.counter_fc2  = temp_counters.counter_fc2; // = default value "0" if no counters "feature state"
         curr_counters.counter_fc1  = temp_counters.counter_fc1; // = default value "0" if no counters "feature state"
-
-      /** 
-      if ($cast(tx_dllp_item, tx_item)) begin
-        tx_prev_state     = tx_curr_state;
-        tx_curr_state     = my_cfg.dlsm_state;
-        tx_prev_dllp_type = tx_curr_dllp_type;
-        tx_curr_dllp_type = tx_dllp_item.dllp_type;
-      end
-
-        if ($cast(rx_dllp_item, rx_item)) begin
-          rx_prev_dllp_type = rx_curr_dllp_type;
-          rx_curr_dllp_type = rx_dllp_item.dllp_type;
-        end
-
-   
-    `uvm_info("SCOREBOARD", $sformatf("----------------- %s scoreboard information -----------------", role.name()), UVM_LOW)
-    if ($cast(rx_dllp_item, rx_item) && ($cast(tx_dllp_item, tx_item))) begin
-      `uvm_info("SCOREBOARD", $sformatf("Current State: %s, Previous State: %s", curr_state.name(), prev_state.name()), UVM_LOW)
-      `uvm_info("SCOREBOARD", $sformatf("Tx packet: %0h ,  type : %s", tx_dllp_item.dllp, tx_dllp_item.dllp_type.name()), UVM_LOW)
-      `uvm_info("SCOREBOARD", $sformatf("Rx packet: %0h ,  type : %s", rx_dllp_item.dllp, rx_dllp_item.dllp_type.name()), UVM_LOW)
-      `uvm_info("SCOREBOARD", $sformatf("FC1: current counter: %d,  prev counter: %d", curr_counters.counter_fc1, prev_counters.counter_fc1), UVM_LOW)
-      `uvm_info("SCOREBOARD", $sformatf("FC2: current counter: %d,  prev counter: %d", curr_counters.counter_fc2, prev_counters.counter_fc2), UVM_LOW)
-      end
-     else begin
-      `uvm_info("SCOREBOARD", $sformatf("----------------- TLP detected -----------------"), UVM_LOW)
-     end **/
      
 
       // -------------- calling some common checks functions ------------------
       case (checks.proper_packets (rx_item, curr_state))
         0:  `uvm_error("SCOREBOARD", "ILLEGAL_DLLP: Violation invalid DLLP received!")
         1:  `uvm_error("SCOREBOARD", "ILLEGAL_TLP: Violation received TLP while Link is NOT ACTIVE!")
-        2:  `uvm_info ("SCOREBOARD", "PROPER_PACKET: Valid valid packet received.", UVM_LOW) 
+        2:  `uvm_info ("SCOREBOARD", "PROPER_PACKET: Valid packet received.", UVM_LOW) 
         default: ;
       endcase
 
@@ -165,12 +131,9 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
             1:  `uvm_info ("SCOREBOARD", $sformatf("CREDIT_MATCH: Captured credits match expected values for type %s.", rx_dllp_item.dllp_type.name()), UVM_LOW)
             2:  `uvm_info ("SCOREBOARD", $sformatf("CREDIT_CAPTURE: Cannot capture credits."), UVM_LOW)
             default: ;
-          endcase 
-      end
+          endcase      
 
-      
-      if (curr_state inside {DL_INIT_FC1, DL_INIT_FC2}) begin
-          case (checks.drop_packets      (curr_state, rx_item,
+          case (checks.drop_packets      (my_cfg.dlsm_state, rx_item, rx_dllp_item,
                                          curr_counters, prev_counters)) 
             0:  `uvm_error("SCOREBOARD", "PKT_DROP: Violation abnormal behavior in state manager packet drop/increment logic!")
             1:  `uvm_info ("SCOREBOARD", "PKT_DROP: Valid Correct drop/increment behavior", UVM_LOW)
