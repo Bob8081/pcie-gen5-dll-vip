@@ -1,5 +1,4 @@
 # 1. Compile files directly in the correct order
-vlog ../tb/pcie_lpif_if.sv ../rtl/mock_phy_crossbar.sv pcie_dll_pkg.sv ../tb/tb_top.sv
 
 # 2. Run the simulation
 vsim -voptargs=+acc work.tb_top
@@ -20,6 +19,10 @@ vsim -coverage -voptargs="+acc" +UVM_TESTNAME=test_base_delayed_packets   work.t
 vcover merge merged_coverage.ucdb test1.ucdb test2.ucdb test3.ucdb test4.ucdb test5.ucdb test6.ucdb
 
 # 4. Report
+# Text report 
 vcover report -output coverage_report.txt -cvg -details -all merged_coverage.ucdb
+
+# HTML report 
+vcover report -html -htmldir coverage_html -details merged_coverage.ucdb
 
 quit -f
