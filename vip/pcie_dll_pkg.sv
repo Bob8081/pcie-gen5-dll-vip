@@ -185,5 +185,6 @@ package pcie_dll_pkg;
   `include "tests/test_base_delayed_packets.sv"
   `include "tests/test_base_with_feature.sv"
   `include "tests/test_base_without_feature.sv"
+  `include "tests/test_base_drop_link.sv"
 
 endpackage : pcie_dll_pkg
