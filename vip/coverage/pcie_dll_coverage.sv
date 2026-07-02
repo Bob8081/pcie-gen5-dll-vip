@@ -189,7 +189,6 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
   // note: this coverage group is only instantiated for the Tx path
   covergroup cg_active_status (string path_label);
 
-    option.per_instance = 1;
     option.name         = path_label;
     option.weight       = 10;  // high weight the same as DLLP coverage
     option.comment      = " Tracks timeout scenarios for InitFC1 and InitFC2 received packets ";
