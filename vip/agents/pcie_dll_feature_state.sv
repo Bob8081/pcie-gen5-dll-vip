@@ -54,6 +54,7 @@ class pcie_dll_DL_FEATURE_EXCH extends pcie_dll_base_state;
                 end
                 else if (dllp_item_rx.dllp_type == DLLP_INITFC1_P)
                 begin
+                    next_state = DL_INIT_FC1;
                     finished.trigger();
                 end
                 else
@@ -67,12 +68,12 @@ class pcie_dll_DL_FEATURE_EXCH extends pcie_dll_base_state;
             if(manager.lnk_cfg.pl_up) //stay in the active state as long as the link is up
             begin
                 manager.lnk_cfg.pl_realesed.wait_trigger();
-                `uvm_info("FEATURE_STATE", $sformatf("%s: Link is down, moving back to DL_INACTIVE...", manager.role.name()), UVM_HIGH)
+                `uvm_info("FEATURE_STATE", $sformatf("%s: Link changed to down, moving back to DL_INACTIVE...", manager.role.name()), UVM_LOW)
                 next_state = DL_INACTIVE;
             end
             else 
             begin 
-                `uvm_info("FEATURE_STATE", $sformatf("%s: Link is down, moving back to DL_INACTIVE...", manager.role.name()), UVM_HIGH)
+                `uvm_info("FEATURE_STATE", $sformatf("%s: Link is down, moving back to DL_INACTIVE...", manager.role.name()), UVM_LOW)
                 next_state = DL_INACTIVE;
             end
             finished.trigger();
@@ -87,6 +88,7 @@ class pcie_dll_DL_FEATURE_EXCH extends pcie_dll_base_state;
         end
         begin
             wait(feature_support_sent && manager.partner_cfg.partner_feature_valid ); 
+            next_state = DL_INIT_FC1;
         end
         join_any
         
@@ -98,7 +100,6 @@ class pcie_dll_DL_FEATURE_EXCH extends pcie_dll_base_state;
         `uvm_info("FEATURE_STATE", $sformatf("%s: Feature Exchange Completed, moving to next state. with remote_feature_support = %b, remote_feature_valid = %b", 
                                             manager.role.name(), manager.partner_cfg.partner_feature_support, manager.partner_cfg.partner_feature_valid), UVM_HIGH)
         
-        next_state = DL_INIT_FC1;
         manager.change_state(next_state); 
     endtask
 
