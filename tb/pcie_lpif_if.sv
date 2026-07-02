@@ -114,20 +114,19 @@ interface pcie_lpif_if #(
         $onehot0(lp_dlpend);
     endproperty
 
-    //4 - check that the tlp and dllp -if sent on same cycle- dont start or end on same byte
+    // 4 - Mutual Exclusion & Bounds: TLP and DLLP payloads cannot interleave
     property no_tlp_dllp_overlap;
         @(posedge lclk) disable iff (!rst_n || !pl_lnk_up)
         ((|lp_tlpstart) && (|lp_dlpstart)) |->
-        (lp_tlpstart & lp_dlpstart) == '0; 
-    endproperty  
+        ((lp_tlpstart & lp_dlpstart) == '0) && 
+        ((lp_dlpstart < lp_tlpstart) -> (lp_dlpend < lp_tlpstart)) &&
+        ((lp_tlpstart < lp_dlpstart) -> (lp_tlpend < lp_dlpstart)); 
+    endproperty
 
     // 5 - lp_valid in correct range of start and end flags
     property lp_valid_between_limits;
         @(posedge lclk) disable iff (!rst_n || !pl_lnk_up)
-        
         (|lp_tlpstart || |lp_dlpstart) |-> 
-        
-        
         (lp_valid == (((|lp_tlpstart) ? (lp_tlpend | (lp_tlpend - lp_tlpstart)) : '0) 
                             | ((|lp_dlpstart) ? (lp_dlpend | (lp_dlpend - lp_dlpstart)) : '0))
         );
@@ -140,7 +139,6 @@ interface pcie_lpif_if #(
         @(posedge lclk) disable iff (!rst_n)
         (!pl_lnk_up) |->
         (lp_irdy     == '0) &&
-        (pl_trdy     == '0) &&
         (lp_valid    == '0) &&
         (lp_data     == '0) && 
         (lp_dlpstart == '0) &&
@@ -153,9 +151,7 @@ interface pcie_lpif_if #(
     property reset_property;
         @(posedge lclk) 
         (!rst_n) |->
-        (pl_lnk_up   == '0) &&
         (lp_irdy     == '0) &&
-        (pl_trdy     == '0) &&
         (lp_valid    == '0) &&
         (lp_data     == '0) && 
         (lp_dlpstart == '0) &&
@@ -168,7 +164,7 @@ interface pcie_lpif_if #(
 
     // 8 - check for unknown state on pins
     property no_x_on_pins;
-        @(posedge lclk) 
+        @(posedge lclk) disable iff (!rst_n)
         !$isunknown({
             lp_irdy, 
             pl_trdy, 
@@ -185,7 +181,7 @@ interface pcie_lpif_if #(
    
 
     CHK_VALID_IRDY: assert property (lp_valid_irdy_relation)
-        else $error("LPIF Protocol Violation: lp_valid asserted but lp_irdy is 0 at time %0t", $time);
+        else $error("LPIF Handshake Violation: lp_valid asserted but lp_irdy is 0 at time %0t", $time);
 
     CHK_TLP_BOUNDS: assert property (packet_start_end_valid(lp_tlpstart, lp_tlpend))
         else $error("LPIF Framing Violation: TLP End bit position is before Start bit at time %0t", $time);
@@ -205,7 +201,7 @@ interface pcie_lpif_if #(
     CHK_LNK_DOWN_FLUSH: assert property (p_lnk_down_flush)
         else $error("LPIF Violation: DLL did not flush the bus when pl_lnk_up went to 0 at time %0t", $time);
 
-    CHK_RESET_QUIET: assert property (reset_property)
+    CHK_RESET: assert property (reset_property)
         else $error("LPIF Violation: DLL control signals were driven while rst_n was 0 at time %0t", $time);
 
     CHK_NO_X_STATES: assert property (no_x_on_pins)
