@@ -82,6 +82,12 @@ package pcie_dll_pkg;
     timeout_fc2     = 2'b11
   } pcie_dll_fc_watchdog_status_e;
 
+  typedef enum bit [1:0] {
+    not_active        = 2'b00,
+    symmetric_active  = 2'b01,
+    asymmetric_active = 2'b10
+  } pcie_dll_fc_active_status_e;
+
   typedef struct {
     int unsigned counter_fc1;
     int unsigned counter_fc2;

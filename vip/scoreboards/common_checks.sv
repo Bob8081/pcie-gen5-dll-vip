@@ -5,11 +5,6 @@ class pcie_dll_common_checks extends uvm_object;
   
   `uvm_object_utils(pcie_dll_common_checks)
 
-  // control signals
-  bit  tx_updated;
-  bit  rx_updated;
-  bit  counter_update;
-
   function new(string name = "pcie_dll_common_checks");
     super.new(name);
   endfunction
