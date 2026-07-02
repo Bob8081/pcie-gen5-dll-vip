@@ -106,63 +106,63 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     super.run_phase(phase);
 
     forever begin
-    wait (tx_queue.size() && rx_queue.size() && (counters_queue.size() || my_cfg.dlsm_state inside {DL_FEATURE_EXCH, DL_ACTIVE})) begin
-      tx_item       = tx_queue.pop_front();
-      rx_item       = rx_queue.pop_front();
-      temp_counters = counters_queue.pop_front();
+      wait (tx_queue.size() && rx_queue.size() && (counters_queue.size() || my_cfg.dlsm_state inside {DL_FEATURE_EXCH, DL_ACTIVE})) begin
+        tx_item       = tx_queue.pop_front();
+        rx_item       = rx_queue.pop_front();
+        temp_counters = counters_queue.pop_front();
 
 
         prev_counters.counter_fc1  = curr_counters.counter_fc1;
         prev_counters.counter_fc2  = curr_counters.counter_fc2;
         curr_counters.counter_fc2  = temp_counters.counter_fc2; // = default value "0" if no counters "feature state"
         curr_counters.counter_fc1  = temp_counters.counter_fc1; // = default value "0" if no counters "feature state"
-     
-
-      // -------------- calling some common checks functions ------------------
-      case (checks.proper_packets (rx_item, curr_state))
-        0:  `uvm_error("SCOREBOARD", "ILLEGAL_DLLP: Violation invalid DLLP received!")
-        1:  `uvm_error("SCOREBOARD", "ILLEGAL_TLP: Violation received TLP while Link is NOT ACTIVE!")
-        2:  `uvm_info ("SCOREBOARD", "PROPER_PACKET: Valid packet received.", UVM_LOW) 
-        default: ;
-      endcase
 
 
-      if (! checks.valid_VC (rx_item, curr_state))
+        // -------------- calling some common checks functions ------------------
+        case (checks.proper_packets (rx_item, curr_state))
+          0:  `uvm_error("SCOREBOARD", "ILLEGAL_DLLP: Violation invalid DLLP received!")
+          1:  `uvm_error("SCOREBOARD", "ILLEGAL_TLP: Violation received TLP while Link is NOT ACTIVE!")
+          2:  `uvm_info ("SCOREBOARD", "PROPER_PACKET: Valid packet received.", UVM_LOW)
+          default: ;
+        endcase
+
+
+        if (! checks.valid_VC (rx_item, curr_state))
           `uvm_error("SCOREBOARD", "VIRTUAL_CHANNEL: Violation Only credit advertisement DLLPs allowed for Virtual Channel 0 (VCO) during InitFC states!")
 
 
-      case (checks.check_symmetric_active (rx_item, curr_state))
-        0: begin
-           asymmetric_active_event.trigger();
-           `uvm_fatal("SCOREBOARD", "ASYMMETRIC_ACTIVE: Violation both RC and EP don't reach active state symmetrically !!!")
-        end
-        1: begin
-           symmetric_active_event.trigger();
-           `uvm_info ("SCOREBOARD", "SYMMETRIC_ACTIVE: Valid both RC and EP reached active state symmetrically!", UVM_LOW)
-        end
-        default: ;
-      endcase 
+        case (checks.check_symmetric_active (rx_item, curr_state))
+          0: begin
+            asymmetric_active_event.trigger();
+            `uvm_fatal("SCOREBOARD", "ASYMMETRIC_ACTIVE: Violation both RC and EP don't reach active state symmetrically !!!")
+          end
+          1: begin
+            symmetric_active_event.trigger();
+            `uvm_info ("SCOREBOARD", "SYMMETRIC_ACTIVE: Valid both RC and EP reached active state symmetrically!", UVM_LOW)
+          end
+          default: ;
+        endcase
 
 
-      if ($cast(rx_dllp_item, rx_item)) begin
-          case (checks.Credit_Capture     (rx_item, curr_state, partner_cfg)) 
+        if ($cast(rx_dllp_item, rx_item)) begin
+          case (checks.Credit_Capture     (rx_item, curr_state, partner_cfg))
             0:  `uvm_error("SCOREBOARD", $sformatf("CREDIT_MISMATCH: Captured credits do not match expected values for type %s!", rx_dllp_item.dllp_type.name()))
             1:  `uvm_info ("SCOREBOARD", $sformatf("CREDIT_MATCH: Captured credits match expected values for type %s.", rx_dllp_item.dllp_type.name()), UVM_LOW)
             2:  `uvm_info ("SCOREBOARD", $sformatf("CREDIT_CAPTURE: Cannot capture credits."), UVM_LOW)
             default: ;
-          endcase      
+          endcase
 
           case (checks.drop_packets      (my_cfg.dlsm_state, rx_item, rx_dllp_item,
-                                         curr_counters, prev_counters)) 
-            0:  `uvm_error("SCOREBOARD", "PKT_DROP: Violation abnormal behavior in state manager packet drop/increment logic!")
-            1:  `uvm_info ("SCOREBOARD", "PKT_DROP: Valid Correct drop/increment behavior", UVM_LOW)
+                curr_counters, prev_counters))
+            0:  `uvm_error("SCOREBOARD", "PKT_DROP: Violation abnormal behavior in state manager packet drop / FC counter update logic!")
+            1:  `uvm_info ("SCOREBOARD", "PKT_DROP: Valid Correct drop / FC counter update behavior", UVM_LOW)
             default: ;
-          endcase 
+          endcase
+        end
+
+
+      end
     end
-
-
-  end 
-end
 
   endtask
 
@@ -178,7 +178,7 @@ end
       feat_dllp_sent = 1;
 
     if (!$cast(dllp_item, item) && (my_cfg.dlsm_state != DL_ACTIVE)) begin // protocol violation
-      `uvm_fatal("SCOREBOARD", "Traffic Isolation - Violation: TLP detected while Link is NOT ACTIVE!")
+      `uvm_fatal("SCOREBOARD", "TRAFFIC_ISOLATION: TLP detected while Link is NOT ACTIVE!")
     end
 
   endfunction
@@ -193,7 +193,7 @@ end
 
     if (!$cast(dllp_item, item)) begin
       if (!(my_cfg.dlsm_state inside {DL_INIT_FC2, DL_ACTIVE, DL_INACTIVE})) begin
-        `uvm_fatal("SCOREBOARD", "Traffic Isolation - Violation: TLP detected while Link is NOT ACTIVE!")
+        `uvm_fatal("SCOREBOARD", "TRAFFIC_ISOLATION: TLP detected while Link is NOT ACTIVE!")
       end
       else begin
         return ;
@@ -213,24 +213,24 @@ end
       // Reserved bits check
       if (!checks.check_feature_reserved_zero(dllp_item.feature_support)) begin
         fatal_msg = $sformatf(
-          "SPEC VIOLATION: Received DLLP_FEATURE_REQ with non-zero reserved bits. feature_support = 23'h%06h — bits [22:1] must be zero (only bit 0 = Scaled FC is valid).",
+          "FEATURE_RESERVED_ZERO: Received DLLP_FEATURE_REQ with non-zero reserved bits. feature_support = 23'h%06h — bits [22:1] must be zero (only bit 0 = Scaled FC is valid).",
           dllp_item.feature_support);
 
-          `uvm_error("SCOREBOARD", fatal_msg)
+        `uvm_error("SCOREBOARD", fatal_msg)
       end else begin
         `uvm_info("SCOREBOARD",
-          $sformatf("PASS: DLLP_FEATURE_REQ reserved bits [22:1] are zero. feature_support = 23'h%06h.",
+          $sformatf("FEATURE_RESERVED_ZERO: PASS - DLLP_FEATURE_REQ reserved bits [22:1] are zero. feature_support = 23'h%06h.",
             dllp_item.feature_support), UVM_LOW)
       end
 
       // Feature Ack Handshake check
       if (dllp_item.feature_ack && !feat_dllp_sent) begin
         fatal_msg = $sformatf(
-          "SPEC VIOLATION (Feature Ack Handshake - PARTNER Rx): Partner sent feature_ack 1 but a Feature DLLP was never sent. Partner may only ack after we have transmitted our Feature DLLP.");
+          "FEATURE_ACK_HANDSHAKE (PARTNER Rx): Partner sent feature_ack 1 but a Feature DLLP was never sent. Partner may only ack after we have transmitted our Feature DLLP.");
         `uvm_error("SCOREBOARD", fatal_msg)
       end else begin
         `uvm_info("SCOREBOARD",
-          $sformatf("PASS (Feature Ack Handshake - PARTNER Rx): feature_ack=%0b == feat_dllp_sent=%0b.",
+          $sformatf("FEATURE_ACK_HANDSHAKE (PARTNER Rx): PASS - feature_ack=%0b == feat_dllp_sent=%0b.",
             rx_dllp_item.feature_ack, feat_dllp_sent), UVM_HIGH)
       end
     end
@@ -247,7 +247,7 @@ end
             DLLP_INITFC1_NP,
             DLLP_INITFC1_CPL,
             next_order_step)) begin
-        fatal_msg = $sformatf("ERROR: InitFC1 DLLPs out of order. Expected step %0d, observed %s.",
+        fatal_msg = $sformatf("INITFC1_OUT_OF_ORDER: InitFC1 DLLPs out of order. Expected step %0d, observed %s.",
           rx_initfc1_order_step, dllp_item.dllp_type.name());
         `uvm_error("SCOREBOARD", fatal_msg)
       end else begin
@@ -267,7 +267,7 @@ end
             DLLP_INITFC2_NP,
             DLLP_INITFC2_CPL,
             next_order_step)) begin
-        fatal_msg = $sformatf("ERROR: InitFC2 DLLPs out of order. Expected step %0d, observed %s.",
+        fatal_msg = $sformatf("INITFC2_OUT_OF_ORDER: InitFC2 DLLPs out of order. Expected step %0d, observed %s.",
           rx_initfc2_order_step, dllp_item.dllp_type.name());
         `uvm_error("SCOREBOARD", fatal_msg)
       end else begin
@@ -311,26 +311,26 @@ end
 
     // 2. Perform state transition checks
     if (!checks.check_init_trigger(prev_state, curr_state, lnk_cfg.pl_up)) begin
-      fatal_msg = $sformatf("FATAL: State transition DL_INACTIVE -> %s occurred while pl_lnk_up=%0b. Link must be UP before entering DL_Init state.",
+      fatal_msg = $sformatf("INIT_TRIGGER: State transition DL_INACTIVE -> %s occurred while pl_lnk_up=%0b. Link must be UP before entering DL_Init state.",
         curr_state.name(), lnk_cfg.pl_up);
       `uvm_fatal("SCOREBOARD",
         fatal_msg)
     end else if (!checks.check_state_stability(prev_state, curr_state, lnk_cfg.pl_up)) begin
-      fatal_msg = $sformatf("FATAL: State regression %s -> %s is not allowed while pl_lnk_up=%0b. Once in DL_Active, state must remain stable.",
+      fatal_msg = $sformatf("STATE_REGRESSION: State regression %s -> %s is not allowed while pl_lnk_up=%0b. States must remain stable unless link drops.",
         prev_state.name(), curr_state.name(), lnk_cfg.pl_up);
       `uvm_fatal("SCOREBOARD",
         fatal_msg)
     end else if (!checks.check_active_gate_fi1(prev_state, curr_state, my_cfg.fi1_set)) begin
-      fatal_msg = "FATAL: DL_INIT_FC1 -> DL_INIT_FC2 occurred before FI1 was set. FI1 must be asserted only after all InitFC1 credits are recorded for P, NP, and Cpl.";
+      fatal_msg = "ACTIVE_GATE_FI1: DL_INIT_FC1 -> DL_INIT_FC2 occurred before FI1 was set. FI1 must be asserted only after all InitFC1 credits are recorded for P, NP, and Cpl.";
       `uvm_fatal("SCOREBOARD",
         fatal_msg)
 
     end else if (!checks.check_active_gate_fi2(prev_state, curr_state, my_cfg.fi2_set)) begin
-      fatal_msg = "FATAL: DL_Init -> DL_Active occurred before FI2 was set. FI2 must be asserted by an InitFC2 DLLP or TLP on VC0 first.";
+      fatal_msg = "ACTIVE_GATE_FI2: DL_Init -> DL_Active occurred before FI2 was set. FI2 must be asserted by an InitFC2 DLLP or TLP on VC0 first.";
       `uvm_fatal("SCOREBOARD",
         fatal_msg)
     end else if (!checks.check_valid_transition(prev_state, curr_state)) begin
-      fatal_msg = $sformatf("FATAL: Illegal DLCMSM transition %s -> %s. Allowed paths are: DL_Inactive -> DL_Feature -> DL_Init -> DL_Active or DL_Inactive -> DL_Init -> DL_Active.",
+      fatal_msg = $sformatf("ILLEGAL_TRANSITION: Illegal DLCMSM transition %s -> %s. Allowed paths are: DL_Inactive -> DL_Feature -> DL_Init -> DL_Active or DL_Inactive -> DL_Init -> DL_Active.",
         prev_state.name(), curr_state.name());
       `uvm_fatal("SCOREBOARD",
         fatal_msg)
