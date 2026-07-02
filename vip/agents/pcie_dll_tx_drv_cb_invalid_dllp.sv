@@ -17,7 +17,7 @@ class pcie_dll_tx_drv_cb_invalid_dllp extends pcie_dll_tx_drv_cb_base;
     end
 
     if (dllp.enable_errors == 1'b1) begin
-        roll =$urandom_range(1, 3); // 25%
+        roll =$urandom_range(1, dllp.invalid_dllp_weight); 
         if (roll == 1) begin
             trigger = 1'b1;
         end

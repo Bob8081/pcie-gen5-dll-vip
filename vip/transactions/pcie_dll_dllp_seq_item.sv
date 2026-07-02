@@ -17,6 +17,12 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
   bit                      corrupted_initfc; // Whether to inject errors in InitFC DLLPs (only applicable if enable_errors is set)
   bit                      delayed_packets; // Whether to introduce delays in packet transmission
 
+  // weights to control abnormal behavior rates
+  int unsigned            corrupted_initfc_weight; // weight for corrupted INITFC state (normal, reopeated and disorder packets)
+  int unsigned            crc_error_weight;          // weight for CRC error in DLLPs
+  int unsigned            invalid_dllp_weight;
+  int unsigned            invalid_VC_weight;
+
   // ---- Core DLLP Fields ----
   rand pcie_dllp_type_e     dllp_type;      // INITFC1_P, FEATURE_REQ
   bit  [15:0]               crc;            // Calculated automatically in post_randomize
@@ -136,9 +142,14 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
       `uvm_fatal("NOCFG", "Failed to get pcie_dll_env_cfg from config_db")
     end
 
-    enable_errors    = cfg.enable_errors;
-    corrupted_initfc = cfg.corrupted_initfc;
-    delayed_packets  = cfg.delayed_packets;
+    enable_errors           = cfg.enable_errors;
+    corrupted_initfc        = cfg.corrupted_initfc;
+    delayed_packets         = cfg.delayed_packets;
+
+    corrupted_initfc_weight = cfg.corrupted_initfc_weight;
+    crc_error_weight        = cfg.crc_error_weight;
+    invalid_dllp_weight     = cfg.invalid_dllp_weight;
+    invalid_VC_weight       = cfg.invalid_VC_weight;
 
     super.pre_randomize();
   endfunction
