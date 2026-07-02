@@ -6,11 +6,11 @@
 class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
 
   // TODO: update constraints to meet 100% coverage
-  pcie_dll_env_cfg   cfg; 
+  pcie_dll_env_cfg   cfg;
 
   // ---- Control Signals ----
   // Drives the randomization of dllp_type based on the current Link state
-  rand pcie_dlcmsm_state_e  current_state;  
+  rand pcie_dlcmsm_state_e  current_state;
 
   // control type of generated traffic behavior
   bit                      enable_errors; // Whether to inject errors in the generated DLLPs using callbacks in driver
@@ -60,44 +60,44 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
   // ---- Constraints ----
 
   // Default state is inactive, can be overridden by Sequences
-  constraint state_constr { 
+  constraint state_constr {
     soft current_state inside {DL_INACTIVE};
   }
 
   // Back-to-back traffic delay distribution (in cycles) for delayed packet generation
-  constraint delay_constr { 
+  constraint delay_constr {
     delay dist {
-      0      := 20, 
-      10000  := 30, 
+      0      := 20,
+      10000  := 30,
       35000  := 50
     };
   }
 
   // Ensures the generated DLLP type strictly matches the current Link state
-  constraint dllp_type_constr { 
-    
+  constraint dllp_type_constr {
+
     // Feature Exchange State
-    if (current_state == DL_FEATURE_EXCH) { 
+    if (current_state == DL_FEATURE_EXCH) {
       dllp_type == DLLP_FEATURE_REQ;
-    } 
-    
+    }
+
     // InitFC1 State
-    else if (current_state == DL_INIT_FC1) { 
-      dllp_type inside { 
-        DLLP_INITFC1_P, 
-        DLLP_INITFC1_NP, 
-        DLLP_INITFC1_CPL 
+    else if (current_state == DL_INIT_FC1) {
+      dllp_type inside {
+        DLLP_INITFC1_P,
+        DLLP_INITFC1_NP,
+        DLLP_INITFC1_CPL
       };
-    } 
-    
+    }
+
     // InitFC2 State
-    else if (current_state == DL_INIT_FC2) { 
-      dllp_type inside { 
-        DLLP_INITFC2_P, 
-        DLLP_INITFC2_NP, 
-        DLLP_INITFC2_CPL  
+    else if (current_state == DL_INIT_FC2) {
+      dllp_type inside {
+        DLLP_INITFC2_P,
+        DLLP_INITFC2_NP,
+        DLLP_INITFC2_CPL
       };
-    } 
+    }
   }
 
   // Credit values must be as advertised in the config
@@ -107,7 +107,7 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
       hdr_FC     == cfg.init_fc_hdr[FC_P];
       data_scale == cfg.init_fc_data_scale[FC_P];
       data_FC    == cfg.init_fc_data[FC_P];
-    } 
+    }
 
     else if (dllp_type inside {DLLP_INITFC1_NP, DLLP_INITFC2_NP}) {
       hdr_scale  == cfg.init_fc_hdr_scale[FC_NP];
@@ -121,15 +121,15 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
       hdr_FC     == cfg.init_fc_hdr[FC_CPL];
       data_scale == cfg.init_fc_data_scale[FC_CPL];
       data_FC    == cfg.init_fc_data[FC_CPL];
-  } 
-}
+    }
+  }
 
   constraint scl_flow_control {
     feature_support inside {0, 1};
   }
 
   // ---- Methods ----
-  // pre_randomize 
+  // pre_randomize
   function void pre_randomize();
     // Get config from uvm_config_db using sequencer context
     if (!uvm_config_db#(pcie_dll_env_cfg)::get(m_sequencer, "", "cfg", cfg)) begin
@@ -146,17 +146,17 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
   // post_randomize() — Assembles payload, calculates CRC, and concatenates final 48-bit DLLP
   function void post_randomize();
     bit [31:0] full_data; // Temporary variable to hold Type + Payload for CRC calculation
-       
+
     // Construct the 24-bit Payload based on the randomized type
     if (dllp_type == DLLP_FEATURE_REQ) begin
       dllp_payload = {feature_ack, feature_support};
-    end 
+    end
     else begin // Applies to both InitFC1 and InitFC2
       dllp_payload = {hdr_scale, hdr_FC, data_scale, data_FC};
     end
 
     // Compute CRC on the 4 wire-ordered data bytes directly.
-    crc  = pcie_dll_pkg::crc16_generator::calculate_dllp_crc(pack_data());
+    crc  = crc16_generator::calculate_dllp_crc(pack_data());
     // Assemble the 48-bit wire word
     dllp = pack();
 
@@ -198,7 +198,7 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
   // Verifies the unpacked CRC against the computed CRC for the unpacked payload.
   // Can be used by monitors or scoreboards to check data integrity.
   function bit verify_crc(); // return one if crc is error free
-    return (crc == pcie_dll_pkg::crc16_generator::calculate_dllp_crc(pack_data()));
+    return (crc == crc16_generator::calculate_dllp_crc(pack_data()));
   endfunction
 
 endclass : pcie_dll_dllp_seq_item

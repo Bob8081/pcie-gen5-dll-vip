@@ -46,7 +46,8 @@ class pcie_dll_common_checks extends uvm_object;
    * @brief Verify that the DLCMSM follows the allowed Phase 1 sequence:
    *        DL_INACTIVE -> DL_FEATURE_EXCH -> DL_INIT_FC1 -> DL_INIT_FC2 -> DL_ACTIVE
    *        or DL_INACTIVE -> DL_INIT_FC1 -> DL_INIT_FC2 -> DL_ACTIVE
-    *        or DL_ACTIVE -> DL_INACTIVE
+    *        or DL_ACTIVE -> DL_INACTIVE 
+   *          or ANY STATE - DL_INACTIVE (temporary loss of link)
    * @param prev_state Previous state before transition
    * @param curr_state Current state after transition
    * @return 1 if the transition is valid, 0 if it is illegal (FATAL)
@@ -61,9 +62,9 @@ class pcie_dll_common_checks extends uvm_object;
     case (prev_state)
       DL_INACTIVE:     valid_transition = (curr_state == DL_FEATURE_EXCH) ||
                                           (curr_state == DL_INIT_FC1);
-      DL_FEATURE_EXCH: valid_transition = (curr_state == DL_INIT_FC1);
-      DL_INIT_FC1:     valid_transition = (curr_state == DL_INIT_FC2);
-      DL_INIT_FC2:     valid_transition = (curr_state == DL_ACTIVE);
+      DL_FEATURE_EXCH: valid_transition = (curr_state == DL_INIT_FC1) || (curr_state == DL_INACTIVE);
+      DL_INIT_FC1:     valid_transition = (curr_state == DL_INIT_FC2) || (curr_state == DL_INACTIVE);
+      DL_INIT_FC2:     valid_transition = (curr_state == DL_ACTIVE) || (curr_state == DL_INACTIVE);
       DL_ACTIVE:       valid_transition = (curr_state == DL_INACTIVE);
       default:         valid_transition = 1'b0;
     endcase
@@ -73,8 +74,7 @@ class pcie_dll_common_checks extends uvm_object;
 
   /**
    * check_state_stability
-   * @brief Verify that once the DLCMSM reaches DL_ACTIVE, it does not regress
-   *        to DL_INIT_FC1 or DL_INACTIVE while pl_lnk_up remains high.
+   * @brief check for regression to DL_INACTIVE without LINK_DOWN signal form the PHY (pl_lnk_up == 1)
    * @param prev_state Previous state before transition
    * @param curr_state Current state after transition
    * @param pl_lnk_up Link up status from PHY
@@ -86,14 +86,12 @@ class pcie_dll_common_checks extends uvm_object;
     pcie_dlcmsm_state_e curr_state,
     bit pl_lnk_up
   );
-  //TODO : to be revisited 
-    bit regresses_from_active;
+    bit regressed_to_inactive;
 
-    regresses_from_active = (prev_state == DL_ACTIVE) && pl_lnk_up &&
-                            ((curr_state == DL_INACTIVE) ||
-                             (curr_state == DL_INIT_FC1));
+    regressed_to_inactive = (curr_state == DL_INACTIVE) && pl_lnk_up &&
+                            ((prev_state == DL_ACTIVE) || (prev_state == DL_FEATURE_EXCH) || (prev_state == DL_INIT_FC1) || (prev_state == DL_INIT_FC2));
 
-    if (regresses_from_active) begin
+    if (regressed_to_inactive) begin
       return 0;
     end
 
