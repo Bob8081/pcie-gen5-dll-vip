@@ -17,6 +17,12 @@ class pcie_dll_env_cfg extends uvm_object;
        bit               corrupted_initfc; // 0: normal behavior for INITFC state, 1: corrupted INITFC state (normal, reopeated and disorder packets)
        bit               delayed_packets;  // 0: normal behavior, 1: delayed packets (INITFC and FEATURE packets are delayed by a random number of cycles)
 
+  // weights to control abnormal behavior rates
+       int unsigned     corrupted_initfc_weight; // weight for corrupted INITFC state (normal, reopeated and disorder packets)
+       int unsigned     crc_error_weight;          // weight for CRC error in DLLPs
+       int unsigned     invalid_dllp_weight;
+       int unsigned     invalid_VC_weight;
+
   // number of items iterations in sequences
   rand int unsigned      req_count;
 
