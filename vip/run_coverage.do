@@ -15,9 +15,10 @@ vsim -coverage -voptargs="+acc" +UVM_TESTNAME=test_base_zero_credits      work.t
 vsim -coverage -voptargs="+acc" +UVM_TESTNAME=test_base_corrupted_initfc  work.tb_top -do "run -all; coverage save test4.ucdb; quit -sim"
 vsim -coverage -voptargs="+acc" +UVM_TESTNAME=test_base_error_injected    work.tb_top -do "run -all; coverage save test5.ucdb; quit -sim"
 vsim -coverage -voptargs="+acc" +UVM_TESTNAME=test_base_delayed_packets   work.tb_top -do "run -all; coverage save test6.ucdb; quit -sim"
+vsim -coverage -voptargs="+acc" +UVM_TESTNAME=test_base_drop_link         work.tb_top -do "run -all; coverage save test7.ucdb; quit -sim"
 
 # 3. Merge
-vcover merge merged_coverage.ucdb test1.ucdb test2.ucdb test3.ucdb test4.ucdb test5.ucdb test6.ucdb
+vcover merge merged_coverage.ucdb test1.ucdb test2.ucdb test3.ucdb test4.ucdb test5.ucdb test6.ucdb test7.ucdb
 
 # 4. Report
 vcover report -output coverage_report.txt -cvg -details -all merged_coverage.ucdb
