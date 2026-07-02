@@ -40,6 +40,10 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
   // Set to 1 the instant we drive our first DLLP_FEATURE_REQ (seen via Tx monitor)
   bit feat_dllp_sent;
 
+  // events to hit symmetric active scenarios in coverage class
+  uvm_event symmetric_active_event;
+  uvm_event asymmetric_active_event;
+
   // Analysis implementation ports
   uvm_analysis_imp_tx        #(pcie_dll_base_seq_item, pcie_dll_scoreboard) tx_export;
   uvm_analysis_imp_rx        #(pcie_dll_base_seq_item, pcie_dll_scoreboard) rx_export;
@@ -73,6 +77,10 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
   endfunction
 
   function void build_phase(uvm_phase phase);
+
+    string event_name_sym ;
+    string event_name_asym ;
+
     super.build_phase(phase);
     checks = pcie_dll_common_checks::type_id::create("checks");
     if(!uvm_config_db#(pcie_dll_link_cfg)::get(this, "", "lnk_cfg", lnk_cfg)) begin
@@ -87,6 +95,11 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
     if(!uvm_config_db#(pcie_dll_env_cfg)::get(this, "", "cfg", cfg)) begin
       `uvm_fatal("NOCFG", $sformatf("no env_cfg found in the config_db for %s scoreboard", role.name()))
     end
+
+    event_name_sym          = $sformatf("symmetric_active_event_%s", role.name());
+    event_name_asym         = $sformatf("asymmetric_active_event_%s", role.name());
+    symmetric_active_event  = uvm_event_pool::get_global(event_name_sym);
+    asymmetric_active_event = uvm_event_pool::get_global(event_name_asym);
   endfunction
 
   virtual task run_phase(uvm_phase phase);
@@ -119,8 +132,14 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
 
 
       case (checks.check_symmetric_active (rx_item, curr_state))
-        0:  `uvm_fatal("SCOREBOARD", "ASYMMETRIC_ACTIVE: Violation both RC and EP don't reach active state symmetrically !!!")
-        1:  `uvm_info ("SCOREBOARD", "SYMMETRIC_ACTIVE: Valid both RC and EP reached active state symmetrically!", UVM_LOW)
+        0: begin
+           asymmetric_active_event.trigger();
+           `uvm_fatal("SCOREBOARD", "ASYMMETRIC_ACTIVE: Violation both RC and EP don't reach active state symmetrically !!!")
+        end
+        1: begin
+           symmetric_active_event.trigger();
+           `uvm_info ("SCOREBOARD", "SYMMETRIC_ACTIVE: Valid both RC and EP reached active state symmetrically!", UVM_LOW)
+        end
         default: ;
       endcase 
 

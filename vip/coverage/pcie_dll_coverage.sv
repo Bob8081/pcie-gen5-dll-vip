@@ -12,6 +12,8 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
   bit [15:0]            crc;            
 
   pcie_dlcmsm_state_e   state;
+  pcie_dlcmsm_state_e   prev_state;
+
   pcie_dllp_type_e      dllp_type;
   pcie_dllp_error_e     error_status;
 
@@ -22,12 +24,17 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
   // ---- role of the side ----
    pcie_dll_role_e role;
 
-   pcie_dll_fc_watchdog_status_e watchdog_status;
+   pcie_dll_fc_watchdog_status_e  watchdog_status;
+   pcie_dll_fc_active_status_e    active_status;
 
   // events to hit 34 microsecond timeout scenarios in coverage class
   uvm_event timeout_event_fc1;
   uvm_event timeout_event_fc2;
   uvm_event timeout_event_feature;
+
+  // events to hit symmetric/asymmetric active scenarios in coverage class
+  uvm_event symmetric_active_event;
+  uvm_event asymmetric_active_event;
 
   // path type signal for controlling
   string path_type;
@@ -35,6 +42,7 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
 
   // ---- Covergroups ----
 
+    // ---- 1. state machine behavior Coverage Group ----
   covergroup tx_machine_transitions (string path_label);
 
     option.per_instance = 1;
@@ -43,14 +51,18 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     option.comment      = " Tracks DL state machine transitions";
 
     cp_state_machine: coverpoint state {
-      bins state_machine_flow [] = (DL_INACTIVE => DL_FEATURE_EXCH),
-                                   (DL_INACTIVE => DL_INIT_FC1    ),  
-                                   (DL_INIT_FC1 => DL_INIT_FC2    ), 
-                                   (DL_INIT_FC2 => DL_ACTIVE      );
+      bins state_machine_normal_flow [] = (DL_INACTIVE => DL_FEATURE_EXCH),
+                                          (DL_INACTIVE => DL_INIT_FC1    ),  
+                                          (DL_INIT_FC1 => DL_INIT_FC2    ), 
+                                          (DL_INIT_FC2 => DL_ACTIVE      );
+       
+      bins state_machine_drop_link [] = (DL_FEATURE_EXCH => DL_INACTIVE),
+                                        (DL_INIT_FC1     => DL_INACTIVE),  
+                                        (DL_INIT_FC2     => DL_INACTIVE);
       }
   endgroup
 
-  // ---- 1. DLLP Coverage Group ----
+  // ---- 2. DLLP Coverage Group ----
   covergroup cg_dllp_transitions (string path_label);
 
     option.per_instance = 1;
@@ -80,7 +92,6 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
       bins invalid_dllp    = {INVALID_DLLP};
       bins wrong_crc       = {WRONG_CRC};
       bins invalid_vc      = {INVALID_VC};
-      // TODO: bins invalid_credits = {INVALID_CREDITS};
       bins error_free      = {ERROR_FREE};
       
     }
@@ -174,7 +185,23 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
 
   endgroup
 
-   //  ---- 3. TLP Coverage Group ----
+  // ---- 4. active status Coverage Group ----
+  // note: this coverage group is only instantiated for the Tx path
+  covergroup cg_active_status (string path_label);
+
+    option.per_instance = 1;
+    option.name         = path_label;
+    option.weight       = 10;  // high weight the same as DLLP coverage
+    option.comment      = " Tracks timeout scenarios for InitFC1 and InitFC2 received packets ";
+
+    cp_active_status: coverpoint active_status {
+      bins symmetric_active  = {symmetric_active};
+      bins asymmetric_active = {asymmetric_active};
+    }
+
+  endgroup
+
+   //  ---- 5. TLP Coverage Group ----
   covergroup cg_tlp_transitions (string path_label);
 
     option.per_instance = 1;
@@ -192,20 +219,22 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
   function new(string name = "pcie_dll_coverage", uvm_component parent = null);
     super.new(name, parent);
 
+    if (!uvm_config_db#(string)::get(this, "", "path_type", path_type)) begin
+      `uvm_fatal("NOCFG", $sformatf("path_type is not set in config_db for coverage instance: %s", name))
+    end
+
     // create coverage groups
-    if (uvm_is_match("*tx*", name)) begin
+    if (path_type == "Tx_path") begin
       cg_dllp_transitions    = new({get_full_name(), "_dllp"});
       cg_tlp_transitions     = new({get_full_name(), "_tlp"});
       tx_machine_transitions = new({get_full_name(), "_tx_machine"});
+      cg_active_status       = new({get_full_name(), "_active_status"});
 
-      path_type = "Tx_path";
     end
     else begin
       cg_dllp_transitions = new({get_full_name(), "_dllp"});
       cg_tlp_transitions  = new({get_full_name(), "_tlp"});
       cg_watchdog         = new({get_full_name(), "_watchdog"});
-
-      path_type = "Rx_path";
     end
 
   endfunction
@@ -215,6 +244,9 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     string event_name_fc1 ;
     string event_name_fc2 ;
     string event_name_feature ;
+
+    string event_name_sym ;
+    string event_name_asym ;
 
     super.build_phase(phase);
 
@@ -235,14 +267,29 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
       timeout_event_fc2     = uvm_event_pool::get_global(event_name_fc2);
       timeout_event_feature = uvm_event_pool::get_global(event_name_feature);
 
+      // events to hit symmetric/asymmetric active scenarios in coverage class
+      event_name_sym          = $sformatf("symmetric_active_event_%s", role.name());
+      event_name_asym         = $sformatf("asymmetric_active_event_%s", role.name());
+
+      symmetric_active_event  = uvm_event_pool::get_global(event_name_sym);
+      asymmetric_active_event = uvm_event_pool::get_global(event_name_asym);
+
   endfunction
 
   virtual task run_phase(uvm_phase phase);
     super.run_phase(phase);
-      state = DL_INACTIVE;
-      tx_machine_transitions.sample();
-      cg_dllp_transitions.sample();
 
+    // to be able to read inactive state every loop in the test
+    fork 
+      forever begin
+        wait (my_cfg.dlsm_state != prev_state) begin
+          prev_state = state;
+          state      = my_cfg.dlsm_state;
+          tx_machine_transitions.sample();
+          cg_dllp_transitions.sample();
+        end
+      end
+    join_none
 
       // check timeout scenarios
       if (path_type == "Rx_path") begin
@@ -276,7 +323,35 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
         end
         
       join_none
+  end
+
+      // check active status scenarios
+      if (path_type == "Tx_path") begin
+        fork
+
+        begin
+          forever begin
+            symmetric_active_event.wait_trigger();
+            active_status  = symmetric_active;
+            cg_active_status.sample();
+            active_status  = not_active;
+          end
+        end
+
+        begin
+          forever begin
+            asymmetric_active_event.wait_trigger();
+            active_status  = asymmetric_active;
+            cg_active_status.sample();
+            active_status  = not_active;
+          end
+        end
+        
+      join_none
+
     end
+
+    
 
   endtask
 
@@ -286,7 +361,7 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     pcie_dll_dllp_seq_item dllp_item;
     pcie_dll_tlp_seq_item  tlp_item;
 
-    state         = my_cfg.dlsm_state; // Tx path state for both Rx and Tx paths
+    //state         = my_cfg.dlsm_state; // Tx path state for both Rx and Tx paths
     if (path_type == "Tx_path") begin
         error_status  = pcie_dll_pkg::error_expector::tx_determine_error_status(t, state);
         tx_machine_transitions.sample();

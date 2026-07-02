@@ -18,7 +18,12 @@ class pcie_dll_env extends uvm_env;
   endfunction
 
   function void build_phase(uvm_phase phase);
+
+    string tx_cov_inst_name = "cov_tx";
+    string rx_cov_inst_name = "cov_rx";
+
     super.build_phase(phase);
+
 
     // Resolve role before creating any sub-components that depend on it
     if (!uvm_config_db#(pcie_dll_role_e)::get(this, "", "role", role))
@@ -36,9 +41,12 @@ class pcie_dll_env extends uvm_env;
     my_cfg = pcie_dll_my_cfg::type_id::create("my_cfg");
     uvm_config_db#(pcie_dll_my_cfg)::set(this, "*", "my_cfg", my_cfg);
 
+    uvm_config_db#(string)::set(this, tx_cov_inst_name, "path_type", "Tx_path");
+    uvm_config_db#(string)::set(this, rx_cov_inst_name, "path_type", "Rx_path");
+
     // create coverage collector
-    cov_tx = pcie_dll_coverage::type_id::create("cov_tx", this);
-    cov_rx = pcie_dll_coverage::type_id::create("cov_rx", this);
+    cov_tx = pcie_dll_coverage::type_id::create(tx_cov_inst_name, this);
+    cov_rx = pcie_dll_coverage::type_id::create(rx_cov_inst_name, this);
   endfunction
 
   function void connect_phase(uvm_phase phase);
