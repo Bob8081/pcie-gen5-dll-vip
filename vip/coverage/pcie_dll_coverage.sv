@@ -56,9 +56,9 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
                                           (DL_INIT_FC1 => DL_INIT_FC2    ), 
                                           (DL_INIT_FC2 => DL_ACTIVE      );
        
-     /**  bins state_machine_drop_link [] = (DL_FEATURE_EXCH => DL_INACTIVE),
+      bins state_machine_drop_link [] = (DL_FEATURE_EXCH => DL_INACTIVE),
                                         (DL_INIT_FC1     => DL_INACTIVE),  
-                                        (DL_INIT_FC2     => DL_INACTIVE); **/
+                                        (DL_INIT_FC2     => DL_INACTIVE);
       }
   endgroup
 
