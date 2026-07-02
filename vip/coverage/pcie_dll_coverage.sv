@@ -58,7 +58,7 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
        
       bins state_machine_drop_link [] = (DL_FEATURE_EXCH => DL_INACTIVE),
                                         (DL_INIT_FC1     => DL_INACTIVE),  
-                                        (DL_INIT_FC2     => DL_INACTIVE); 
+                                        (DL_INIT_FC2     => DL_INACTIVE);
       }
   endgroup
 
@@ -219,21 +219,22 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
   function new(string name = "pcie_dll_coverage", uvm_component parent = null);
     super.new(name, parent);
 
+    if (!uvm_config_db#(string)::get(this, "", "path_type", path_type)) begin
+      `uvm_fatal("NOCFG", $sformatf("path_type is not set in config_db for coverage instance: %s", name))
+    end
+
     // create coverage groups
-    if (uvm_is_match("*tx*", name)) begin
+    if (path_type == "Tx_path") begin
       cg_dllp_transitions    = new({get_full_name(), "_dllp"});
       cg_tlp_transitions     = new({get_full_name(), "_tlp"});
       tx_machine_transitions = new({get_full_name(), "_tx_machine"});
       cg_active_status       = new({get_full_name(), "_active_status"});
 
-      path_type = "Tx_path";
     end
     else begin
       cg_dllp_transitions = new({get_full_name(), "_dllp"});
       cg_tlp_transitions  = new({get_full_name(), "_tlp"});
       cg_watchdog         = new({get_full_name(), "_watchdog"});
-
-      path_type = "Rx_path";
     end
 
   endfunction
