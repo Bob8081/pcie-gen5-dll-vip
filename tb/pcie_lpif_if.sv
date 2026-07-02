@@ -4,9 +4,6 @@ interface pcie_lpif_if #(
     input logic lclk,
     input logic rst_n
 );
-    //TODO : review the signals and add real simulation for the handshaking signals 
-
-    //TODO  : the linkup signal (designated driver for link shutdown)
 
     logic [(NBYTES*8)-1:0] lp_data;         // Data Payload
     logic [NBYTES-1:0]     lp_valid;        // 1 valid bit per byte
@@ -34,7 +31,6 @@ interface pcie_lpif_if #(
     logic [NBYTES-1:0]     pl_dlpend;
     logic [NBYTES-1:0]     pl_tlpedb;      // TLP End Bad (Error injection)
 
-    //TODO : RnD these signals
     // Static Configuration & Tie-offs (Driven by Mock PHY)
     logic [2:0]            pl_lnk_cfg;     // Link width
     logic [2:0]            pl_speedmode;   // Link speed
@@ -68,7 +64,7 @@ interface pcie_lpif_if #(
         input lp_dlpstart;
         input lp_dlpend;
         input pl_trdy;
-        input pl_lnk_up; //TODO : add more signals to monitor for better checking and coverage
+        input pl_lnk_up;
     endclocking
 
     // RX Monitor: samples what the PHY is sending on pl_* signals
