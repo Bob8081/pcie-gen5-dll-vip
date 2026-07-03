@@ -22,6 +22,7 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
   int unsigned            crc_error_weight;          // weight for CRC error in DLLPs
   int unsigned            invalid_dllp_weight;
   int unsigned            invalid_VC_weight;
+  int unsigned            max_weight; // is 100 for initfc corrupted
 
   // ---- Core DLLP Fields ----
   rand pcie_dllp_type_e     dllp_type;      // INITFC1_P, FEATURE_REQ
@@ -124,6 +125,7 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
     crc_error_weight        = cfg.crc_error_weight;
     invalid_dllp_weight     = cfg.invalid_dllp_weight;
     invalid_VC_weight       = cfg.invalid_VC_weight;
+    max_weight              = cfg.max_weight;
 
     super.pre_randomize();
   endfunction
