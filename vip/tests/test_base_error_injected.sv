@@ -38,6 +38,17 @@ class test_base_error_injected extends pcie_dll_test_base;
     pcie_dll_tx_drv_cb_vc_env_ep           = pcie_dll_tx_drv_cb_vc::type_id::create("pcie_dll_tx_drv_cb_vc_env_ep");
   endfunction
 
+  function void start_of_simulation_phase(uvm_phase phase);
+    super.start_of_simulation_phase(phase);
+
+    // enable_errors=1 activates cb_crc, cb_invalid_dllp, and cb_vc
+    catcher.add_expected_tag("ILLEGAL_DLLP");
+    catcher.add_expected_tag("INITFC1_OUT_OF_ORDER");
+    catcher.add_expected_tag("INITFC2_OUT_OF_ORDER");
+    catcher.add_expected_tag("VIRTUAL_CHANNEL");
+    catcher.add_expected_tag("PKT_DROP");
+  endfunction
+
   function void connect_phase(uvm_phase phase);
     super.connect_phase(phase);
     uvm_callbacks#(pcie_dll_tx_drv, pcie_dll_tx_drv_cb_crc)::add(env_rc.agent.tx_drv, pcie_dll_tx_drv_cb_crc_env_rc);

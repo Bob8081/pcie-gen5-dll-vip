@@ -40,6 +40,12 @@ class test_base_delayed_packets extends pcie_dll_test_base;
 
   function void start_of_simulation_phase(uvm_phase phase);
     super.start_of_simulation_phase(phase);
+
+    // delayed_packets=1 causes the delay constraint to pick values up to 35000
+    // cycles, which exceeds the 34k-cycle watchdog interval.
+    catcher.add_expected_tag("FEAT_TIMEOUT");
+    catcher.add_expected_tag("FC1_TIMEOUT");
+    catcher.add_expected_tag("FC2_TIMEOUT");
   endfunction
 
   function void connect_phase(uvm_phase phase);

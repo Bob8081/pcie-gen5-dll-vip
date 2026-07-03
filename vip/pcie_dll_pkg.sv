@@ -178,6 +178,8 @@ package pcie_dll_pkg;
   `include "env/pcie_dll_env.sv"
 
 
+  `include "helpers/pcie_dll_report_catcher.sv"
+
   `include "tests/test_base.sv"
   `include "tests/test_base_zero_credits.sv"
   `include "tests/test_base_corrupted_initfc.sv"

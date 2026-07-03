@@ -1,11 +1,12 @@
 class pcie_dll_test_base extends uvm_test;
 
-  pcie_dll_env_cfg  cfg_rc;
-  pcie_dll_env_cfg  cfg_ep;
-  pcie_dll_link_cfg lnk_cfg;
-  pcie_dll_env      env_rc;
-  pcie_dll_env      env_ep;
-  pcie_dll_if_agent if_agent;
+  pcie_dll_env_cfg       cfg_rc;
+  pcie_dll_env_cfg       cfg_ep;
+  pcie_dll_link_cfg      lnk_cfg;
+  pcie_dll_env           env_rc;
+  pcie_dll_env           env_ep;
+  pcie_dll_if_agent      if_agent;
+  pcie_dll_report_catcher catcher;
 
 
 
@@ -93,17 +94,27 @@ class pcie_dll_test_base extends uvm_test;
   function void start_of_simulation_phase(uvm_phase phase);
     super.start_of_simulation_phase(phase);
 
-    // Silence all fatals
+    // Silence all fatals (display only, no exit) during error-injection tests.
     this.set_report_severity_action_hier(UVM_FATAL, UVM_DISPLAY);
 
-    // Silence internal component messages but protocol-level IDs surface.
-    // uvm_top.set_report_id_action("TX_MON",        UVM_NO_ACTION);
-    // uvm_top.set_report_id_action("RX_MON",        UVM_NO_ACTION);
-    // uvm_top.set_report_id_action("INACTIVE_STATE", UVM_NO_ACTION);
-    // uvm_top.set_report_id_action("ACTIVE_STATE",  UVM_NO_ACTION);
-    // uvm_top.set_report_id_action("AGENT",         UVM_NO_ACTION);
-    // uvm_top.set_report_id_action("DRV",           UVM_NO_ACTION);
+    // Create and globally register the report catcher.
+    // Derived tests should call super.start_of_simulation_phase() first,
+    // then add their expected tags/IDs via catcher.add_expected_tag() /
+    // catcher.add_expected_id().
+    catcher = pcie_dll_report_catcher::type_id::create("catcher");
+    uvm_report_cb::add(null, catcher);
 
+    `uvm_info("TEST", "Report catcher registered globally.", UVM_LOW)
+
+  endfunction
+
+  // -------------------------------------------------------------------------
+  // final_phase — print catcher summary.
+  // -------------------------------------------------------------------------
+  function void final_phase(uvm_phase phase);
+    super.final_phase(phase);
+    if (catcher != null)
+      catcher.report();
   endfunction
 
   // -------------------------------------------------------------------------

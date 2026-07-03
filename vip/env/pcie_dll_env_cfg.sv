@@ -6,29 +6,22 @@ class pcie_dll_env_cfg extends uvm_object;
   pcie_speed_mode_e speed_mode;
   int unsigned      nbytes;
 
-  // Feature enables
-  rand bit               enable_replay; // Ack Nack
-  rand bit               enable_flow_control; // Flow control DLLPs
-  rand bit               enable_pwr_mgmt; // Power management DLLPs
-  rand bit               enable_lcrc_checking; // Whether to check LCRC in received TLPs
 
   // control type of generated traffic behavior
-       bit               enable_errors;    // 0: error free item, 1: items may contain errors based on determined rate
-       bit               corrupted_initfc; // 0: normal behavior for INITFC state, 1: corrupted INITFC state (normal, reopeated and disorder packets)
-       bit               delayed_packets;  // 0: normal behavior, 1: delayed packets (INITFC and FEATURE packets are delayed by a random number of cycles)
+  bit               enable_errors;    // 0: error free item, 1: items may contain errors based on determined rate
+  bit               corrupted_initfc; // 0: normal behavior for INITFC state, 1: corrupted INITFC state (normal, reopeated and disorder packets)
+  bit               delayed_packets;  // 0: normal behavior, 1: delayed packets (INITFC and FEATURE packets are delayed by a random number of cycles)
 
   // weights to control abnormal behavior rates
-       int unsigned     corrupted_initfc_weight; // weight for corrupted INITFC state (normal, reopeated and disorder packets)
-       int unsigned     crc_error_weight;          // weight for CRC error in DLLPs
-       int unsigned     invalid_dllp_weight;
-       int unsigned     invalid_VC_weight;
+  int unsigned     corrupted_initfc_weight; // weight for corrupted INITFC state (normal, reopeated and disorder packets)
+  int unsigned     crc_error_weight;          // weight for CRC error in DLLPs
+  int unsigned     invalid_dllp_weight;
+  int unsigned     invalid_VC_weight;
 
   // number of items iterations in sequences
   rand int unsigned      req_count;
 
-  //TODO : add the possibilty to simulate the DLLSM for any VC  
-  // and not just the default VC0 and maybe add a test that
-  // simulates the DLLSM for all the VCs in a random order
+  // Currently only simulates VC0
   bit [3:0] Current_VC;
 
   // Data Link Feature Settings
@@ -69,20 +62,12 @@ class pcie_dll_env_cfg extends uvm_object;
     `uvm_field_enum(pcie_link_width_e, link_width, UVM_DEFAULT)
     `uvm_field_enum(pcie_speed_mode_e, speed_mode, UVM_DEFAULT)
     `uvm_field_int(nbytes, UVM_DEFAULT)
-    `uvm_field_int(enable_replay, UVM_DEFAULT)
-    `uvm_field_int(enable_flow_control, UVM_DEFAULT)
-    `uvm_field_int(enable_pwr_mgmt, UVM_DEFAULT)
-    `uvm_field_int(enable_lcrc_checking, UVM_DEFAULT)
     `uvm_field_int(scaled_fc_supported, UVM_DEFAULT)
     `uvm_field_int(init_rx_interval_cycles, UVM_DEFAULT)
     `uvm_field_int(enable_errors, UVM_DEFAULT)
     `uvm_field_int(corrupted_initfc, UVM_DEFAULT)
     `uvm_field_int(delayed_packets, UVM_DEFAULT)
     `uvm_field_int(req_count, UVM_DEFAULT)  
-    // `uvm_field_aa_int_enumkey(init_fc_hdr_scale, pcie_fc_type_e, UVM_DEFAULT)
-    // `uvm_field_aa_int_enumkey(init_fc_hdr, pcie_fc_type_e, UVM_DEFAULT)
-    // `uvm_field_aa_int_enumkey(init_fc_data_scale, pcie_fc_type_e, UVM_DEFAULT)
-    // `uvm_field_aa_int_enumkey(init_fc_data, pcie_fc_type_e, UVM_DEFAULT)
     `uvm_field_enum(uvm_verbosity, log_level, UVM_DEFAULT)
   `uvm_object_utils_end
 
@@ -96,10 +81,6 @@ class pcie_dll_env_cfg extends uvm_object;
     speed_mode            = PCIE_GEN5;
     nbytes                = 64;
 
-    enable_replay         = 1'b1;
-    enable_flow_control   = 1'b1;
-    enable_pwr_mgmt       = 1'b0;
-    enable_lcrc_checking  = 1'b1;
 
     scaled_fc_supported = 1'b0;
 
@@ -173,9 +154,8 @@ class pcie_dll_env_cfg extends uvm_object;
 
   function string summary();
     return $sformatf(
-      "link=%0d speed=Gen%0d nbytes=%0d replay=%0b fc=%0b lcrc=%0b sfc=%0b",
+      "link=%0d speed=Gen%0d nbytes=%0d sfc=%0b",
       link_width, speed_mode, nbytes,
-      enable_replay, enable_flow_control, enable_lcrc_checking,
       scaled_fc_supported
     );
   endfunction

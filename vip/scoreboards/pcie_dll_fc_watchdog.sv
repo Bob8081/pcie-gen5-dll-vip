@@ -108,15 +108,15 @@ class pcie_dll_fc_watchdog extends uvm_component;
   // Feature watchdog thread
 
   // Waits for the state to enter DL_FEATURE_EXCH, then monitors that DLLP_FEATURE_REQ
-  // arrives at least every cfg.init_tx_interval_cycles cycles.
+  // arrives at least every cfg.init_rx_interval_cycles cycles.
   // Exits when the state leaves DL_FEATURE_EXCH.
 
   task run_feature_watchdog();
     forever begin
       // wait for DL_FEATURE_EXCH entry
       wait (curr_state == DL_FEATURE_EXCH);
-      `uvm_info("WDOG_FEAT",
-        $sformatf("[%s] Watchdog ARMED for DL_FEATURE_EXCH. Interval = %0d cycles",
+      `uvm_info("WDOG",
+        $sformatf("[%s] FEAT_ARMED : for DL_FEATURE_EXCH. Interval = %0d cycles",
           role.name(), cfg.init_rx_interval_cycles),
         UVM_MEDIUM)
 
@@ -131,9 +131,9 @@ class pcie_dll_fc_watchdog extends uvm_component;
               timeout_event_feature.trigger();
 
               // Spec violation: DLLP_FEATURE_REQ not received within the interval
-              `uvm_error("WDOG_FEAT_TIMEOUT",
+              `uvm_error("WDOG",
                 $sformatf(
-                  "[%s] SPEC VIOLATION: DLLP_FEATURE_REQ not received within %0d cycles (%0d us) while in DL_FEATURE_EXCH.",
+                  "[%s] FEAT_TIMEOUT: DLLP_FEATURE_REQ not received within %0d cycles (%0d us) while in DL_FEATURE_EXCH.",
                   role.name(), cfg.init_rx_interval_cycles,
                   cfg.init_rx_interval_cycles / 1000))
             end
@@ -142,8 +142,8 @@ class pcie_dll_fc_watchdog extends uvm_component;
           begin : feat_reset_thread
             // Any DLLP_FEATURE_REQ reception resets the timer
             @feature_dllp_received;
-            `uvm_info("WDOG_FEAT",
-              $sformatf("[%s] Timer RESET : DLLP_FEATURE_REQ received.", role.name()),
+            `uvm_info("WDOG",
+              $sformatf("[%s] FEAT_RESET : DLLP_FEATURE_REQ received.", role.name()),
               UVM_HIGH)
           end : feat_reset_thread
 
@@ -158,8 +158,8 @@ class pcie_dll_fc_watchdog extends uvm_component;
         if (curr_state != DL_FEATURE_EXCH) break;
       end
 
-      `uvm_info("WDOG_FEAT",
-        $sformatf("[%s] Watchdog DISARMED : left DL_FEATURE_EXCH.", role.name()),
+      `uvm_info("WDOG",
+        $sformatf("[%s] FEAT_DISARMED : left DL_FEATURE_EXCH.", role.name()),
         UVM_MEDIUM)
 
       wait (curr_state != DL_FEATURE_EXCH);
@@ -176,8 +176,8 @@ class pcie_dll_fc_watchdog extends uvm_component;
     forever begin
       // wait for DL_INIT_FC1 entry
       wait (curr_state == DL_INIT_FC1);
-      `uvm_info("WDOG_FC1",
-        $sformatf("[%s] Watchdog ARMED for DL_INIT_FC1. Interval = %0d cycles",
+      `uvm_info("WDOG",
+        $sformatf("[%s] FC1_ARMED : for DL_INIT_FC1. Interval = %0d cycles",
           role.name(), cfg.init_rx_interval_cycles),
         UVM_MEDIUM)
 
@@ -194,9 +194,9 @@ class pcie_dll_fc_watchdog extends uvm_component;
               timeout_event_fc1.trigger();
 
               // Spec violation: InitFC1_P not received within the interval
-              `uvm_error("WDOG_FC1_TIMEOUT",
+              `uvm_error("WDOG",
                 $sformatf(
-                  "[%s] SPEC VIOLATION: InitFC1 set (P+NP+Cpl) not started within %0d cycles (%0d us). ",
+                  "[%s] FC1_TIMEOUT: InitFC1 set (P+NP+Cpl) not started within %0d cycles (%0d us). ",
                   role.name(), cfg.init_rx_interval_cycles,
                   cfg.init_rx_interval_cycles / 1000))
             end
@@ -205,8 +205,8 @@ class pcie_dll_fc_watchdog extends uvm_component;
           begin : reset_thread
             // Wait for next InitFC1_P to reset the timer
             @fc1_set_started;
-            `uvm_info("WDOG_FC1",
-              $sformatf("[%s] Timer RESET : InitFC1_P received.", role.name()),
+            `uvm_info("WDOG",
+              $sformatf("[%s] FC1_RESET : InitFC1_P received.", role.name()),
               UVM_HIGH)
           end : reset_thread
 
@@ -223,8 +223,8 @@ class pcie_dll_fc_watchdog extends uvm_component;
       end
 
       wdog_active = 0;
-      `uvm_info("WDOG_FC1",
-        $sformatf("[%s] Watchdog DISARMED : left DL_INIT_FC1.", role.name()),
+      `uvm_info("WDOG",
+        $sformatf("[%s] FC1_DISARMED : left DL_INIT_FC1.", role.name()),
         UVM_MEDIUM)
 
       // Wait until we are no longer in DL_INIT_FC1 before re-checking
@@ -241,8 +241,8 @@ class pcie_dll_fc_watchdog extends uvm_component;
     forever begin
       // wait for DL_INIT_FC2 entry
       wait (curr_state == DL_INIT_FC2);
-      `uvm_info("WDOG_FC2",
-        $sformatf("[%s] Watchdog ARMED for DL_INIT_FC2. Interval = %0d cycles",
+      `uvm_info("WDOG",
+        $sformatf("[%s] FC2_ARMED : for DL_INIT_FC2. Interval = %0d cycles",
           role.name(), cfg.init_rx_interval_cycles),
         UVM_MEDIUM)
 
@@ -256,9 +256,9 @@ class pcie_dll_fc_watchdog extends uvm_component;
               timeout_event_fc2.trigger();
 
               // Spec violation: InitFC2_P not received within the interval
-              `uvm_error("WDOG_FC2_TIMEOUT",
+              `uvm_error("WDOG",
                 $sformatf(
-                  "[%s] SPEC VIOLATION: InitFC2 set (P+NP+Cpl) not started within %0d cycles (%0d us). ",
+                  "[%s] FC2_TIMEOUT: InitFC2 set (P+NP+Cpl) not started within %0d cycles (%0d us). ",
                   role.name(), cfg.init_rx_interval_cycles,
                   cfg.init_rx_interval_cycles / 1000))
             end
@@ -266,8 +266,8 @@ class pcie_dll_fc_watchdog extends uvm_component;
 
           begin : reset_thread
             @fc2_set_started;
-            `uvm_info("WDOG_FC2",
-              $sformatf("[%s] Timer RESET : InitFC2_P received.", role.name()),
+            `uvm_info("WDOG",
+              $sformatf("[%s] FC2_RESET : InitFC2_P received.", role.name()),
               UVM_HIGH)
           end : reset_thread
 
@@ -281,8 +281,8 @@ class pcie_dll_fc_watchdog extends uvm_component;
         if (curr_state != DL_INIT_FC2) break;
       end
 
-      `uvm_info("WDOG_FC2",
-        $sformatf("[%s] Watchdog DISARMED : left DL_INIT_FC2.", role.name()),
+      `uvm_info("WDOG",
+        $sformatf("[%s] FC2_DISARMED : left DL_INIT_FC2.", role.name()),
         UVM_MEDIUM)
 
       wait (curr_state != DL_INIT_FC2);

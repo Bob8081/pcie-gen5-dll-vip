@@ -40,6 +40,13 @@ class test_base_corrupted_initfc extends pcie_dll_test_base;
 
   function void start_of_simulation_phase(uvm_phase phase);
     super.start_of_simulation_phase(phase);
+
+    // corrupted_initfc=1 controls the seq item type constraint, allowing
+    // disordered/repeated InitFC types to be generated.
+    // enable_errors=0 so cb_crc/cb_invalid_dllp/cb_vc do NOT fire.
+    catcher.add_expected_tag("INITFC1_OUT_OF_ORDER");
+    catcher.add_expected_tag("INITFC2_OUT_OF_ORDER");
+    catcher.add_expected_tag("PKT_DROP");  // repeated/disordered packets reset counter
   endfunction
 
   function void connect_phase(uvm_phase phase);
