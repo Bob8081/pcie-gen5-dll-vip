@@ -50,11 +50,11 @@ class pcie_dll_init1_seq extends pcie_dll_base_seq;
             }
             else { // error injection enabled
               dllp_type dist { 
-              DLLP_INITFC1_P   := corrupted_initfc_weight*2, 
-              DLLP_INITFC1_NP  := corrupted_initfc_weight*4, 
-              DLLP_INITFC1_CPL := corrupted_initfc_weight*4,
+              DLLP_INITFC1_P   := max_weight - (corrupted_initfc_weight*2), 
+              DLLP_INITFC1_NP  := corrupted_initfc_weight, 
+              DLLP_INITFC1_CPL := corrupted_initfc_weight,
               
-              DLLP_INITFC2_P   := corrupted_initfc_weight*2
+              DLLP_INITFC2_P   := max_weight - (corrupted_initfc_weight*2)
             }; 
           }
            } 
@@ -77,11 +77,11 @@ class pcie_dll_init1_seq extends pcie_dll_base_seq;
             }
             else  {// error injection enabled
             dllp_type dist { 
-              DLLP_INITFC1_P   := corrupted_initfc_weight*4, 
-              DLLP_INITFC1_NP  := corrupted_initfc_weight*2, 
-              DLLP_INITFC1_CPL := corrupted_initfc_weight*4,
+              DLLP_INITFC1_P   := corrupted_initfc_weight, 
+              DLLP_INITFC1_NP  := max_weight - (corrupted_initfc_weight*2), 
+              DLLP_INITFC1_CPL := corrupted_initfc_weight,
               
-              DLLP_INITFC2_P   := corrupted_initfc_weight*2
+              DLLP_INITFC2_P   := max_weight - (corrupted_initfc_weight*2)
             };
           }
           }) begin
@@ -103,9 +103,9 @@ class pcie_dll_init1_seq extends pcie_dll_base_seq;
             }
             else {// error injection enabled
             dllp_type dist { 
-              DLLP_INITFC1_P   := corrupted_initfc_weight*4, 
-              DLLP_INITFC1_NP  := corrupted_initfc_weight*4, 
-              DLLP_INITFC1_CPL := corrupted_initfc_weight*2
+              DLLP_INITFC1_P   := corrupted_initfc_weight, 
+              DLLP_INITFC1_NP  := corrupted_initfc_weight, 
+              DLLP_INITFC1_CPL := max_weight - (corrupted_initfc_weight*2)
               
             };
           }

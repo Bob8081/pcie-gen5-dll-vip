@@ -22,6 +22,7 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
   int unsigned            crc_error_weight;          // weight for CRC error in DLLPs
   int unsigned            invalid_dllp_weight;
   int unsigned            invalid_VC_weight;
+  int unsigned            max_weight; // is 100 for initfc corrupted
 
   // ---- Core DLLP Fields ----
   rand pcie_dllp_type_e     dllp_type;      // INITFC1_P, FEATURE_REQ
@@ -79,32 +80,6 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
     };
   }
 
-  // Ensures the generated DLLP type strictly matches the current Link state
-  constraint dllp_type_constr {
-
-    // Feature Exchange State
-    if (current_state == DL_FEATURE_EXCH) {
-      dllp_type == DLLP_FEATURE_REQ;
-    }
-
-    // InitFC1 State
-    else if (current_state == DL_INIT_FC1) {
-      dllp_type inside {
-        DLLP_INITFC1_P,
-        DLLP_INITFC1_NP,
-        DLLP_INITFC1_CPL
-      };
-    }
-
-    // InitFC2 State
-    else if (current_state == DL_INIT_FC2) {
-      dllp_type inside {
-        DLLP_INITFC2_P,
-        DLLP_INITFC2_NP,
-        DLLP_INITFC2_CPL
-      };
-    }
-  }
 
   // Credit values must be as advertised in the config
   constraint initfc1_credit{
@@ -150,6 +125,7 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
     crc_error_weight        = cfg.crc_error_weight;
     invalid_dllp_weight     = cfg.invalid_dllp_weight;
     invalid_VC_weight       = cfg.invalid_VC_weight;
+    max_weight              = cfg.max_weight;
 
     super.pre_randomize();
   endfunction

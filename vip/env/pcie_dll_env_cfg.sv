@@ -13,10 +13,11 @@ class pcie_dll_env_cfg extends uvm_object;
   bit               delayed_packets;  // 0: normal behavior, 1: delayed packets (INITFC and FEATURE packets are delayed by a random number of cycles)
 
   // weights to control abnormal behavior rates
-  int unsigned     corrupted_initfc_weight; // weight for corrupted INITFC state (normal, reopeated and disorder packets)
-  int unsigned     crc_error_weight;          // weight for CRC error in DLLPs
-  int unsigned     invalid_dllp_weight;
-  int unsigned     invalid_VC_weight;
+       int unsigned     corrupted_initfc_weight; // weight for corrupted INITFC state (normal, reopeated and disorder packets)
+       int unsigned     crc_error_weight;          // weight for CRC error in DLLPs
+       int unsigned     invalid_dllp_weight;
+       int unsigned     invalid_VC_weight;
+       int unsigned     max_weight; // is 100 for initfc corrupted
 
   // number of items iterations in sequences
   rand int unsigned      req_count;
@@ -119,6 +120,12 @@ class pcie_dll_env_cfg extends uvm_object;
       validation_error_msg = "link_width PCIE_LINK_X16 requires nbytes=64";
       return 0;
     end
+
+    // to make sure corrupted initfc weight is within bounds
+  if (corrupted_initfc_weight > max_weight) begin
+    validation_error_msg = "corrupted_initfc_weight must not exceed max_weight";
+    return 0;
+  end
 
     return 1;
   endfunction

@@ -18,7 +18,7 @@ class pcie_dll_tx_drv_cb_crc extends pcie_dll_tx_drv_cb_base;
 
     if (dllp.enable_errors == 1'b1) begin
         roll = $urandom_range(1, dllp.crc_error_weight); 
-        if (roll == 1) begin
+        if (roll != 1) begin
             trigger = 1'b1;
         end
       end
