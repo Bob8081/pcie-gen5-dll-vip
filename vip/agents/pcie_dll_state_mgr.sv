@@ -16,7 +16,6 @@ class pcie_dll_state_mgr extends uvm_component;
 
     uvm_tlm_fifo#(pcie_dll_dllp_seq_item) dllp_fifo;
     uvm_tlm_fifo#(pcie_dll_tlp_seq_item) tlp_fifo;
-    //TODO: add tlp fifo if needed in the future
 
     pcie_dll_base_state current_state; //handle for the current state to track the state and to be accesed by the testbench
     pcie_dll_partner_cfg partner_cfg;
@@ -39,7 +38,6 @@ class pcie_dll_state_mgr extends uvm_component;
     function void write (pcie_dll_base_seq_item item);
         if($cast(dllp_item, item))
         begin
-            //TODO : check crc and drop it if it is wrong
             // if (dllp_item.verify_crc())
             // begin
                 dllp_fifo.try_put(dllp_item); //non-blocking becuse the write is a function , to avoid compiling error

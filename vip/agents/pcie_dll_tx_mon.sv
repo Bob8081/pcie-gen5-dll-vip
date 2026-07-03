@@ -46,7 +46,6 @@ class pcie_dll_tx_mon extends uvm_monitor;
         //   - pl_trdy is asserted (PHY accepted)
         //   - exactly the 6 DLLP bytes are valid (upper bytes = 0)
         //   - dlpstart < dlpend framing flags are set
-        //TODO : make the check for existence of dllp more dynamic
         if ((!(vif.cb_mon_tx.lp_dlpstart >= vif.cb_mon_tx.lp_dlpend))             &
              (vif.cb_mon_tx.lp_irdy  == 1'b1)                                       &
              (vif.cb_mon_tx.lp_valid == 6'b111_111)       &

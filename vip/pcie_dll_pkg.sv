@@ -127,7 +127,6 @@ package pcie_dll_pkg;
   `include "env/pcie_dll_my_cfg.sv"
   `include "env/pcie_dll_link_cfg.sv"
   `include "helpers/crc16_generator.sv"
-  `include "helpers/partner_state_expector.sv"
 
   `include "transactions/pcie_dll_base_seq_item.sv"
   `include "transactions/pcie_dll_dllp_seq_item.sv"

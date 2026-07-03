@@ -1,5 +1,4 @@
 class pcie_dll_env_cfg extends uvm_object;
-  //TODO : add more feature support details in config
 
   // Link configuration (hardware-fixed at compile time, set from tb_top)
   pcie_link_width_e link_width;

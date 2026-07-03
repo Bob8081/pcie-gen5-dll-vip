@@ -56,7 +56,6 @@ module tb_top;
     // Simulation Body
     // Publish testbench-level parameters to config_db, then run test.
     initial begin
-        //TODO : see how to change Nbytes of the interface to change the speed
         uvm_config_db#(int)::set(uvm_root::get(), "*", "tb_nbytes", NBYTES);
         uvm_config_db#(pcie_link_width_e)::set(uvm_root::get(), "*", "tb_link_width", PCIE_LINK_X16);
         uvm_config_db#(pcie_speed_mode_e)::set(uvm_root::get(), "*", "tb_speed_mode", PCIE_GEN5);

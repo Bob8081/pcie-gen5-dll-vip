@@ -35,10 +35,7 @@ class error_expector;
       //`uvm_info("determine_error_status", $sformatf("------------ Invalid DLLP type %s ------------", dllp_item.dllp_type.name()), UVM_LOW)
       return INVALID_DLLP;
     end
-    /*TODO : maybe make it so we can handle more than the VC0 
-    * and make it so we can handle the initialization of more than VC at the same time 
-    * (maybe by adding a VC field to the state manager and the config)
-    */
+    
     // invalid VC (only InitFC DLLPs should be for VC0)
     else if (state inside {DL_INIT_FC1, DL_INIT_FC2} && dllp_item.dllp[2:0] != 3'b000) begin
       //`uvm_info("determine_error_status", $sformatf("-------------------- Invalid VC: %b --------------------", dllp_item.dllp_type[2:0]), UVM_LOW)

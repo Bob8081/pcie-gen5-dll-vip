@@ -5,7 +5,6 @@
 
 class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
 
-  // TODO: update constraints to meet 100% coverage
   pcie_dll_env_cfg   cfg;
 
   // ---- Control Signals ----
@@ -80,6 +79,33 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
     };
   }
 
+
+    // Ensures the generated DLLP type strictly matches the current Link state
+  constraint dllp_type_constr {
+
+    // Feature Exchange State
+    if (current_state == DL_FEATURE_EXCH) {
+      dllp_type == DLLP_FEATURE_REQ;
+    }
+
+    // InitFC1 State
+    else if (current_state == DL_INIT_FC1) {
+      dllp_type inside {
+        DLLP_INITFC1_P,
+        DLLP_INITFC1_NP,
+        DLLP_INITFC1_CPL
+      };
+    }
+
+    // InitFC2 State
+    else if (current_state == DL_INIT_FC2) {
+      dllp_type inside {
+        DLLP_INITFC2_P,
+        DLLP_INITFC2_NP,
+        DLLP_INITFC2_CPL
+      };
+    }
+  }
 
   // Credit values must be as advertised in the config
   constraint initfc1_credit{

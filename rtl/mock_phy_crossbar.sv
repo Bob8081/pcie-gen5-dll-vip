@@ -14,7 +14,6 @@ module mock_phy_crossbar #(
 
 
     // 1. The Data & Framing Crossbar
-    //TODO : review how to make it more accurate model of the phy (handshaking and simulating phy problems)
     // Route A's Transmit to B's Receive
     assign intf_B.pl_data     = intf_A.lp_data;
     assign intf_B.pl_valid    = intf_A.lp_valid;
