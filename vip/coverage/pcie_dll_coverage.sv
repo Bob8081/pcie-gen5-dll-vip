@@ -281,11 +281,10 @@ class pcie_dll_coverage extends uvm_subscriber #(pcie_dll_base_seq_item);
     // to be able to read inactive state every loop in the test
     fork 
       forever begin
-        wait (my_cfg.dlsm_state != prev_state) begin
-          prev_state = state;
+        wait (my_cfg.dlsm_state != state) begin
           state      = my_cfg.dlsm_state;
           tx_machine_transitions.sample();
-          cg_dllp_transitions.sample();
+          cg_dllp_transitions.sample(); 
         end
       end
     join_none
