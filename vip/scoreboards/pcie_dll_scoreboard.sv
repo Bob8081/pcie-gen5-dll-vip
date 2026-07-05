@@ -247,8 +247,10 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
             DLLP_INITFC1_NP,
             DLLP_INITFC1_CPL,
             next_order_step)) begin
-        fatal_msg = $sformatf("INITFC1_OUT_OF_ORDER: InitFC1 DLLPs out of order. Expected step %0d, observed %s.",
-          rx_initfc1_order_step, dllp_item.dllp_type.name());
+        fatal_msg = $sformatf("INITFC1_OUT_OF_ORDER: InitFC1 DLLPs out of order. Expected%s, observed %s.",
+          (rx_initfc1_order_step == 0) ? "DLLP_INITFC1_P"  :
+          (rx_initfc1_order_step == 1) ? "DLLP_INITFC1_NP" : "DLLP_INITFC1_CPL",
+          dllp_item.dllp_type.name());
         `uvm_error("SCOREBOARD", fatal_msg)
       end else begin
         rx_initfc1_order_step = next_order_step;
@@ -267,8 +269,10 @@ class pcie_dll_scoreboard extends uvm_scoreboard;
             DLLP_INITFC2_NP,
             DLLP_INITFC2_CPL,
             next_order_step)) begin
-        fatal_msg = $sformatf("INITFC2_OUT_OF_ORDER: InitFC2 DLLPs out of order. Expected step %0d, observed %s.",
-          rx_initfc2_order_step, dllp_item.dllp_type.name());
+        fatal_msg = $sformatf("INITFC2_OUT_OF_ORDER: InitFC2 DLLPs out of order. Expected%s, observed %s.",
+          (rx_initfc2_order_step == 0) ? "DLLP_INITFC2_P"  :
+          (rx_initfc2_order_step == 1) ? "DLLP_INITFC2_NP" : "DLLP_INITFC2_CPL",
+          dllp_item.dllp_type.name());
         `uvm_error("SCOREBOARD", fatal_msg)
       end else begin
         rx_initfc2_order_step = next_order_step;
