@@ -5,56 +5,66 @@ class pcie_dll_env_cfg extends uvm_object;
   pcie_speed_mode_e speed_mode;
   int unsigned      nbytes;
 
-  // Feature enables
-  rand bit               enable_replay; // Ack Nack
-  rand bit               enable_flow_control; // Flow control DLLPs
-  rand bit               enable_pwr_mgmt; // Power management DLLPs
-  rand bit               enable_lcrc_checking; // Whether to check LCRC in received TLPs
 
-  // Data Link Feature Settings (Scaled Flow Control Supported)
-  rand bit               rc_scaled_fc_supported;
-  rand bit               ep_scaled_fc_supported;
+  // control type of generated traffic behavior
+  bit               enable_errors;    // 0: error free item, 1: items may contain errors based on determined rate
+  bit               corrupted_initfc; // 0: normal behavior for INITFC state, 1: corrupted INITFC state (normal, reopeated and disorder packets)
+  bit               delayed_packets;  // 0: normal behavior, 1: delayed packets (INITFC and FEATURE packets are delayed by a random number of cycles)
+
+  // weights to control abnormal behavior rates
+       int unsigned     corrupted_initfc_weight; // weight for corrupted INITFC state (normal, reopeated and disorder packets)
+       int unsigned     crc_error_weight;          // weight for CRC error in DLLPs
+       int unsigned     invalid_dllp_weight;
+       int unsigned     invalid_VC_weight;
+       int unsigned     max_weight; // is 100 for initfc corrupted
+
+  // number of items iterations in sequences
+  rand int unsigned      req_count;
+
+  // Currently only simulates VC0
+  bit [3:0] Current_VC;
+
+  // Data Link Feature Settings
+  rand bit               scaled_fc_supported;
+
+  // Initial Flow Control Credits (Associative arrays indexed by pcie_fc_type_e)
+  rand bit [1:0]         init_fc_hdr_scale[pcie_fc_type_e]; // 2-bit scale factor for header credits (0=1x, 1=2x, 2=4x, 3=8x)
+  rand bit [7:0]         init_fc_hdr[pcie_fc_type_e]; // Initial header credits
+  rand bit [1:0]         init_fc_data_scale[pcie_fc_type_e]; // 2-bit scale factor for data credits
+  rand bit [11:0]        init_fc_data[pcie_fc_type_e]; // Initial data credits (scaled by init_fc_data_scale)
 
   // Timing and behavior knobs
-  rand int unsigned      ack_max_latency;
-  rand int unsigned      replay_timer_cycles; // ACK timeout
-  rand int unsigned      in_flight_replay_depth; // Max number of TLP in flight
-  rand int unsigned      num_tlp_per_sequence; // Number of TLP to send in each Vsequence
-  rand int unsigned      dllp_latency; // DLLP generated after TLP
+  
+  // Number of lclk cycles representing the 34 µs Init RX / Feature RX interval
+  // (PCIe Base Spec Rev 5.0). At 1 GHz, 34 µs = 34_000 cycles.
+  int unsigned           init_rx_interval_cycles;
 
 
-  // Reporting and coverage controls
-  bit               enable_coverage;
-  bit               verbose_scoreboard;
   uvm_verbosity     log_level;
 
   // Common constraints for randomized cfg objects.
   constraint legal_ranges_c {
     nbytes inside {4, 8, 16, 32, 64};
-    ack_max_latency inside {[1:1024]};
-    replay_timer_cycles inside {[4:65535]};
-    in_flight_replay_depth inside {[1:4096]};
-    num_tlp_per_sequence inside {[1:1000000]};
-    dllp_latency inside {[0:1024]};
+  }
+
+  constraint link_width_geometry_c {
+    if (link_width == PCIE_LINK_X1)  nbytes == 4;
+    if (link_width == PCIE_LINK_X2)  nbytes == 8;
+    if (link_width == PCIE_LINK_X4)  nbytes == 16;
+    if (link_width == PCIE_LINK_X8)  nbytes == 32;
+    if (link_width == PCIE_LINK_X16) nbytes == 64;
   }
 
   `uvm_object_utils_begin(pcie_dll_env_cfg)
     `uvm_field_enum(pcie_link_width_e, link_width, UVM_DEFAULT)
     `uvm_field_enum(pcie_speed_mode_e, speed_mode, UVM_DEFAULT)
     `uvm_field_int(nbytes, UVM_DEFAULT)
-    `uvm_field_int(enable_replay, UVM_DEFAULT)
-    `uvm_field_int(enable_flow_control, UVM_DEFAULT)
-    `uvm_field_int(enable_pwr_mgmt, UVM_DEFAULT)
-    `uvm_field_int(enable_lcrc_checking, UVM_DEFAULT)
-    `uvm_field_int(rc_scaled_fc_supported, UVM_DEFAULT)
-    `uvm_field_int(ep_scaled_fc_supported, UVM_DEFAULT)
-    `uvm_field_int(ack_max_latency, UVM_DEFAULT)
-    `uvm_field_int(replay_timer_cycles, UVM_DEFAULT)
-    `uvm_field_int(in_flight_replay_depth, UVM_DEFAULT)
-    `uvm_field_int(num_tlp_per_sequence, UVM_DEFAULT)
-    `uvm_field_int(dllp_latency, UVM_DEFAULT)
-    `uvm_field_int(enable_coverage, UVM_DEFAULT)
-    `uvm_field_int(verbose_scoreboard, UVM_DEFAULT)
+    `uvm_field_int(scaled_fc_supported, UVM_DEFAULT)
+    `uvm_field_int(init_rx_interval_cycles, UVM_DEFAULT)
+    `uvm_field_int(enable_errors, UVM_DEFAULT)
+    `uvm_field_int(corrupted_initfc, UVM_DEFAULT)
+    `uvm_field_int(delayed_packets, UVM_DEFAULT)
+    `uvm_field_int(req_count, UVM_DEFAULT)  
     `uvm_field_enum(uvm_verbosity, log_level, UVM_DEFAULT)
   `uvm_object_utils_end
 
@@ -68,24 +78,33 @@ class pcie_dll_env_cfg extends uvm_object;
     speed_mode            = PCIE_GEN5;
     nbytes                = 64;
 
-    enable_replay         = 1'b1;
-    enable_flow_control   = 1'b1;
-    enable_pwr_mgmt       = 1'b0;
-    enable_lcrc_checking  = 1'b1;
 
-    rc_scaled_fc_supported = 1'b0;
-    ep_scaled_fc_supported = 1'b0;
+    scaled_fc_supported = 1'b0;
 
-    ack_max_latency       = 16;
-    replay_timer_cycles   = 256;
-    in_flight_replay_depth = 64;
-    num_tlp_per_sequence  = 1;
-    dllp_latency          = 4;
+    init_fc_hdr_scale[FC_P]    = 2'b00;
+    init_fc_hdr[FC_P]          = 8'h20;
+    init_fc_data_scale[FC_P]   = 2'b00;
+    init_fc_data[FC_P]         = 12'h100;
 
+    init_fc_hdr_scale[FC_NP]   = 2'b00;
+    init_fc_hdr[FC_NP]         = 8'h20;
+    init_fc_data_scale[FC_NP]  = 2'b00;
+    init_fc_data[FC_NP]        = 12'h100;
 
-    enable_coverage       = 1'b1;
-    verbose_scoreboard    = 1'b0;
+    init_fc_hdr_scale[FC_CPL]  = 2'b00;
+    init_fc_hdr[FC_CPL]        = 8'h20;
+    init_fc_data_scale[FC_CPL] = 2'b00;
+    init_fc_data[FC_CPL]       = 12'h100;
+
+    init_rx_interval_cycles = 34_000; // 34 µs @ 1 GHz lclk
+
     log_level             = UVM_MEDIUM;
+
+    corrupted_initfc_weight = 40;
+    max_weight              = 100;
+    crc_error_weight        = 2;
+    invalid_dllp_weight     = 2;
+    invalid_VC_weight       = 3;
   endfunction
 
   function bit validate(ref string validation_error_msg);
@@ -96,35 +115,17 @@ class pcie_dll_env_cfg extends uvm_object;
       return 0;
     end
 
-    if (!(ack_max_latency inside {[1:1024]})) begin
-      validation_error_msg = "ack_max_latency must be in [1..1024]";
-      return 0;
-    end
-
-    if (!(replay_timer_cycles inside {[4:65535]})) begin
-      validation_error_msg = "replay_timer_cycles must be in [4..65535]";
-      return 0;
-    end
-
-    if (!(in_flight_replay_depth inside {[1:4096]})) begin
-      validation_error_msg = "in_flight_replay_depth must be in [1..4096]";
-      return 0;
-    end
-
-    if (!(num_tlp_per_sequence inside {[1:1000000]})) begin
-      validation_error_msg = "num_tlp_per_sequence must be in [1..1000000]";
-      return 0;
-    end
-
-    if (!(dllp_latency inside {[0:1024]})) begin
-      validation_error_msg = "dllp_latency must be in [0..1024]";
-      return 0;
-    end
 
     if (link_width == PCIE_LINK_X16 && nbytes != 64) begin
       validation_error_msg = "link_width PCIE_LINK_X16 requires nbytes=64";
       return 0;
     end
+
+    // to make sure corrupted initfc weight is within bounds
+  if (corrupted_initfc_weight > max_weight) begin
+    validation_error_msg = "corrupted_initfc_weight must not exceed max_weight";
+    return 0;
+  end
 
     return 1;
   endfunction
@@ -133,8 +134,8 @@ class pcie_dll_env_cfg extends uvm_object;
   static function void set_cfg(
       uvm_component    cntxt,
       string           inst_name,
-      string           field_name = "cfg",
-      pcie_dll_env_cfg cfg
+      pcie_dll_env_cfg cfg,
+      string           field_name = "cfg"
     );
     uvm_config_db#(pcie_dll_env_cfg)::set(cntxt, inst_name, field_name, cfg);
   endfunction
@@ -143,15 +144,15 @@ class pcie_dll_env_cfg extends uvm_object;
   static function bit get_cfg(
       uvm_component       cntxt,
       string              inst_name,
-      string              field_name,
-      ref pcie_dll_env_cfg cfg, 
-      bit                 required
+      ref pcie_dll_env_cfg cfg,
+      input string              field_name = "cfg",
+      input bit                 required = 1
     );
     bit ok;
 
     ok = uvm_config_db#(pcie_dll_env_cfg)::get(cntxt, inst_name, field_name, cfg);
     if (!ok && required) begin
-      `uvm_error("CFG_MISSING",
+      `uvm_error("NOCFG",
         $sformatf("Missing %s for %s", field_name, cntxt.get_full_name()))
     end
 
@@ -160,12 +161,9 @@ class pcie_dll_env_cfg extends uvm_object;
 
   function string summary();
     return $sformatf(
-      "link=%0d speed=Gen%0d nbytes=%0d replay=%0b fc=%0b lcrc=%0b rc_sfc=%0b ep_sfc=%0b ack_max=%0d replay_tmr=%0d depth=%0d",
+      "link=%0d speed=Gen%0d nbytes=%0d sfc=%0b",
       link_width, speed_mode, nbytes,
-      enable_replay, enable_flow_control, enable_lcrc_checking,
-      rc_scaled_fc_supported,
-      ep_scaled_fc_supported,
-      ack_max_latency, replay_timer_cycles, in_flight_replay_depth
+      scaled_fc_supported
     );
   endfunction
 

@@ -23,7 +23,8 @@ module tb_top;
     logic lclk;
     logic rst_n;
 
-    // 1 GHz clock 
+
+    // 1 GHz clock
     initial lclk = 0;
     always #0.5 lclk = ~lclk;
 
@@ -52,15 +53,17 @@ module tb_top;
         .intf_B (ep_if)
     );
 
-    // Simulation Body 
+    // Simulation Body
     // Publish testbench-level parameters to config_db, then run test.
     initial begin
         uvm_config_db#(int)::set(uvm_root::get(), "*", "tb_nbytes", NBYTES);
         uvm_config_db#(pcie_link_width_e)::set(uvm_root::get(), "*", "tb_link_width", PCIE_LINK_X16);
         uvm_config_db#(pcie_speed_mode_e)::set(uvm_root::get(), "*", "tb_speed_mode", PCIE_GEN5);
-
+        uvm_config_db#(virtual pcie_lpif_if)::set(uvm_root::get(), "*", "rc_vif", rc_if);
+        uvm_config_db#(virtual pcie_lpif_if)::set(uvm_root::get(), "*", "ep_vif", ep_if);
+        uvm_config_db#(virtual pcie_lpif_if)::set(uvm_root::get(), "*", "lnk_vif", rc_if);
         // Run Test
-        // run_test("pcie_dll_test_base");
+        run_test("test_base_with_feature");
     end
 
 endmodule

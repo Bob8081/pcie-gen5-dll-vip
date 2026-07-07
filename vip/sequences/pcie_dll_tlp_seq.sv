@@ -26,8 +26,13 @@ class pcie_dll_tlp_seq extends pcie_dll_base_seq;
     start_item(tlp_transaction);
 
     // Assign the fixed dummy payload (Directed Stimulus)
-    // Note: Bypassing randomize() is intentional here for specific payload injection
-    tlp_transaction.tlp = 128'hDEADBEEF_CAFEBABE_11223344_55667788;
+    if (!tlp_transaction.randomize() with { 
+            current_state == DL_ACTIVE;
+            tlp           == 128'hDEADBEEF_CAFEBABE_11223344_55667788;
+          }) begin
+        `uvm_fatal("SEQ_ITEM", "TLP Generation Failed!")
+      end
+    
 
     // Send the item to the Driver
     finish_item(tlp_transaction);

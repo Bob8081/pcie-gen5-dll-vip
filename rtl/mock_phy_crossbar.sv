@@ -14,7 +14,6 @@ module mock_phy_crossbar #(
 
 
     // 1. The Data & Framing Crossbar
-
     // Route A's Transmit to B's Receive
     assign intf_B.pl_data     = intf_A.lp_data;
     assign intf_B.pl_valid    = intf_A.lp_valid;
@@ -23,7 +22,8 @@ module mock_phy_crossbar #(
     assign intf_B.pl_dlpstart = intf_A.lp_dlpstart;
     assign intf_B.pl_dlpend   = intf_A.lp_dlpend;
     assign intf_B.pl_tlpedb   = PL_TLPEDB;
-    
+
+
     // Route B's Transmit to A's Receive
     assign intf_A.pl_data     = intf_B.lp_data;
     assign intf_A.pl_valid    = intf_B.lp_valid;
@@ -43,14 +43,14 @@ module mock_phy_crossbar #(
     // Instantly loop requests back as status
     assign intf_A.pl_state_sts = intf_A.lp_state_req;
     assign intf_B.pl_state_sts = intf_B.lp_state_req;
-
+    assign intf_B.pl_lnk_up = intf_A.pl_lnk_up ;
 
     // 3. LPIF Tie-Offs
 
     always_comb begin
         // Force Link status to UP for both sides
-        intf_A.pl_lnk_up = PL_LNK_UP;
-        intf_B.pl_lnk_up = PL_LNK_UP;
+        // intf_A.pl_lnk_up = intf_B.pl_lnk_up ;
+        // intf_B.pl_lnk_up = PL_LNK_UP;
 
         // In-band presence detected
         intf_A.pl_inband_pres = PL_INBAND_PRES;

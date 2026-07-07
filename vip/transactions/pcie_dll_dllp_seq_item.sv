@@ -5,9 +5,23 @@
 
 class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
 
+  pcie_dll_env_cfg   cfg;
+
   // ---- Control Signals ----
   // Drives the randomization of dllp_type based on the current Link state
-  rand pcie_dlcmsm_state_e  current_state;  
+  rand pcie_dlcmsm_state_e  current_state;
+
+  // control type of generated traffic behavior
+  bit                      enable_errors; // Whether to inject errors in the generated DLLPs using callbacks in driver
+  bit                      corrupted_initfc; // Whether to inject errors in InitFC DLLPs (only applicable if enable_errors is set)
+  bit                      delayed_packets; // Whether to introduce delays in packet transmission
+
+  // weights to control abnormal behavior rates
+  int unsigned            corrupted_initfc_weight; // weight for corrupted INITFC state (normal, reopeated and disorder packets)
+  int unsigned            crc_error_weight;          // weight for CRC error in DLLPs
+  int unsigned            invalid_dllp_weight;
+  int unsigned            invalid_VC_weight;
+  int unsigned            max_weight; // is 100 for initfc corrupted
 
   // ---- Core DLLP Fields ----
   rand pcie_dllp_type_e     dllp_type;      // INITFC1_P, FEATURE_REQ
@@ -30,7 +44,7 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
 
   // ---- UVM Factory Registration & Field Macros ----
   `uvm_object_utils_begin(pcie_dll_dllp_seq_item)
-    `uvm_field_enum(pcie_dlcmsm_state_e, current_state,   UVM_ALL_ON)
+    `uvm_field_enum(pcie_dlcmsm_state_e, current_state,  UVM_ALL_ON)
     `uvm_field_enum(pcie_dllp_type_e, dllp_type,         UVM_ALL_ON)
     `uvm_field_int (crc,                                 UVM_ALL_ON)
     `uvm_field_int (dllp_payload,                        UVM_ALL_ON)
@@ -52,82 +66,135 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
   // ---- Constraints ----
 
   // Default state is inactive, can be overridden by Sequences
-  constraint state_constr { 
+  constraint state_constr {
     soft current_state inside {DL_INACTIVE};
   }
 
-  // Back-to-back traffic is highly probable, with occasional slight delays
-  constraint delay_constr { 
+  // Back-to-back traffic delay distribution (in cycles) for delayed packet generation
+  constraint delay_constr {
     delay dist {
-      0  := 90, 
-      10 := 9, 
-      20 := 1
+      0      := 20,
+      10000  := 30,
+      35000  := 50
     };
   }
 
-  // Ensures the generated DLLP type strictly matches the current Link state
-  constraint dllp_type_constr { 
-    
+
+    // Ensures the generated DLLP type strictly matches the current Link state
+  constraint dllp_type_constr {
+
     // Feature Exchange State
-    if (current_state == 3'b001) { 
+    if (current_state == DL_FEATURE_EXCH) {
       dllp_type == DLLP_FEATURE_REQ;
-    } 
-    
+    }
+
     // InitFC1 State
-    else if (current_state == 3'b010) { 
-      dllp_type inside { 
-        DLLP_INITFC1_P, 
-        DLLP_INITFC1_NP, 
-        DLLP_INITFC1_CPL 
+    else if (current_state == DL_INIT_FC1) {
+      dllp_type inside {
+        DLLP_INITFC1_P,
+        DLLP_INITFC1_NP,
+        DLLP_INITFC1_CPL
       };
-    } 
-    
+    }
+
     // InitFC2 State
-    else if (current_state == 3'b110) { 
-      dllp_type inside { 
-        DLLP_INITFC2_P, 
-        DLLP_INITFC2_NP, 
-        DLLP_INITFC2_CPL  
+    else if (current_state == DL_INIT_FC2) {
+      dllp_type inside {
+        DLLP_INITFC2_P,
+        DLLP_INITFC2_NP,
+        DLLP_INITFC2_CPL
       };
-    } 
+    }
+  }
+
+  // Credit values must be as advertised in the config
+  constraint initfc1_credit{
+    if (dllp_type inside {DLLP_INITFC1_P, DLLP_INITFC2_P}) {
+      hdr_scale  == cfg.init_fc_hdr_scale[FC_P];
+      hdr_FC     == cfg.init_fc_hdr[FC_P];
+      data_scale == cfg.init_fc_data_scale[FC_P];
+      data_FC    == cfg.init_fc_data[FC_P];
+    }
+
+    else if (dllp_type inside {DLLP_INITFC1_NP, DLLP_INITFC2_NP}) {
+      hdr_scale  == cfg.init_fc_hdr_scale[FC_NP];
+      hdr_FC     == cfg.init_fc_hdr[FC_NP];
+      data_scale == cfg.init_fc_data_scale[FC_NP];
+      data_FC    == cfg.init_fc_data[FC_NP];
+    }
+
+    else if (dllp_type inside {DLLP_INITFC1_CPL, DLLP_INITFC2_CPL}) {
+      hdr_scale  == cfg.init_fc_hdr_scale[FC_CPL];
+      hdr_FC     == cfg.init_fc_hdr[FC_CPL];
+      data_scale == cfg.init_fc_data_scale[FC_CPL];
+      data_FC    == cfg.init_fc_data[FC_CPL];
+    }
+  }
+
+  constraint scl_flow_control {
+    feature_support inside {0, 1};
   }
 
   // ---- Methods ----
+  // pre_randomize
+  function void pre_randomize();
+    // Get config from uvm_config_db using sequencer context
+    if (!uvm_config_db#(pcie_dll_env_cfg)::get(m_sequencer, "", "cfg", cfg)) begin
+      `uvm_fatal("NOCFG", "Failed to get pcie_dll_env_cfg from config_db")
+    end
+
+    enable_errors           = cfg.enable_errors;
+    corrupted_initfc        = cfg.corrupted_initfc;
+    delayed_packets         = cfg.delayed_packets;
+
+    corrupted_initfc_weight = cfg.corrupted_initfc_weight;
+    crc_error_weight        = cfg.crc_error_weight;
+    invalid_dllp_weight     = cfg.invalid_dllp_weight;
+    invalid_VC_weight       = cfg.invalid_VC_weight;
+    max_weight              = cfg.max_weight;
+
+    super.pre_randomize();
+  endfunction
 
   // post_randomize() — Assembles payload, calculates CRC, and concatenates final 48-bit DLLP
   function void post_randomize();
     bit [31:0] full_data; // Temporary variable to hold Type + Payload for CRC calculation
-       
+
     // Construct the 24-bit Payload based on the randomized type
     if (dllp_type == DLLP_FEATURE_REQ) begin
       dllp_payload = {feature_ack, feature_support};
-    end 
+    end
     else begin // Applies to both InitFC1 and InitFC2
       dllp_payload = {hdr_scale, hdr_FC, data_scale, data_FC};
     end
 
-    // Calculate the 16-bit CRC
-    full_data = {dllp_type, dllp_payload};
-    crc       = pcie_dll_pkg::crc_generator::calculate_pcie_crc(full_data);
-      
-    // Assemble the final 48-bit DLLP (Type + Payload + CRC)
-    dllp      = pack();
+    // Compute CRC on the 4 wire-ordered data bytes directly.
+    crc  = crc16_generator::calculate_dllp_crc(pack_data());
+    // Assemble the 48-bit wire word
+    dllp = pack();
+
+
+    `uvm_info("SEQ_ITEM", $sformatf("corrupted_initfc= %0b and enable_errors= %0b and delayed_packets= %0b", corrupted_initfc, enable_errors, delayed_packets), UVM_LOW);
+
   endfunction
 
-  // pack() — serialize the transaction into the 48-bit wire representation.
-  // Layout (MSB→LSB): [47:40] dllp_type | [39:16] dllp_payload | [15:0] crc
-  // Driver calls this to get the value to place on lp_data[47:0].
+  // Returns the 4 pre-CRC bytes in wire order (byte 0 at [7:0]).
+  function bit [31:0] pack_data();
+    return {dllp_payload[23:16], dllp_payload[15:8], dllp_payload[7:0], dllp_type[7:0]};
+  endfunction
+
+
   function bit [47:0] pack();
-    return {dllp_type, dllp_payload, crc};
+    // Byte 0 (dllp_type) at LSB, CRC at MSB
+    return {crc, dllp_payload, dllp_type};
   endfunction
 
-  // unpack() — deserialize a raw 48-bit bus word back into all named fields.
   // Monitor calls this after reconstructing the wire word from lp_data/pl_data.
   function void unpack(bit [47:0] raw);
     dllp         = raw;
-    dllp_type    = pcie_dllp_type_e'(raw[47:40]);
-    dllp_payload = raw[39:16];
-    crc          = raw[15:0];
+    dllp_type    = pcie_dllp_type_e'(raw[7:0]);
+    dllp_payload = raw[31:8];
+    crc          = raw[47:32];
 
     // Expand payload sub-fields based on decoded type
     if (dllp_type == DLLP_FEATURE_REQ) begin
@@ -139,6 +206,12 @@ class pcie_dll_dllp_seq_item extends pcie_dll_base_seq_item;
       data_scale = dllp_payload[13:12];
       data_FC    = dllp_payload[11:0];
     end
+  endfunction
+
+  // Verifies the unpacked CRC against the computed CRC for the unpacked payload.
+  // Can be used by monitors or scoreboards to check data integrity.
+  function bit verify_crc(); // return one if crc is error free
+    return (crc == crc16_generator::calculate_dllp_crc(pack_data()));
   endfunction
 
 endclass : pcie_dll_dllp_seq_item

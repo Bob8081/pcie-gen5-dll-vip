@@ -1,7 +1,11 @@
 CLAUDE.md
 GEMINI.md
 .github/
+GEMINI.md
+.github/
 .dvt/
+.gemini/
+.claude/    
 .gemini/
 .claude/    
 docs/UVM_TESTBENCH_ARCHITECTURE_PLAN.md
@@ -9,6 +13,11 @@ dvt_build.log
 docs_local/
 docs/MOCK_PHY_SPEC.md
 docs/LPIF_INTERFACE_SPEC.md
+work/
+transcript
+*.ucdb
+*.txt
+coverage_html
 work/
 transcript
 *.ucdb
