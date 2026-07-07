@@ -12,21 +12,15 @@ package pcie_dll_pkg;
     PCIE_LINK_X16 = 16
   } pcie_link_width_e;
 
+  // Values are in MT/s
   typedef enum int unsigned {
-    PCIE_GEN1 = 1,
-    PCIE_GEN2 = 2,
-    PCIE_GEN3 = 3,
-    PCIE_GEN4 = 4,
-    PCIE_GEN5 = 5
+    PCIE_GEN1 =  2500,  //  2.5 GT/s
+    PCIE_GEN2 =  5000,  //  5   GT/s
+    PCIE_GEN3 =  8000,  //  8   GT/s
+    PCIE_GEN4 = 16000,  // 16   GT/s
+    PCIE_GEN5 = 32000   // 32   GT/s
   } pcie_speed_mode_e;
 
-  // typedef enum int unsigned {
-  //   TLP_MRD,
-  //   TLP_MWR,
-  //   TLP_CPLD,
-  //   TLP_MSG,
-  //   TLP_OTHER
-  // } pcie_tlp_type_e;
 
   typedef enum bit {
     ROLE_RC = 1'b0,

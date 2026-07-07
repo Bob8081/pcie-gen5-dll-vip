@@ -29,7 +29,7 @@ interface pcie_lpif_if #(
     logic [NBYTES-1:0]     pl_tlpend;
     logic [NBYTES-1:0]     pl_dlpstart;
     logic [NBYTES-1:0]     pl_dlpend;
-    logic [NBYTES-1:0]     pl_tlpedb;      // TLP End Bad (Error injection)
+    logic [NBYTES-1:0]     pl_tlpedb;
 
     // Static Configuration & Tie-offs (Driven by Mock PHY)
     logic [2:0]            pl_lnk_cfg;     // Link width

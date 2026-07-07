@@ -40,10 +40,7 @@ class pcie_dll_env_cfg extends uvm_object;
   int unsigned           init_rx_interval_cycles;
 
 
-  // Reporting and coverage controls
-  rand bit               enable_coverage;
-  rand bit               verbose_scoreboard;
-  rand uvm_verbosity     log_level;
+  uvm_verbosity     log_level;
 
   // Common constraints for randomized cfg objects.
   constraint legal_ranges_c {
