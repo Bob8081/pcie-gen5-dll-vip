@@ -67,5 +67,5 @@ A ready-made `run.do` script in `vip/` wraps these steps.
 
 | Document | Purpose |
 |---|---|
-| [`docs/VIP_USER_GUIDE.md`](docs_local/VIP_USER_GUIDE.md) | **Start here** — wiring, config objects, writing tests, error injection, coverage collection |
+| [`docs/VIP_USER_GUIDE.md`](docs/VIP_USER_GUIDE.md) | **Start here** — wiring, config objects, writing tests, error injection, coverage collection |
 
