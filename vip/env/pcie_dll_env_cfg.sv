@@ -101,9 +101,13 @@ class pcie_dll_env_cfg extends uvm_object;
 
     init_rx_interval_cycles = 34_000; // 34 µs @ 1 GHz lclk
 
-    enable_coverage       = 1'b1;
-    verbose_scoreboard    = 1'b0;
     log_level             = UVM_MEDIUM;
+
+    corrupted_initfc_weight = 40;
+    max_weight              = 100;
+    crc_error_weight        = 2;
+    invalid_dllp_weight     = 2;
+    invalid_VC_weight       = 3;
   endfunction
 
   function bit validate(ref string validation_error_msg);

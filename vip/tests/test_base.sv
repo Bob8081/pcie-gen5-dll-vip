@@ -65,20 +65,6 @@ class pcie_dll_test_base extends uvm_test;
     uvm_config_db#(pcie_dll_role_e)::set(this, "env_rc*", "role", ROLE_RC);
     uvm_config_db#(pcie_dll_role_e)::set(this, "env_ep*", "role", ROLE_EP);
 
-    // assign values of abnormal behavior weights
-    cfg_rc.corrupted_initfc_weight = 40;
-    cfg_ep.corrupted_initfc_weight = 40;
-    cfg_rc.max_weight              = 100;
-    cfg_ep.max_weight              = 100;
-    cfg_rc.crc_error_weight        = 2;
-    cfg_ep.crc_error_weight        = 2;
-    cfg_rc.invalid_dllp_weight     = 2;
-    cfg_ep.invalid_dllp_weight     = 2;
-    cfg_rc.invalid_VC_weight       = 3;
-    cfg_ep.invalid_VC_weight       = 3;
-
-
-
     // Instantiate environments and IF agent
     env_rc   = pcie_dll_env::type_id::create("env_rc",   this);
     env_ep   = pcie_dll_env::type_id::create("env_ep",   this);
