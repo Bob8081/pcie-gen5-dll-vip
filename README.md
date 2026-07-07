@@ -21,6 +21,12 @@ that routes each side's `lp_*` Tx signals to the other's `pl_*` Rx signals.
 
 ---
 
+## VIP Architecture
+
+![VIP UVM Architecture](docs/VIP_Plan.png)
+
+---
+
 ## Key components
 
 | Component | Role |
