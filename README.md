@@ -23,7 +23,7 @@ that routes each side's `lp_*` Tx signals to the other's `pl_*` Rx signals.
 
 ## VIP Architecture
 
-![VIP UVM Architecture](docs/VIP_Plan.png)
+![VIP UVM Architecture](docs/PCIE_DLL_VIP_UVM_ARCH.png)
 
 ---
 
@@ -74,4 +74,5 @@ A ready-made `run.do` script in `vip/` wraps these steps.
 | Document | Purpose |
 |---|---|
 | [`docs/VIP_USER_GUIDE.md`](docs/VIP_USER_GUIDE.md) | **Start here** — wiring, config objects, writing tests, error injection, coverage collection |
+| [`docs/UVM_TESTBENCH_ARCHITECTURE_PLAN.md`](docs/UVM_TESTBENCH_ARCHITECTURE_PLAN.md) | **UVM Testbench Architecture Plan** — detailed component responsibilities, scoreboard checks, sequences, and environment topology |
 
